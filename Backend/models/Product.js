@@ -2,69 +2,88 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
+    // Basic Info
     name: {
       type: String,
       required: true,
-      trim: true,
     },
     description: {
       type: String,
       required: true,
-      trim: true,
     },
     price: {
       type: Number,
       required: true,
-      min: 0,
     },
     category: {
       type: String,
       required: true,
       enum: [
-        "Electronics",
-        "Fashion",
-        "Home",
-        "Sports",
-        "Books",
-        "Toys",
-        "Beauty",
-        "Food",
-        "Other",
+        "Smartphones",
+        "Laptops",
+        "PC Components",
+        "Accessories",
+        "Tablets",
+        "Gaming",
+        "Networking",
       ],
     },
     brand: {
       type: String,
-      trim: true,
+      required: true,
     },
-    images: [
-      {
-        type: String,
-        default: "https://via.placeholder.com/300",
-      },
-    ],
+    image: {
+      type: String,
+      required: true,
+    },
+
+    // Inventory
     stock: {
       type: Number,
       required: true,
-      min: 0,
       default: 0,
     },
+
+    // Ratings
     rating: {
       type: Number,
+      default: 0,
       min: 0,
       max: 5,
-      default: 0,
     },
     numReviews: {
       type: Number,
       default: 0,
     },
+
+    // Flags
     isFeatured: {
       type: Boolean,
       default: false,
     },
-    isActive: {
+    isNewArrival: {
       type: Boolean,
       default: true,
+    },
+    isBestSeller: {
+      type: Boolean,
+      default: false,
+    },
+    isOnSale: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Tech Specifications (optional)
+    specifications: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
+    // Warranty
+    warranty: {
+      type: Number,
+      default: 12, // months
     },
   },
   {

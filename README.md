@@ -18,7 +18,7 @@
 
 ## 📁 Project Structure
 
-ecommerce-site/
+E-commerce-site/
 ├── Frontend/ # React frontend
 ├── Backend/ # Node.js backend
 ├── README.md # This file

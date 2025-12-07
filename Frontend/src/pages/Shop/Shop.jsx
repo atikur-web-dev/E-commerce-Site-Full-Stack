@@ -38,26 +38,10 @@ const Shop = () => {
     }
   };
 
-  // Handle sort
+  // Handle sort - REMOVE THIS FUNCTION
+  // Since we don't have backend sorting, we'll sort locally
   const handleSortChange = (sortType) => {
     setSortBy(sortType);
-    const params = {};
-
-    switch (sortType) {
-      case "price-low":
-        params.sort = "price";
-        break;
-      case "price-high":
-        params.sort = "-price";
-        break;
-      case "rating":
-        params.sort = "-rating";
-        break;
-      default:
-        params.sort = "-createdAt";
-    }
-
-    fetchProducts(params);
   };
 
   // Sort products locally for display
@@ -70,7 +54,7 @@ const Shop = () => {
       case "price-high":
         return sorted.sort((a, b) => b.price - a.price);
       case "rating":
-        return sorted.sort((a, b) => b.rating - a.rating);
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case "newest":
       default:
         return sorted;
@@ -79,12 +63,46 @@ const Shop = () => {
 
   const sortedProducts = getSortedProducts();
 
+  // Debug info
+  useEffect(() => {
+    console.log("🛒 Shop Component:");
+    console.log("   Products:", products.length);
+    console.log("   Categories:", categories);
+    console.log("   Loading:", loading);
+    console.log("   Error:", error);
+  }, [products, loading, error]);
+
   return (
     <div className="shop-page">
       {/* Hero Section */}
+      {/* Hero Section */}
       <div className="shop-hero">
-        <h1>Our Products</h1>
-        <p>Discover amazing products at great prices</p>
+        <h1>TechHub Pro Store</h1>
+        <p>
+          Premium Tech Products - Smartphones • Laptops • PC Components •
+          Accessories
+        </p>
+        <div className="tech-tags">
+          <span className="tech-tag">🚀 Latest Technology</span>
+          <span className="tech-tag">⚡ Fast Delivery</span>
+          <span className="tech-tag">🛡️ 1 Year Warranty</span>
+          <span className="tech-tag">💯 Authentic Products</span>
+        </div>
+      </div>
+
+      {/* Debug Info - Remove after testing */}
+      <div
+        style={{
+          background: "#f0f0f0",
+          padding: "10px",
+          margin: "10px",
+          borderRadius: "5px",
+        }}
+      >
+        <small>
+          Products: {products.length} | Categories: {categories.length} |
+          Loading: {loading ? "Yes" : "No"} | Error: {error || "None"}
+        </small>
       </div>
 
       {/* Filters and Search */}
@@ -153,6 +171,9 @@ const Shop = () => {
         ) : sortedProducts.length === 0 ? (
           <div className="no-products">
             <p>No products found. Try a different search or category.</p>
+            <button onClick={() => fetchProducts()} className="retry-button">
+              Load All Products
+            </button>
           </div>
         ) : (
           <>
@@ -162,7 +183,10 @@ const Shop = () => {
 
             <div className="products-grid">
               {sortedProducts.map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <ProductCard
+                  key={product._id || product.id}
+                  product={product}
+                />
               ))}
             </div>
           </>

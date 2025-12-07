@@ -15,6 +15,7 @@
 ./Backend/routes/order.js
 ./Backend/routes/product.js
 ./Backend/seedProducts.js
+./Backend/seedTestUser.js
 ./Backend/server.js
 ./Frontend/index.html
 ./Frontend/package-lock.json
@@ -46,8 +47,7 @@
 ./Frontend/src/pages/Shop/Shop.jsx
 ./Frontend/src/services/api.js
 ./Frontend/src/utils/constants.js
-./Frontend/vite.config.js
-./package-lock.json
+./Frontend/src/utils/testAuth.js
 === PACKAGE.JSON CONTENTS ===
 
 {
