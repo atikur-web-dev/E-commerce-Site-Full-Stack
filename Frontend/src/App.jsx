@@ -1,0 +1,58 @@
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ProductProvider } from "./context/ProductContext";
+import { CartProvider } from "./context/CartContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Import Pages
+import Home from "./pages/Home/Home";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import Shop from "./pages/Shop/Shop";
+import Cart from "./pages/Cart/Cart";
+import ProductDetail from "./pages/ProductDetail/ProductDetail";
+
+// Import Components
+import Header from "./components/common/Header/Header";
+import Footer from "./components/common/Footer/Footer";
+
+// Import CSS
+import "./App.css";
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <ProductProvider>
+          <CartProvider>
+            <div className="app">
+              <Header />
+              <main className="main-content">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+
+                  <Route
+                    path="/cart"
+                    element={
+                      <ProtectedRoute>
+                        <Cart />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;

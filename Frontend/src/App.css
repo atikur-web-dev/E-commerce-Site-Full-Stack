@@ -1,0 +1,38 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 70px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  .main-content {
+    padding-top: 60px;
+  }
+}
+/* Main content spacing for header */
+.main-content {
+  flex: 1;
+  padding-top: 70px; /* Header height */
+  min-height: calc(100vh - 120px);
+}
+
+/* Mobile spacing */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 60px;
+  }
+}
