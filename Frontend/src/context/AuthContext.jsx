@@ -284,7 +284,7 @@ export const AuthProvider = ({ children }) => {
     hasToken,
     getAuthHeader,
     isAdmin,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: () => !!user && !!token, // ✅ CHANGED TO FUNCTION
 
     // Error handling
     clearError: () => setError(""),

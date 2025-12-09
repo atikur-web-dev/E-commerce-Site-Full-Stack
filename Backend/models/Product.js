@@ -1,8 +1,8 @@
+// Backend/models/Product.js - সম্পূর্ণ ফাইলটা এটার সাথে replace করো
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
-    // Basic Info
     name: {
       type: String,
       required: true,
@@ -18,15 +18,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        "Smartphones",
-        "Laptops",
-        "PC Components",
-        "Accessories",
-        "Tablets",
-        "Gaming",
-        "Networking",
-      ],
+      // ✅ ENUM টা remove করছি - সব category accept করবে
     },
     brand: {
       type: String,
@@ -36,15 +28,11 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    // Inventory
     stock: {
       type: Number,
       required: true,
       default: 0,
     },
-
-    // Ratings
     rating: {
       type: Number,
       default: 0,
@@ -55,8 +43,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
-    // Flags
     isFeatured: {
       type: Boolean,
       default: false,
@@ -73,17 +59,13 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    // Tech Specifications (optional)
     specifications: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
-
-    // Warranty
     warranty: {
       type: Number,
-      default: 12, // months
+      default: 12,
     },
   },
   {
@@ -92,5 +74,4 @@ const productSchema = new mongoose.Schema(
 );
 
 const Product = mongoose.model("Product", productSchema);
-
 export default Product;

@@ -3,8 +3,10 @@
 ./Backend/controllers/cartController.js
 ./Backend/controllers/orderController.js
 ./Backend/controllers/productController.js
+./Backend/manualSeed.js
 ./Backend/middleware/auth.js
 ./Backend/models/Cart.js
+./Backend/models/Category.js
 ./Backend/models/Order.js
 ./Backend/models/Product.js
 ./Backend/models/User.js
@@ -46,8 +48,6 @@
 ./Frontend/src/pages/Register/Register.jsx
 ./Frontend/src/pages/Shop/Shop.jsx
 ./Frontend/src/services/api.js
-./Frontend/src/utils/constants.js
-./Frontend/src/utils/testAuth.js
 === PACKAGE.JSON CONTENTS ===
 
 {
@@ -63,6 +63,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.3"
   },

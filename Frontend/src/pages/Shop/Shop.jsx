@@ -121,23 +121,22 @@ const Shop = () => {
               🔍
             </button>
           </form>
-
           {/* Category Filter */}
-          <div className="category-filter">
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="category-select"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
 
+          <select
+            value={selectedCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="category-select"
+          >
+            <option value="all">All Tech Products</option>
+            <option value="Smartphones">Smartphones</option>
+            <option value="Laptops">Laptops</option>
+            <option value="Tablets">Tablets</option>
+            <option value="Gaming">Gaming</option>
+            <option value="PC Components">PC Components</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Networking">Networking</option>
+          </select>
           {/* Sort Filter */}
           <div className="sort-filter">
             <select

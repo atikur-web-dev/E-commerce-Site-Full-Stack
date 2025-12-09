@@ -1,194 +1,132 @@
+// ./Frontend/src/components/products/ProductCard/ProductCard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
+import { useAuth } from "../../../context/AuthContext";
 import "./ProductCard.css";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart({ ...product, quantity: 1 });
-  };
 
-  // Tech icons by category
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case "Smartphones":
-        return "📱";
-      case "Laptops":
-        return "💻";
-      case "PC Components":
-        return "⚡";
-      case "Accessories":
-        return "🎧";
-      default:
-        return "🔧";
+    if (!isAuthenticated()) {
+      const shouldLogin = window.confirm(
+        "Please login to add items to cart. Go to login page?"
+      );
+      if (shouldLogin) {
+        window.location.href = "/login";
+      }
+      return;
+    }
+
+    const success = addToCart({ ...product, quantity: 1 });
+
+    if (success) {
+      // Success animation
+      const btn = e.currentTarget;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "✓ Added!";
+      btn.classList.add("added");
+
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove("added");
+      }, 1500);
     }
   };
 
-  // Tech specs preview
-  const getTechSpecs = () => {
-    if (!product.specifications) return null;
-
-    switch (product.category) {
-      case "Smartphones":
-        return `${product.specifications.ram || "8GB"} RAM • ${
-          product.specifications.display || "6.1-inch"
-        }`;
-      case "Laptops":
-        return `${product.specifications.processor || "Intel i7"} • ${
-          product.specifications.ram || "16GB"
-        }`;
-      case "PC Components":
-        return `${product.specifications.memory || "16GB"} • ${
-          product.specifications.clock || "3.5GHz"
-        }`;
-      case "Accessories":
-        return `${product.specifications.features || "Wireless"} • ${
-          product.specifications.battery || "20h battery"
-        }`;
-      default:
-        return null;
-    }
-  };
+  // Calculate discount price
+  const hasDiscount = product.discount > 0;
+  const discountedPrice = hasDiscount
+    ? (product.price * (100 - product.discount)) / 100
+    : product.price;
 
   // Stock status
-  const isInStock = product.stock > 0;
-  const stockStatus = isInStock ? `${product.stock} in stock` : "Out of stock";
-
-  // Price formatting
-  const formattedPrice = product.price.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
-
-  // Rating stars
-  const renderStars = () => {
-    const fullStars = Math.floor(product.rating || 0);
-    const hasHalfStar = (product.rating || 0) % 1 >= 0.5;
-
-    return (
-      <div className="product-rating">
-        {"★".repeat(fullStars)}
-        {hasHalfStar && "⯪"}
-        {"☆".repeat(5 - fullStars - (hasHalfStar ? 1 : 0))}
-        <span className="rating-value">
-          ({product.rating?.toFixed(1) || "0.0"})
-        </span>
-      </div>
-    );
-  };
+  const isInStock = product.countInStock > 0 || product.stock > 0;
+  const stockCount = product.countInStock || product.stock || 0;
 
   return (
     <div className="product-card">
-      {/* Tech Badges */}
-      <div className="tech-badges">
-        {product.isFeatured && (
-          <span className="tech-badge featured">Featured</span>
-        )}
-        {product.isNewArrival && <span className="tech-badge new">New</span>}
-        {product.isBestSeller && (
-          <span className="tech-badge bestseller">Bestseller</span>
-        )}
-        {!isInStock && (
-          <span className="tech-badge out-of-stock">Out of Stock</span>
-        )}
-      </div>
+      {/* Discount Badge */}
+      {hasDiscount && (
+        <div className="discount-badge">-{product.discount}%</div>
+      )}
 
       {/* Product Image */}
-      <div className="product-image-container">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="product-image"
-          onError={(e) => {
-            e.target.src =
-              "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&auto=format&fit=crop";
-          }}
-        />
+      <div className="product-image-wrapper">
+        <Link to={`/product/${product._id || product.id}`}>
+          <img
+            src={
+              product.image ||
+              product.images?.[0] ||
+              "https://via.placeholder.com/300x200?text=No+Image"
+            }
+            alt={product.name}
+            className="product-image"
+            onError={(e) => {
+              e.target.src =
+                "https://via.placeholder.com/300x200?text=No+Image";
+            }}
+          />
+        </Link>
 
-        {/* Quick Actions Overlay */}
-        <div className="quick-actions">
-          <button className="quick-action-btn" title="Quick View">
-            👁️
-          </button>
-          <button className="quick-action-btn" title="Add to Wishlist">
-            ❤️
-          </button>
-        </div>
+        {/* Quick View Button */}
       </div>
 
       {/* Product Info */}
       <div className="product-info">
         {/* Category */}
         <div className="product-category">
-          <span className="category-icon">
-            {getCategoryIcon(product.category)}
-          </span>
-          {product.category}
+          {product.category || "Uncategorized"}
         </div>
-
         {/* Product Name */}
         <h3 className="product-name">
           <Link to={`/product/${product._id || product.id}`}>
             {product.name}
           </Link>
         </h3>
-
-        {/* Tech Specs Preview */}
-        {getTechSpecs() && (
-          <div className="tech-specs-preview">
-            <span className="spec-item">{getTechSpecs()}</span>
-          </div>
-        )}
-
-        {/* Description (Truncated) */}
-        <p className="product-description">
-          {product.description.length > 100
-            ? `${product.description.substring(0, 100)}...`
-            : product.description}
-        </p>
-
         {/* Rating */}
-        {renderStars()}
-
-        {/* Price & Stock */}
-        <div className="product-price-section">
+        <div className="product-rating">
+          <div className="stars">
+            {"★".repeat(Math.floor(product.rating || 0))}
+            {"☆".repeat(5 - Math.floor(product.rating || 0))}
+          </div>
+          <span className="rating-count">({product.numReviews || 0})</span>
+        </div>
+        {/* Description */}
+        <p className="product-description">
+          {product.description
+            ? product.description.length > 80
+              ? `${product.description.substring(0, 80)}...`
+              : product.description
+            : "No description available"}
+        </p>
+        {/* Price Section */}
+        <div className="price-section">
           <div className="price-container">
-            <span className="product-price">
-              <span className="currency">$</span>
-              {formattedPrice}
-            </span>
-            {product.isOnSale && (
+            <span className="current-price">${discountedPrice.toFixed(2)}</span>
+            {hasDiscount && (
               <span className="original-price">
-                ${(product.price * 1.2).toFixed(2)}
+                ${product.price.toFixed(2)}
               </span>
             )}
           </div>
 
+          {/* Stock Status */}
           <div
             className={`stock-status ${
               isInStock ? "in-stock" : "out-of-stock"
             }`}
           >
-            {isInStock ? `✅ ${stockStatus}` : `❌ ${stockStatus}`}
+            {isInStock ? `🟢 ${stockCount} in stock` : "🔴 Out of stock"}
           </div>
         </div>
-
-        {/* Warranty */}
-        {product.warranty && (
-          <div className="warranty-info">
-            <span className="warranty-icon">🛡️</span>
-            <span className="warranty-text">
-              {product.warranty} Months Warranty
-            </span>
-          </div>
-        )}
-
         {/* Action Buttons */}
+        // ProductCard.jsx এর view details button section
         <div className="product-actions">
           <button
             className={`add-to-cart-btn ${!isInStock ? "disabled" : ""}`}
@@ -196,15 +134,17 @@ const ProductCard = ({ product }) => {
             disabled={!isInStock}
           >
             <span className="cart-icon">🛒</span>
-            {isInStock ? "Add to Cart" : "Out of Stock"}
+            <span className="btn-text">
+              {isInStock ? "Add to Cart" : "Out of Stock"}
+            </span>
           </button>
 
           <Link
             to={`/product/${product._id || product.id}`}
             className="view-details-btn"
-            title="View Details"
           >
-            👁️
+            <span className="details-text">View Details</span>
+            <span className="details-arrow">→</span>
           </Link>
         </div>
       </div>

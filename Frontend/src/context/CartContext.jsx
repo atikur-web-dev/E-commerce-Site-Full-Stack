@@ -1,4 +1,6 @@
+// ./Frontend/src/context/CartContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { useAuth } from "./AuthContext"; // ✅ IMPORT করো
 
 const CartContext = createContext();
 
@@ -12,30 +14,34 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
-    // Load from localStorage
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  // Save to localStorage whenever cart changes
+  const { isAuthenticated } = useAuth(); // ✅ USE করো
+
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Add item to cart
+  // ✅ MODIFIED FUNCTION WITH LOGIN CHECK
   const addToCart = (product) => {
+    // Login check
+    if (!isAuthenticated()) {
+      alert("⚠️ Please login to add items to cart");
+      return false;
+    }
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item._id === product._id);
 
       if (existingItem) {
-        // Update quantity if item exists
         return prevItems.map((item) =>
           item._id === product._id
             ? { ...item, quantity: item.quantity + (product.quantity || 1) }
             : item
         );
       } else {
-        // Add new item
         return [
           ...prevItems,
           {
@@ -45,16 +51,16 @@ export const CartProvider = ({ children }) => {
         ];
       }
     });
+
+    return true;
   };
 
-  // Remove item from cart
   const removeFromCart = (productId) => {
     setCartItems((prevItems) =>
       prevItems.filter((item) => item._id !== productId)
     );
   };
 
-  // Update item quantity
   const updateQuantity = (productId, quantity) => {
     if (quantity < 1) {
       removeFromCart(productId);
@@ -68,17 +74,14 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Clear cart
   const clearCart = () => {
     setCartItems([]);
   };
 
-  // Calculate total items
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
-  // Calculate total price
   const getTotalPrice = () => {
     return cartItems.reduce(
       (total, item) => total + item.price * item.quantity,
@@ -86,14 +89,13 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Check if item is in cart
   const isInCart = (productId) => {
     return cartItems.some((item) => item._id === productId);
   };
 
   const value = {
     cartItems,
-    addToCart,
+    addToCart, // ✅ Updated function
     removeFromCart,
     updateQuantity,
     clearCart,
