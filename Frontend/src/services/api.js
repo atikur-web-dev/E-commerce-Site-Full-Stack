@@ -214,7 +214,7 @@ export const cartAPI = {
   // Add item to cart
   addToCart: async (productId, quantity = 1) => {
     try {
-      const response = await API.post("/cart/add", { productId, quantity });
+      const response = await API.post("/cart", { productId, quantity });
       return response;
     } catch (error) {
       throw error;
@@ -254,8 +254,8 @@ export const cartAPI = {
   // Get cart count
   getCartCount: async () => {
     try {
-      const response = await API.get("/cart/count");
-      return response.count || 0;
+      const response = await API.get("/cart");
+      return response.data?.items?.length || 0;
     } catch (error) {
       return 0;
     }

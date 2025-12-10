@@ -1,175 +1,69 @@
+// ./Frontend/src/pages/ProductDetail/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useProducts } from "../../context/ProductContext";
+import { useAuth } from "../../context/AuthContext";
 import "./ProductDetail.css";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const { addToCart } = useCart();
-  const { fetchProductById } = useProducts();
+  const {
+    fetchProductById,
+    currentProduct,
+    loading,
+    error,
+    clearCurrentProduct,
+  } = useProducts();
+  const { isAuthenticated } = useAuth();
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Fetch product data
+  // Load product
   useEffect(() => {
+    if (!id) {
+      console.error("❌ No product ID in URL");
+      return;
+    }
+
+    console.log("🔄 ProductDetail: Loading product with ID:", id);
+
     const loadProduct = async () => {
       try {
-        setLoading(true);
-        console.log("🔄 Loading product ID:", id);
-
-        // Try to fetch from backend
-        const response = await fetch(
-          `http://localhost:5000/api/products/${id}`
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("✅ Product data:", data);
-
-          if (data.product) {
-            setProduct(data.product);
-          } else {
-            setError("Product not found");
-          }
-        } else {
-          // If backend fails, use mock data
-          console.log("⚠️ Backend failed, using mock data");
-          setProduct(getMockProduct(id));
-        }
+        await fetchProductById(id);
+        setIsInitialLoad(false);
       } catch (err) {
-        console.error("❌ Error:", err);
-        setError("Failed to load product");
-        // Use mock data as fallback
-        setProduct(getMockProduct(id));
-      } finally {
-        setLoading(false);
+        console.error("Failed to load product:", err);
       }
     };
 
     loadProduct();
-  }, [id]);
 
-  // Mock data fallback
-  const getMockProduct = (productId) => {
-    const mockProducts = {
-      1: {
-        _id: "1",
-        name: "iPhone 15 Pro",
-        price: 1299.99,
-        images: [
-          "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500",
-        ],
-        category: "Electronics",
-        rating: 4.8,
-        description:
-          "Latest Apple smartphone with A17 Pro chip and titanium design. Features advanced camera system and all-day battery life.",
-        stock: 50,
-        isFeatured: true,
-        brand: "Apple",
-      },
-      2: {
-        _id: "2",
-        name: "Nike Air Max 270",
-        price: 129.99,
-        images: [
-          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
-        ],
-        category: "Fashion",
-        rating: 4.5,
-        description:
-          "Comfortable running shoes with Max Air cushioning. Perfect for daily wear and workouts.",
-        stock: 100,
-        isFeatured: true,
-        brand: "Nike",
-      },
-      3: {
-        _id: "3",
-        name: "MacBook Pro 16-inch",
-        price: 2499.99,
-        images: [
-          "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
-        ],
-        category: "Electronics",
-        rating: 4.9,
-        description:
-          "Professional laptop with M3 Pro chip for creators. Features Liquid Retina XDR display.",
-        stock: 25,
-        isFeatured: true,
-        brand: "Apple",
-      },
+    // Cleanup function
+    return () => {
+      console.log("🧹 ProductDetail: Cleaning up...");
+      clearCurrentProduct();
     };
-
-    return mockProducts[productId] || null;
-  };
-
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="product-detail-page">
-        <div className="container">
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading product...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle error state
-  if (error && !product) {
-    return (
-      <div className="product-not-found">
-        <div className="container">
-          <h1>Error Loading Product</h1>
-          <p>{error}</p>
-          <Link to="/shop" className="btn btn-primary">
-            Back to Shop
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle product not found
-  if (!product) {
-    return (
-      <div className="product-not-found">
-        <div className="container">
-          <h1>Product Not Found</h1>
-          <p>Sorry, the product you're looking for doesn't exist.</p>
-          <Link to="/shop" className="btn btn-primary">
-            Back to Shop
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Prepare images
-  const productImages =
-    product.images && product.images.length > 0
-      ? product.images
-      : [
-          product.image ||
-            "https://via.placeholder.com/500x500?text=Product+Image",
-        ];
+  }, [id]);
 
   // Handle add to cart
   const handleAddToCart = () => {
-    if (product.stock > 0) {
-      const cartItem = {
-        ...product,
-        quantity: quantity,
-      };
-      addToCart(cartItem);
-      alert(`${quantity} ${product.name} added to cart!`);
+    if (!isAuthenticated()) {
+      alert("Please login to add items to cart");
+      navigate("/login");
+      return;
+    }
+
+    if (currentProduct && currentProduct.stock > 0) {
+      const success = addToCart({ ...currentProduct, quantity });
+      if (success) {
+        alert(`${quantity} ${currentProduct.name} added to cart!`);
+      }
     } else {
       alert("This product is out of stock!");
     }
@@ -177,142 +71,238 @@ const ProductDetail = () => {
 
   // Handle quantity change
   const handleQuantityChange = (change) => {
+    if (!currentProduct) return;
+
     const newQuantity = quantity + change;
-    const maxQuantity = Math.min(product.stock, 10);
+    const maxQuantity = Math.min(currentProduct.stock, 10);
 
     if (newQuantity >= 1 && newQuantity <= maxQuantity) {
       setQuantity(newQuantity);
     }
   };
 
-  return (
-    <div className="product-detail-page">
-      <div className="container">
-        {/* Breadcrumb */}
-        <nav className="breadcrumb">
-          <Link to="/" className="breadcrumb-link">
-            Home
-          </Link>
-          <span className="breadcrumb-separator">/</span>
-          <Link to="/shop" className="breadcrumb-link">
-            Shop
-          </Link>
-          <span className="breadcrumb-separator">/</span>
-          <span className="breadcrumb-current">{product.name}</span>
-        </nav>
+  // Loading state
+  if (loading && isInitialLoad) {
+    return (
+      <div className="product-detail-page">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Product Content */}
-        <div className="product-detail-content">
-          {/* Image Gallery */}
-          <div className="product-gallery">
-            <div className="main-image">
-              <img
-                src={productImages[selectedImage]}
-                alt={product.name}
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/500x500?text=Product+Image";
-                }}
-              />
+  // Error state
+  if (error || !currentProduct) {
+    return (
+      <div className="product-not-found">
+        <h2>Product Not Found</h2>
+        <p>{error || "The product you're looking for doesn't exist."}</p>
+        <button onClick={() => navigate("/shop")} className="back-to-shop-btn">
+          ← Back to Shop
+        </button>
+      </div>
+    );
+  }
+
+  // Prepare images
+  const productImages =
+    currentProduct.images && currentProduct.images.length > 0
+      ? currentProduct.images
+      : [
+          currentProduct.image ||
+            "https://via.placeholder.com/600x400?text=No+Image",
+        ];
+
+  return (
+    <div className="product-detail-container">
+      {/* Breadcrumb */}
+      <div className="breadcrumb">
+        <button onClick={() => navigate("/")}>Home</button> /
+        <button onClick={() => navigate("/shop")}>Shop</button> /
+        <button
+          onClick={() => navigate(`/shop?category=${currentProduct.category}`)}
+        >
+          {currentProduct.category}
+        </button>{" "}
+        /<span>{currentProduct.name}</span>
+      </div>
+
+      <div className="product-detail-grid">
+        {/* Left Column - Images */}
+        <div className="product-images">
+          <div className="main-image">
+            <img
+              src={productImages[selectedImage]}
+              alt={currentProduct.name}
+              onError={(e) => {
+                e.target.src =
+                  "https://via.placeholder.com/600x400?text=No+Image";
+              }}
+            />
+          </div>
+
+          {productImages.length > 1 && (
+            <div className="image-thumbnails">
+              {productImages.map((img, index) => (
+                <button
+                  key={index}
+                  className={`thumbnail-btn ${
+                    selectedImage === index ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedImage(index)}
+                >
+                  <img
+                    src={img}
+                    alt={`${currentProduct.name} view ${index + 1}`}
+                  />
+                </button>
+              ))}
             </div>
-            {productImages.length > 1 && (
-              <div className="image-thumbnails">
-                {productImages.map((image, index) => (
-                  <button
-                    key={index}
-                    className={`thumbnail ${
-                      selectedImage === index ? "active" : ""
-                    }`}
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <img src={image} alt={`${product.name} ${index + 1}`} />
-                  </button>
-                ))}
-              </div>
+          )}
+        </div>
+
+        {/* Right Column - Info */}
+        <div className="product-info">
+          <div className="product-header">
+            <h1 className="product-title">{currentProduct.name}</h1>
+
+            <div className="product-meta">
+              <span className="product-category">
+                {currentProduct.category}
+              </span>
+              <span className="product-brand">{currentProduct.brand}</span>
+            </div>
+
+            <div className="product-rating">
+              <span className="stars">
+                {"★".repeat(Math.floor(currentProduct.rating || 0))}
+                {"☆".repeat(5 - Math.floor(currentProduct.rating || 0))}
+              </span>
+              <span className="rating-value">
+                ({currentProduct.numReviews || 0} reviews)
+              </span>
+            </div>
+          </div>
+
+          <div className="product-price-section">
+            <span className="current-price">
+              ${currentProduct.price.toFixed(2)}
+            </span>
+            {currentProduct.isOnSale && (
+              <span className="original-price">
+                ${(currentProduct.price * 1.2).toFixed(2)}
+              </span>
             )}
           </div>
 
-          {/* Product Info */}
-          <div className="product-info">
-            <div className="product-header">
-              <h1 className="product-title">{product.name}</h1>
-              {product.brand && (
-                <p className="product-brand">Brand: {product.brand}</p>
-              )}
-              <div className="product-rating">
-                <span className="stars">
-                  {"★".repeat(Math.floor(product.rating || 0))}
-                  {"☆".repeat(5 - Math.floor(product.rating || 0))}
-                </span>
-                <span className="rating-value">({product.rating || 0})</span>
-              </div>
-            </div>
+          <div
+            className={`stock-status ${
+              currentProduct.stock > 0 ? "in-stock" : "out-of-stock"
+            }`}
+          >
+            {currentProduct.stock > 0
+              ? `✅ ${currentProduct.stock} in stock`
+              : "❌ Out of stock"}
+          </div>
 
-            <p className="product-category">Category: {product.category}</p>
+          <div className="product-description">
+            <h3>Description</h3>
+            <p>{currentProduct.description}</p>
+          </div>
 
-            <div className="product-price-section">
-              <span className="product-price">${product.price.toFixed(2)}</span>
-              <span
-                className={`product-stock ${
-                  product.stock > 0 ? "in-stock" : "out-of-stock"
-                }`}
-              >
-                {product.stock > 0
-                  ? `In Stock (${product.stock} available)`
-                  : "Out of Stock"}
-              </span>
-            </div>
-
-            <p className="product-description">{product.description}</p>
-
-            {/* Add to Cart Section */}
-            {product.stock > 0 ? (
-              <div className="add-to-cart-section">
-                <div className="quantity-selector">
-                  <label htmlFor="quantity">Quantity:</label>
-                  <div className="quantity-controls">
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange(-1)}
-                      disabled={quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span className="quantity-display">{quantity}</span>
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= Math.min(product.stock, 10)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <span className="max-quantity">
-                    Max: {Math.min(product.stock, 10)} per order
-                  </span>
+          {/* Specifications */}
+          {currentProduct.specifications &&
+            Object.keys(currentProduct.specifications).length > 0 && (
+              <div className="specifications">
+                <h3>Specifications</h3>
+                <div className="specs-grid">
+                  {Object.entries(currentProduct.specifications).map(
+                    ([key, value]) => (
+                      <div key={key} className="spec-item">
+                        <span className="spec-key">{key}:</span>
+                        <span className="spec-value">{value}</span>
+                      </div>
+                    )
+                  )}
                 </div>
-                <button
-                  className="btn btn-primary add-to-cart-btn"
-                  onClick={handleAddToCart}
-                >
-                  Add to Cart - ${(product.price * quantity).toFixed(2)}
-                </button>
               </div>
-            ) : (
-              <button className="btn btn-secondary" disabled>
-                Out of Stock
-              </button>
             )}
 
-            {/* Back to Shop Button */}
-            <div className="action-buttons">
+          {/* Add to Cart Section */}
+          {currentProduct.stock > 0 && (
+            <div className="add-to-cart-section">
+              <div className="quantity-control">
+                <label>Quantity:</label>
+                <div className="quantity-input">
+                  <button
+                    onClick={() => handleQuantityChange(-1)}
+                    disabled={quantity <= 1}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    min="1"
+                    max={Math.min(currentProduct.stock, 10)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (
+                        val >= 1 &&
+                        val <= Math.min(currentProduct.stock, 10)
+                      ) {
+                        setQuantity(val);
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={quantity >= Math.min(currentProduct.stock, 10)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Total Price Display */}
+              <div className="total-price-section">
+                <div className="price-breakdown">
+                  <div className="price-row">
+                    <span>Price per item:</span>
+                    <span className="price-value">
+                      ${currentProduct.price.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="price-row">
+                    <span>Quantity:</span>
+                    <span className="quantity-value">{quantity}</span>
+                  </div>
+                  <div className="price-row total">
+                    <span className="total-label">Total:</span>
+                    <span className="total-value">
+                      ${(currentProduct.price * quantity).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <button
-                className="btn btn-outline"
-                onClick={() => navigate("/shop")}
+                className="add-to-cart-btn"
+                onClick={handleAddToCart}
+                disabled={currentProduct.stock === 0}
               >
-                Continue Shopping
+                <span className="cart-icon">🛒</span>
+                <span>Add to Cart</span>
               </button>
             </div>
+          )}
+
+          {/* Warranty */}
+          <div className="warranty-info">
+            <span className="warranty-icon">🛡️</span>
+            <span>{currentProduct.warranty || 12} Months Warranty</span>
           </div>
         </div>
       </div>

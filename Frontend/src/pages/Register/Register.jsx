@@ -80,7 +80,9 @@ const Register = () => {
     }
 
     setIsSubmitting(true);
-    setSuccessMessage(""); // Clear any previous success message
+    setSuccessMessage("");
+    // Clear previous errors
+    setErrors({});
 
     const userData = {
       name: formData.name.trim(),
@@ -95,7 +97,7 @@ const Register = () => {
     setIsSubmitting(false);
 
     if (result.success) {
-      // ✅ SUCCESS: Show message and redirect to login
+      // ✅ SUCCESS
       setSuccessMessage(
         "🎉 Registration successful! Please login with your credentials."
       );
@@ -118,8 +120,19 @@ const Register = () => {
         });
       }, 3000);
     } else {
-      // ❌ ERROR: Show error message
-      setErrors({ api: result.error || "Registration failed" });
+      // ✅ ERROR: Show specific error message
+      if (result.error.includes("already exists")) {
+        setErrors({
+          email:
+            "This email is already registered. Please use a different email or try logging in.",
+        });
+      } else if (result.error.includes("Password")) {
+        setErrors({
+          password: result.error,
+        });
+      } else {
+        setErrors({ api: result.error });
+      }
     }
   };
 
@@ -162,7 +175,9 @@ const Register = () => {
               autoComplete="name"
             />
             {errors.name && (
-              <span className="error-message">{errors.name}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.name}
+              </span>
             )}
           </div>
 
@@ -183,7 +198,9 @@ const Register = () => {
               autoComplete="email"
             />
             {errors.email && (
-              <span className="error-message">{errors.email}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.email}
+              </span>
             )}
           </div>
 
@@ -204,7 +221,9 @@ const Register = () => {
               autoComplete="new-password"
             />
             {errors.password && (
-              <span className="error-message">{errors.password}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.password}
+              </span>
             )}
           </div>
 
@@ -225,14 +244,18 @@ const Register = () => {
               autoComplete="new-password"
             />
             {errors.confirmPassword && (
-              <span className="error-message">{errors.confirmPassword}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.confirmPassword}
+              </span>
             )}
           </div>
 
-          {/* API Error */}
-          {errors.api && <div className="api-error">{errors.api}</div>}
-          {apiError && !errors.api && (
-            <div className="api-error">{apiError}</div>
+          {/* ✅ API Error Display */}
+          {errors.api && (
+            <div className="api-error-message">
+              <span className="error-icon">❌</span>
+              <span className="error-text">{errors.api}</span>
+            </div>
           )}
 
           {/* Terms & Conditions */}

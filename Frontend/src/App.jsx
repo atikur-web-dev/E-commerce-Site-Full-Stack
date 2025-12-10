@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProductProvider } from "./context/ProductContext";
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Import Pages
 import Home from "./pages/Home/Home";
@@ -22,36 +23,38 @@ import "./App.css";
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <ProductProvider>
-          <CartProvider>
-            <div className="app">
-              <Header />
-              <main className="main-content">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <ProductProvider>
+            <CartProvider>
+              <div className="app">
+                <Header />
+                <main className="main-content">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
 
-                  <Route
-                    path="/cart"
-                    element={
-                      <ProtectedRoute>
-                        <Cart />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          </CartProvider>
-        </ProductProvider>
-      </AuthProvider>
-    </Router>
+                    <Route
+                      path="/cart"
+                      element={
+                        <ProtectedRoute>
+                          <Cart />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </CartProvider>
+          </ProductProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

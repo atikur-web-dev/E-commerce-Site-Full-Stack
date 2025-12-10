@@ -1,4 +1,6 @@
 ./Backend/.env
+./Backend/checkCategories.js
+./Backend/clearDB.js
 ./Backend/controllers/authController.js
 ./Backend/controllers/cartController.js
 ./Backend/controllers/orderController.js
@@ -19,6 +21,7 @@
 ./Backend/seedProducts.js
 ./Backend/seedTestUser.js
 ./Backend/server.js
+./Backend/simpleSeed.js
 ./Frontend/index.html
 ./Frontend/package-lock.json
 ./Frontend/package.json
@@ -30,6 +33,8 @@
 ./Frontend/src/components/common/Footer/index.js
 ./Frontend/src/components/common/Header/Header.jsx
 ./Frontend/src/components/common/Header/index.js
+./Frontend/src/components/common/Loading/Loading.jsx
+./Frontend/src/components/ErrorBoundary.jsx
 ./Frontend/src/components/products/ProductCard/index.js
 ./Frontend/src/components/products/ProductCard/ProductCard.jsx
 ./Frontend/src/components/products/ProductList/index.js
@@ -42,12 +47,7 @@
 ./Frontend/src/pages/Cart/Cart.jsx
 ./Frontend/src/pages/Home/Home.jsx
 ./Frontend/src/pages/Login/Login.jsx
-./Frontend/src/pages/ProductDetail/index.js
-./Frontend/src/pages/ProductDetail/ProductDetail.jsx
-./Frontend/src/pages/Register/index.js
-./Frontend/src/pages/Register/Register.jsx
-./Frontend/src/pages/Shop/Shop.jsx
-./Frontend/src/services/api.js
+./Frontend/src/pages/NotFound/NotFound.jsx
 === PACKAGE.JSON CONTENTS ===
 
 {

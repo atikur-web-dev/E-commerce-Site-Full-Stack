@@ -14,7 +14,8 @@ const products = [
     price: 1299.99,
     category: "Smartphones", // ✅ Exact match with enum
     brand: "Apple",
-    image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500",
+    image: "/images/products/Mobile/iPhone 15 Pro Max.jpg",
+
     stock: 15,
     rating: 4.8,
     numReviews: 124,

@@ -80,6 +80,8 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
+    // Clear previous errors
+    setErrors({});
 
     const result = await login({
       email: formData.email,
@@ -95,6 +97,11 @@ const Login = () => {
       }
 
       navigate(from, { replace: true });
+    } else {
+      // Show API error in form
+      setErrors({
+        api: result.error || "Login failed. Please try again.",
+      });
     }
   };
 
@@ -135,7 +142,9 @@ const Login = () => {
               autoComplete="email"
             />
             {errors.email && (
-              <span className="error-message">{errors.email}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.email}
+              </span>
             )}
           </div>
 
@@ -161,7 +170,9 @@ const Login = () => {
               autoComplete="current-password"
             />
             {errors.password && (
-              <span className="error-message">{errors.password}</span>
+              <span className="error-message">
+                <span className="error-icon">⚠</span> {errors.password}
+              </span>
             )}
           </div>
 
@@ -179,8 +190,13 @@ const Login = () => {
             </label>
           </div>
 
-          {/* API Error */}
-          {apiError && <div className="api-error">{apiError}</div>}
+          {/* ✅ API Error Display */}
+          {errors.api && (
+            <div className="api-error-message">
+              <span className="error-icon">❌</span>
+              <span className="error-text">{errors.api}</span>
+            </div>
+          )}
 
           {/* Submit Button */}
           <button type="submit" className="submit-btn" disabled={isSubmitting}>
