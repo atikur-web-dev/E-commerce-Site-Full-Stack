@@ -1,6 +1,7 @@
 // Backend/controllers/productController.js
 import Product from "../models/Product.js";
 import asyncHandler from "express-async-handler";
+import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -183,6 +184,126 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     console.error("Delete Product Error:", error);
     res.status(500).json({
       message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+export const uploadProductImage = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload an image file',
+      });
+    }
+
+    // Upload to Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: 'shopeasy/products',
+      transformation: [
+        { width: 800, height: 800, crop: 'limit' },
+        { quality: 'auto' },
+        { format: 'webp' },
+      ],
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Image uploaded successfully',
+      data: {
+        url: result.secure_url,
+        publicId: result.public_id,
+        format: result.format,
+        width: result.width,
+        height: result.height,
+        size: result.bytes,
+      },
+    });
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading image',
+      error: error.message,
+    });
+  }
+});
+
+// @desc    Upload multiple product images
+// @route   POST /api/products/upload-multiple
+// @access  Private/Admin
+export const uploadMultipleImages = asyncHandler(async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload at least one image',
+      });
+    }
+
+    const uploadPromises = req.files.map(async (file) => {
+      const result = await uploadToCloudinary(file.buffer, {
+        folder: 'shopeasy/products',
+        transformation: [
+          { width: 800, height: 800, crop: 'limit' },
+          { quality: 'auto' },
+          { format: 'webp' },
+        ],
+      });
+      
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+        format: result.format,
+        width: result.width,
+        height: result.height,
+        size: result.bytes,
+      };
+    });
+
+    const uploadedImages = await Promise.all(uploadPromises);
+
+    res.status(200).json({
+      success: true,
+      message: `${uploadedImages.length} images uploaded successfully`,
+      data: uploadedImages,
+    });
+  } catch (error) {
+    console.error('Multiple image upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading images',
+      error: error.message,
+    });
+  }
+});
+
+// @desc    Delete product image from Cloudinary
+// @route   DELETE /api/products/image/:publicId
+// @access  Private/Admin
+export const deleteProductImage = asyncHandler(async (req, res) => {
+  try {
+    const { publicId } = req.params;
+
+    const result = await deleteFromCloudinary(publicId);
+
+    if (result.result === 'ok') {
+      res.status(200).json({
+        success: true,
+        message: 'Image deleted successfully',
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to delete image',
+      });
+    }
+  } catch (error) {
+    console.error('Image delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting image',
       error: error.message,
     });
   }
