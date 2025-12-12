@@ -14,6 +14,7 @@ import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
 import orderRoutes from "./routes/order.js";
+import analyticsRoutes from "./routes/analytics.js"; // ✅ NEW IMPORT
 
 // Load environment variables
 dotenv.config();
@@ -160,6 +161,9 @@ app.use("/api/cart", cartRoutes);
 // Order Routes
 app.use("/api/orders", orderRoutes);
 
+// Analytics Routes - ✅ NEW ROUTE
+app.use("/api/analytics", analyticsRoutes);
+
 // Test Route
 app.get("/api/test", (req, res) => {
   res.json({
@@ -190,11 +194,31 @@ app.get("/api/cors-test", (req, res) => {
   });
 });
 
+// Analytics test route - ✅ NEW ROUTE
+app.get("/api/analytics/test", (req, res) => {
+  res.json({
+    message: "Analytics API is working!",
+    version: "1.0.0",
+    endpoints: {
+      dashboard: "GET /api/analytics/dashboard (Admin)",
+      inventory: "GET /api/analytics/inventory (Admin)",
+    },
+    features: [
+      "Sales analytics and reporting",
+      "Inventory management insights",
+      "Category-wise performance",
+      "Top selling products",
+      "User growth statistics",
+    ],
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Home Route
 app.get("/", (req, res) => {
   res.json({
     message: "ShopEasy Backend API is running!",
-    version: "3.0.0",
+    version: "3.1.0", // ✅ UPDATED VERSION
     database:
       mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
     frontend: "http://localhost:5173",
@@ -233,6 +257,11 @@ app.get("/", (req, res) => {
         pay: "PUT /api/orders/:id/pay (Protected)",
         deliver: "PUT /api/orders/:id/deliver (Admin)",
       },
+      analytics: { // ✅ NEW SECTION
+        dashboard: "GET /api/analytics/dashboard (Admin)",
+        inventory: "GET /api/analytics/inventory (Admin)",
+        test: "GET /api/analytics/test",
+      },
     },
     documentation: "http://localhost:5000/health",
   });
@@ -254,7 +283,7 @@ app.get("/health", (req, res) => {
     database: statusMap[dbStatus] || "Unknown",
     uptime: process.uptime(),
     server: "Express.js",
-    version: "3.0.0",
+    version: "3.1.0", // ✅ UPDATED VERSION
     cors: {
       enabled: true,
       allowedOrigins: allowedOrigins,
@@ -262,7 +291,19 @@ app.get("/health", (req, res) => {
     },
     authentication: "JWT Enabled",
     models: ["User", "Product", "Cart", "Order"],
-    routes: ["/api/auth", "/api/products", "/api/cart", "/api/orders"],
+    routes: [
+      "/api/auth",
+      "/api/products",
+      "/api/cart",
+      "/api/orders",
+      "/api/analytics", // ✅ NEW ROUTE
+    ],
+    features: {
+      advancedAnalytics: true, // ✅ NEW FEATURE
+      realTimeReports: true,
+      inventoryTracking: true,
+      salesDashboard: true,
+    },
   });
 });
 // ===================================================
@@ -297,6 +338,7 @@ app.use((req, res) => {
       "/health",
       "/api/test",
       "/api/cors-test",
+      "/api/analytics/test", // ✅ NEW ENDPOINT
       "/api/auth/register",
       "/api/auth/login",
       "/api/auth/profile",
@@ -338,7 +380,7 @@ const startServer = async () => {
        Frontend URL: http://localhost:5173
        Health Check: http://localhost:${PORT}/health
        CORS Test: http://localhost:${PORT}/api/cors-test
-       Test Route: http://localhost:${PORT}/api/test
+       Analytics Test: http://localhost:${PORT}/api/analytics/test
        
         Auth Routes: 
          • Register: POST http://localhost:${PORT}/api/auth/register
@@ -358,6 +400,10 @@ const startServer = async () => {
         Order Routes:
          • Create Order: POST http://localhost:${PORT}/api/orders
          • My Orders: GET http://localhost:${PORT}/api/orders/myorders
+       
+        Analytics Routes: - ✅ NEW
+         • Dashboard: GET http://localhost:${PORT}/api/analytics/dashboard (Admin)
+         • Inventory: GET http://localhost:${PORT}/api/analytics/inventory (Admin)
        
         Main Route: http://localhost:${PORT}/
        ==============================================
