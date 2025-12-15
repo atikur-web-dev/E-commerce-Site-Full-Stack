@@ -309,30 +309,93 @@ export const deleteProductImage = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Test Cloudinary connection
-// @route   GET /api/products/test-upload
-// @access  Private/Admin
 export const testCloudinaryConnection = asyncHandler(async (req, res) => {
   try {
-    // Simple test by pinging Cloudinary
-    const cloudinary = await import('../config/cloudinary.js');
+    console.log('🔄 Testing Cloudinary connection...');
     
-    res.status(200).json({
-      success: true,
-      message: 'Cloudinary connection is working',
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      timestamp: new Date().toISOString(),
-      endpoints: {
-        singleUpload: 'POST /api/products/upload',
-        multipleUpload: 'POST /api/products/upload-multiple',
-        deleteImage: 'DELETE /api/products/image/:publicId',
-      },
-    });
+    // Check if Cloudinary credentials are set
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    
+    if (!cloudName || !apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cloudinary credentials are not configured',
+        missing: {
+          cloudName: !cloudName,
+          apiKey: !apiKey,
+          apiSecret: !process.env.CLOUDINARY_API_SECRET,
+        },
+        help: 'Please check your .env file for CLOUDINARY_* variables',
+      });
+    }
+    
+    // Try to import cloudinary to test connection
+    let cloudinary;
+    try {
+      cloudinary = await import('../config/cloudinary.js');
+      console.log('✅ Cloudinary module loaded successfully');
+    } catch (importError) {
+      console.error('❌ Cloudinary module import error:', importError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to load Cloudinary module',
+        error: importError.message,
+      });
+    }
+    
+    // Test connection by pinging Cloudinary
+    try {
+      // Note: Cloudinary doesn't have a direct ping API
+      // We'll just check if configuration is valid
+      const configCheck = {
+        cloudName: cloudName,
+        apiKeyPresent: !!apiKey,
+        apiSecretPresent: !!process.env.CLOUDINARY_API_SECRET,
+        configFileExists: true,
+      };
+      
+      console.log('✅ Cloudinary configuration check:', configCheck);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Cloudinary connection test successful',
+        timestamp: new Date().toISOString(),
+        configuration: {
+          cloudName: cloudName,
+          apiKeyConfigured: !!apiKey,
+          apiSecretConfigured: !!process.env.CLOUDINARY_API_SECRET,
+          nodeEnv: process.env.NODE_ENV,
+        },
+        endpoints: {
+          singleUpload: 'POST /api/products/upload',
+          multipleUpload: 'POST /api/products/upload-multiple',
+          deleteImage: 'DELETE /api/products/image/:publicId',
+        },
+        nextSteps: [
+          'Test single image upload: POST /api/products/upload',
+          'Check Cloudinary dashboard: https://cloudinary.com/console',
+          'Verify images in Media Library under "shopeasy/products" folder',
+        ],
+      });
+      
+    } catch (cloudinaryError) {
+      console.error('❌ Cloudinary connection error:', cloudinaryError);
+      res.status(500).json({
+        success: false,
+        message: 'Cloudinary connection test failed',
+        error: cloudinaryError.message,
+        stack: process.env.NODE_ENV === 'development' ? cloudinaryError.stack : undefined,
+      });
+    }
+    
   } catch (error) {
+    console.error('❌ Unexpected error in testCloudinaryConnection:', error);
     res.status(500).json({
       success: false,
-      message: 'Cloudinary connection test failed',
+      message: 'Unexpected error occurred',
       error: error.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });

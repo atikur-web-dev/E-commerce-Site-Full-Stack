@@ -1,4 +1,4 @@
-// Backend/routes/product.js - CORRECT ORDER
+// Backend/routes/product.js - COMPLETE CORRECT VERSION
 import express from "express";
 import {
   getProducts,
@@ -19,11 +19,12 @@ import { uploadSingle, uploadMultiple, checkFileUpload } from "../middleware/upl
 
 const router = express.Router();
 
-// ====================== IMPORTANT: SPECIFIC ROUTES FIRST ======================
+// ====================== SPECIFIC ROUTES FIRST ======================
 
-// ✅ Week 4, Day 2: Image Upload Routes - THESE SHOULD COME FIRST
+// ✅ MUST BE FIRST: Test Cloudinary connection
 router.get("/test-upload", protect, admin, testCloudinaryConnection);
 
+// ✅ Image Upload Routes
 router.post(
   "/upload",
   protect,
@@ -52,12 +53,12 @@ router.get("/category/:category", getProductsByCategory);
 
 // ====================== DYNAMIC ROUTES LAST ======================
 
-// Get all products & Create product
+// Get all products & Create product (DYNAMIC - MUST BE LAST)
 router.route("/")
   .get(getProducts)
   .post(protect, admin, createProduct);
 
-// Get single product, Update, Delete
+// Get single product, Update, Delete (DYNAMIC - MUST BE LAST)
 router.route("/:id")
   .get(getProductById)
   .put(protect, admin, updateProduct)
