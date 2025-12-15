@@ -21,6 +21,8 @@ import { uploadSingle } from "./middleware/upload.js";
 import { uploadToCloudinary } from "./config/cloudinary.js";
 import { protect, admin } from "./middleware/auth.js";
 
+import paymentRoutes from './routes/payment.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -168,6 +170,8 @@ app.use("/api/orders", orderRoutes);
 
 // Analytics Routes
 app.use("/api/analytics", analyticsRoutes);
+
+app.use("/api/payment", paymentRoutes);
 
 // ====================== CLOUDINARY UPLOAD ROUTES ======================
 // Test Cloudinary connection
