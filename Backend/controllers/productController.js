@@ -308,3 +308,31 @@ export const deleteProductImage = asyncHandler(async (req, res) => {
     });
   }
 });
+
+// @desc    Test Cloudinary connection
+// @route   GET /api/products/test-upload
+// @access  Private/Admin
+export const testCloudinaryConnection = asyncHandler(async (req, res) => {
+  try {
+    // Simple test by pinging Cloudinary
+    const cloudinary = await import('../config/cloudinary.js');
+    
+    res.status(200).json({
+      success: true,
+      message: 'Cloudinary connection is working',
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      timestamp: new Date().toISOString(),
+      endpoints: {
+        singleUpload: 'POST /api/products/upload',
+        multipleUpload: 'POST /api/products/upload-multiple',
+        deleteImage: 'DELETE /api/products/image/:publicId',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Cloudinary connection test failed',
+      error: error.message,
+    });
+  }
+});

@@ -1,35 +1,66 @@
-import express from 'express';
-import { uploadSingle, uploadMultiple, checkFileUpload } from '../middleware/upload.js';
+// Backend/routes/product.js - CORRECT ORDER
+import express from "express";
 import {
-  createProduct,
   getProducts,
+  getProductsByCategory,
   getProductById,
+  getFeaturedProducts,
+  createProduct,
   updateProduct,
   deleteProduct,
-  getFeaturedProducts,
-  getProductsByCategory,
+  // Week 4, Day 2: Image Upload Functions
   uploadProductImage,
   uploadMultipleImages,
   deleteProductImage,
-} from '../controllers/productController.js';
-import { protect, admin } from '../middleware/auth.js';
+  testCloudinaryConnection,
+} from "../controllers/productController.js";
+import { protect, admin } from "../middleware/auth.js";
+import { uploadSingle, uploadMultiple, checkFileUpload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getProducts);
-router.get('/featured', getFeaturedProducts);
-router.get('/category/:category', getProductsByCategory);
-router.get('/:id', getProductById);
+// ====================== IMPORTANT: SPECIFIC ROUTES FIRST ======================
 
-// Protected routes
-router.post('/', protect, admin, createProduct);
-router.put('/:id', protect, admin, updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
+// ✅ Week 4, Day 2: Image Upload Routes - THESE SHOULD COME FIRST
+router.get("/test-upload", protect, admin, testCloudinaryConnection);
 
-// Image Upload Routes
-router.post('/upload', protect, admin, uploadSingle, checkFileUpload, uploadProductImage);
-router.post('/upload-multiple', protect, admin, uploadMultiple, checkFileUpload, uploadMultipleImages);
-router.delete('/image/:publicId', protect, admin, deleteProductImage);
+router.post(
+  "/upload",
+  protect,
+  admin,
+  uploadSingle,
+  checkFileUpload,
+  uploadProductImage
+);
+
+router.post(
+  "/upload-multiple",
+  protect,
+  admin,
+  uploadMultiple,
+  checkFileUpload,
+  uploadMultipleImages
+);
+
+router.delete("/image/:publicId", protect, admin, deleteProductImage);
+
+// ✅ Featured products route
+router.get("/featured", getFeaturedProducts);
+
+// ✅ Category products route
+router.get("/category/:category", getProductsByCategory);
+
+// ====================== DYNAMIC ROUTES LAST ======================
+
+// Get all products & Create product
+router.route("/")
+  .get(getProducts)
+  .post(protect, admin, createProduct);
+
+// Get single product, Update, Delete
+router.route("/:id")
+  .get(getProductById)
+  .put(protect, admin, updateProduct)
+  .delete(protect, admin, deleteProduct);
 
 export default router;
