@@ -3,44 +3,34 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import asyncHandler from "express-async-handler";
 
-// @desc    Create new order (without payment)
+// @desc    Create new order (PRACTICUM VERSION - SIMPLIFIED)
 // @route   POST /api/orders
 // @access  Private
 export const createOrder = asyncHandler(async (req, res) => {
   try {
     const { shippingAddress, paymentMethod, notes } = req.body;
 
-    // Get user's cart with product details
+    // Get user's cart
     const cart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product",
-      "name price images stock category brand"
+      "name price images stock"
     );
 
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No items in cart",
+        message: "Your cart is empty",
       });
     }
 
-    // Check stock availability (but don't reduce yet)
-    const stockErrors = [];
+    // Check stock (simplified for practicum)
     for (const item of cart.items) {
       if (item.product.stock < item.quantity) {
-        stockErrors.push({
-          product: item.product.name,
-          available: item.product.stock,
-          requested: item.quantity
+        return res.status(400).json({
+          success: false,
+          message: `Sorry, "${item.product.name}" has only ${item.product.stock} items left`,
         });
       }
-    }
-
-    if (stockErrors.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Some items are out of stock",
-        errors: stockErrors,
-      });
     }
 
     // Prepare order items
@@ -49,7 +39,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       name: item.product.name,
       quantity: item.quantity,
       price: item.price,
-      image: item.product.images[0] || "",
+      image: item.product.images[0] || "/default-product.jpg",
     }));
 
     // Calculate prices
@@ -61,66 +51,63 @@ export const createOrder = asyncHandler(async (req, res) => {
     const taxPrice = itemsPrice * 0.05; // 5% tax
     const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-    // Create order with initial status
+    // For Practicum: Always mark as paid/confirmed for smooth demo
+    const isPaid = paymentMethod !== "cod"; // Card payments auto-paid
+    const orderStatus = "confirmed"; // Auto-confirm for presentation
+    
+    // Create order
     const order = new Order({
       user: req.user._id,
       orderItems,
       shippingAddress,
       payment: {
         method: paymentMethod || "cod",
-        status: "pending", // Always start as pending
+        status: isPaid ? "paid" : "pending",
       },
-      paymentStatus: "pending",
+      paymentStatus: isPaid ? "paid" : "pending",
       itemsPrice,
       shippingPrice,
       taxPrice,
       totalPrice,
-      notes,
-      orderStatus: "pending",
+      notes: notes || "",
+      orderStatus,
+      isPaid,
+      paidAt: isPaid ? Date.now() : null,
     });
+
+    // Reduce stock (for practicum demo)
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
 
     const createdOrder = await order.save();
 
-    // If COD, we can mark as confirmed (but not paid)
+    // Clear cart
+    cart.items = [];
+    await cart.save();
+
+    // Response for practicum presentation
+    let message = "";
     if (paymentMethod === "cod") {
-      createdOrder.orderStatus = "confirmed";
-      createdOrder.payment.status = "pending"; // COD is paid on delivery
-      await createdOrder.save();
-      
-      // For COD, reduce stock immediately
-      for (const item of createdOrder.orderItems) {
-        const product = await Product.findById(item.product);
-        if (product) {
-          product.stock -= item.quantity;
-          await product.save();
-        }
-      }
-      
-      // Clear cart for COD orders
-      cart.items = [];
-      await cart.save();
+      message = "🎉 COD order placed successfully! You'll pay when the product arrives.";
+    } else {
+      message = "✅ Payment successful! Your order is confirmed.";
     }
 
-    // Return response based on payment method
-    const response = {
+    res.status(201).json({
       success: true,
       data: createdOrder,
-      message: paymentMethod === "cod" 
-        ? "COD order created successfully. You will pay on delivery." 
-        : "Order created successfully. Please proceed to payment.",
-      nextStep: paymentMethod === "cod" 
-        ? "order_confirmed" 
-        : "make_payment",
-      requiresPayment: paymentMethod !== "cod",
-    };
-
-    res.status(201).json(response);
+      message,
+      demoNote: "Practicum Project Demo - Order processed successfully",
+    });
   } catch (error) {
     console.error("Create Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error while creating order",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error processing order",
+      demoNote: "This is a demo error for presentation purposes",
     });
   }
 });
@@ -132,7 +119,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "name email")
-      .populate("orderItems.product", "name images category brand");
+      .populate("orderItems.product", "name images");
 
     if (!order) {
       return res.status(404).json({
@@ -141,14 +128,11 @@ export const getOrderById = asyncHandler(async (req, res) => {
       });
     }
 
-    // Check if user owns the order or is admin
-    if (
-      order.user._id.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
-    ) {
+    // Simple authorization for practicum
+    if (order.user._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to view this order",
+        message: "Not authorized",
       });
     }
 
@@ -161,7 +145,6 @@ export const getOrderById = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });
@@ -172,57 +155,64 @@ export const getOrderById = asyncHandler(async (req, res) => {
 export const getMyOrders = asyncHandler(async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .populate("orderItems.product", "name images")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .populate("orderItems.product", "name image");
 
     res.json({
       success: true,
       data: orders,
       count: orders.length,
+      demoNote: orders.length === 0 
+        ? "No orders yet. Try placing an order!" 
+        : `Found ${orders.length} orders`
     });
   } catch (error) {
     console.error("Get My Orders Error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error fetching orders",
     });
   }
 });
 
-// @desc    Get all orders (Admin)
+// @desc    Get all orders (Admin - Simplified for Practicum)
 // @route   GET /api/orders
 // @access  Private/Admin
 export const getOrders = asyncHandler(async (req, res) => {
   try {
+    // Simple admin check for practicum
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin access required",
+      });
+    }
+
     const orders = await Order.find({})
       .populate("user", "name email")
-      .populate("orderItems.product", "name")
       .sort("-createdAt");
 
     res.json({
       success: true,
       data: orders,
       count: orders.length,
+      demoNote: "Admin view - All orders displayed",
     });
   } catch (error) {
     console.error("Get Orders Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });
 
-// @desc    Update order to paid (after successful payment)
+// @desc    Update order to paid (Simplified for Practicum)
 // @route   PUT /api/orders/:id/pay
 // @access  Private
 export const updateOrderToPaid = asyncHandler(async (req, res) => {
   try {
-    const { paymentIntentId, transactionId } = req.body;
-    
-    const order = await Order.findById(req.params.id).populate("orderItems.product");
+    const order = await Order.findById(req.params.id);
 
     if (!order) {
       return res.status(404).json({
@@ -231,53 +221,42 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
       });
     }
 
-    // Check if already paid
-    if (order.isPaid) {
-      return res.status(400).json({
-        success: false,
-        message: "Order is already paid",
-      });
-    }
-
-    // Check authorization
-    if (order.user.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    // For practicum: simple authorization
+    if (order.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to update this order",
+        message: "Not authorized",
       });
     }
 
-    // Use the instance method to confirm order and reduce stock
-    await order.confirmAndReduceStock();
+    // Mark as paid
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.payment.status = "paid";
+    order.paymentStatus = "paid";
+    order.orderStatus = "confirmed";
     
-    // Update payment details
-    order.payment.transactionId = transactionId || paymentIntentId || `TXN${Date.now()}`;
-    order.payment.paidAt = Date.now();
-    
-    // Clear user's cart
-    await Cart.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: { items: [], totalPrice: 0, totalItems: 0 } }
-    );
+    // Add demo transaction ID
+    order.payment.transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const updatedOrder = await order.save();
 
     res.json({
       success: true,
       data: updatedOrder,
-      message: "Order payment confirmed successfully",
+      message: "Order marked as paid",
+      demoNote: "Payment simulation for practicum demo",
     });
   } catch (error) {
     console.error("Update Order Paid Error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error while updating payment",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error updating payment",
     });
   }
 });
 
-// @desc    Update order to delivered
+// @desc    Update order to delivered (Simplified)
 // @route   PUT /api/orders/:id/deliver
 // @access  Private/Admin
 export const updateOrderToDelivered = asyncHandler(async (req, res) => {
@@ -291,11 +270,11 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
       });
     }
 
-    // Check if order is paid (for non-COD orders)
-    if (order.payment.method !== "cod" && !order.isPaid) {
-      return res.status(400).json({
+    // Simple admin check
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
         success: false,
-        message: "Order must be paid before delivery",
+        message: "Admin access required",
       });
     }
 
@@ -304,7 +283,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
       order.isPaid = true;
       order.payment.status = "paid";
       order.paymentStatus = "paid";
-      order.payment.paidAt = Date.now();
+      order.paidAt = Date.now();
     }
 
     order.isDelivered = true;
@@ -322,18 +301,17 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
     console.error("Update Order Deliver Error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error updating delivery status",
     });
   }
 });
 
-// @desc    Cancel order
+// @desc    Cancel order (Simplified)
 // @route   PUT /api/orders/:id/cancel
 // @access  Private
 export const cancelOrder = asyncHandler(async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate("orderItems.product");
+    const order = await Order.findById(req.params.id);
 
     if (!order) {
       return res.status(404).json({
@@ -343,10 +321,10 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     }
 
     // Check authorization
-    if (order.user.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    if (order.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized to cancel this order",
+        message: "Not authorized",
       });
     }
 
@@ -354,29 +332,23 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     if (order.orderStatus === "shipped" || order.orderStatus === "delivered") {
       return res.status(400).json({
         success: false,
-        message: "Order cannot be cancelled after shipping",
+        message: "Cannot cancel shipped/delivered orders",
       });
     }
 
-    // If order was paid, refund logic would go here
+    // Restore stock
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: item.quantity }
+      });
+    }
+
+    order.orderStatus = "cancelled";
     if (order.isPaid) {
-      // TODO: Implement refund logic
       order.payment.status = "refunded";
       order.paymentStatus = "refunded";
     }
 
-    // Restore stock if order was confirmed/paid
-    if (order.orderStatus === "confirmed" || order.isPaid) {
-      for (const item of order.orderItems) {
-        const product = await Product.findById(item.product);
-        if (product) {
-          product.stock += item.quantity;
-          await product.save();
-        }
-      }
-    }
-
-    order.orderStatus = "cancelled";
     const updatedOrder = await order.save();
 
     res.json({
@@ -388,8 +360,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     console.error("Cancel Order Error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      message: "Error cancelling order",
     });
   }
 });

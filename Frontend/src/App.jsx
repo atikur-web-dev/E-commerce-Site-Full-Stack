@@ -13,6 +13,9 @@ import Register from "./pages/Register/Register";
 import Shop from "./pages/Shop/Shop";
 import Cart from "./pages/Cart/Cart";
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
+import Checkout from "./pages/Checkout/CheckoutPage";
+import Orders from "./pages/Orders/Orders";
+import OrderDetail from "./pages/OrderDetail/OrderDetail";
 
 // Import Components
 import Header from "./components/common/Header/Header";
@@ -37,12 +40,32 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
-
+                    <Route path="/cart" element={<Cart />} />
+                    
+                    {/* Protected Routes */}
                     <Route
-                      path="/cart"
+                      path="/checkout"
                       element={
                         <ProtectedRoute>
-                          <Cart />
+                          <Checkout />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    <Route
+                      path="/orders"
+                      element={
+                        <ProtectedRoute>
+                          <Orders />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    <Route
+                      path="/order/:id"
+                      element={
+                        <ProtectedRoute>
+                          <OrderDetail />
                         </ProtectedRoute>
                       }
                     />

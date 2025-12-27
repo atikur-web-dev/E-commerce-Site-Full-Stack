@@ -14,6 +14,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key', 
   apiVersion: '2023-10-16',
   timeout: 10000, // 10 seconds timeout
 });
+// Quick test: Backend/config/stripe.js ফাইলে যোগ করো
+console.log('Stripe Key Length:', process.env.STRIPE_SECRET_KEY.length);
+console.log('Stripe Key First 10 chars:', process.env.STRIPE_SECRET_KEY.substring(0, 10));
+console.log('Stripe Key Last 10 chars:', process.env.STRIPE_SECRET_KEY.substring(process.env.STRIPE_SECRET_KEY.length - 10));
 
 // Test connection function
 export const testStripeConnection = async () => {

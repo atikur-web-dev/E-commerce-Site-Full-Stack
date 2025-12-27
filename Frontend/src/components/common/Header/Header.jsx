@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
+import { useCart } from "../../../context/CartContext"; // ✅ CartContext import
 import "./Header.css";
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { cart } = useCart(); // ✅ Cart data access
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -17,6 +19,9 @@ const Header = () => {
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
+
+  // Calculate cart items count
+  const cartItemsCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
 
   return (
     <header className="header">
@@ -34,14 +39,25 @@ const Header = () => {
           <ul className="nav-list">
             {/* Public Links - Always Visible */}
             <li className="nav-item">
-              <Link to="/" className="nav-link">
+              <NavLink to="/" className="nav-link" activeClassName="active">
                 Home
-              </Link>
+              </NavLink>
             </li>
             <li className="nav-item">
-              <Link to="/shop" className="nav-link">
+              <NavLink to="/shop" className="nav-link" activeClassName="active">
                 Shop
-              </Link>
+              </NavLink>
+            </li>
+
+            {/* Cart Link with Badge */}
+            <li className="nav-item cart-item">
+              <NavLink to="/cart" className="nav-link cart-link" activeClassName="active">
+                <span className="cart-icon">🛒</span>
+                Cart
+                {cartItemsCount > 0 && (
+                  <span className="cart-badge">{cartItemsCount}</span>
+                )}
+              </NavLink>
             </li>
 
             {/* Conditional Links */}
@@ -80,7 +96,7 @@ const Header = () => {
                       className="dropdown-item"
                       onClick={() => setShowDropdown(false)}
                     >
-                      Profile
+                      👤 Profile
                     </Link>
 
                     <Link
@@ -88,8 +104,33 @@ const Header = () => {
                       className="dropdown-item"
                       onClick={() => setShowDropdown(false)}
                     >
-                      My Orders
+                      📦 My Orders
                     </Link>
+
+                    {/* Checkout Link in Dropdown */}
+                    {cartItemsCount > 0 && (
+                      <Link
+                        to="/checkout"
+                        className="dropdown-item checkout-item"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        💳 Checkout ({cartItemsCount} items)
+                      </Link>
+                    )}
+
+                    {/* Admin Panel Link (if admin) */}
+                    {user.role === "admin" && (
+                      <>
+                        <div className="dropdown-divider"></div>
+                        <Link
+                          to="/admin"
+                          className="dropdown-item admin-item"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          👑 Admin Panel
+                        </Link>
+                      </>
+                    )}
 
                     <div className="dropdown-divider"></div>
 
@@ -97,7 +138,7 @@ const Header = () => {
                       onClick={handleLogout}
                       className="dropdown-item logout-btn"
                     >
-                      Logout
+                      🚪 Logout
                     </button>
                   </div>
                 )}
@@ -106,18 +147,23 @@ const Header = () => {
               // Not Logged In
               <>
                 <li className="nav-item">
-                  <Link to="/login" className="nav-link btn-login">
+                  <NavLink to="/login" className="nav-link btn-login" activeClassName="active">
                     Login
-                  </Link>
+                  </NavLink>
                 </li>
                 <li className="nav-item">
-                  <Link to="/register" className="nav-link btn-register">
+                  <NavLink to="/register" className="nav-link btn-register" activeClassName="active">
                     Sign Up
-                  </Link>
+                  </NavLink>
                 </li>
               </>
             )}
           </ul>
+
+          {/* Mobile Menu Button */}
+          <button className="mobile-menu-btn">
+            <span className="menu-icon">☰</span>
+          </button>
         </nav>
       </div>
     </header>

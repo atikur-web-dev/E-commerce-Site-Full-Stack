@@ -1,37 +1,33 @@
-// Backend/routes/payment.js - COMPLETE NEW FILE
 import express from 'express';
-import { protect } from '../middleware/auth.js';
-
-// Import functions - CORRECT NAMES
 import {
-  getStripeConfig,
-  createPaymentIntent,
-  confirmPayment,
-  getPaymentIntentStatus,
-  testPaymentEndpoint,
-  handleStripeWebhook, // ✅ This is the correct name
-} from '../controllers/paymentController.js';
+  createOrder,
+  getOrderById,
+  getMyOrders,
+  getOrders,
+  updateOrderToPaid,
+  updateOrderToDelivered,
+  cancelOrder,
+} from '../controllers/orderController.js';
+import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// ====================== PUBLIC ROUTES ======================
-// Stripe webhook (NO protect middleware)
-router.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+// Public routes - none
 
-// Get Stripe configuration
-router.get('/config', getStripeConfig);
+// Protected routes
+router.route('/')
+  .post(protect, createOrder) // Create new order
+  .get(protect, admin, getOrders); // Get all orders (admin)
 
-// ====================== PROTECTED ROUTES ======================
-// Test endpoint
-router.get('/test', protect, testPaymentEndpoint); // ✅ Changed from testPayment
+router.route('/myorders').get(protect, getMyOrders); // Get user's orders
 
-// Create payment intent
-router.post('/create-payment-intent', protect, createPaymentIntent);
+router.route('/:id')
+  .get(protect, getOrderById); // Get order by ID
 
-// Confirm payment
-router.post('/confirm', protect, confirmPayment);
+router.route('/:id/pay').put(protect, updateOrderToPaid); // Update order to paid
 
-// Get payment intent status
-router.get('/intent/:paymentIntentId', protect, getPaymentIntentStatus);
+router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered); // Update order to delivered (admin)
+
+router.route('/:id/cancel').put(protect, cancelOrder); // Cancel order
 
 export default router;
