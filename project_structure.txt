@@ -1,10 +1,12 @@
 ./Backend/.env
 ./Backend/checkCategories.js
 ./Backend/config/cloudinary.js
+./Backend/config/stripe.js
 ./Backend/controllers/analyticsController.js
 ./Backend/controllers/authController.js
 ./Backend/controllers/cartController.js
 ./Backend/controllers/orderController.js
+./Backend/controllers/paymentController.js
 ./Backend/controllers/productController.js
 ./Backend/manualSeed.js
 ./Backend/middleware/auth.js
@@ -20,6 +22,7 @@
 ./Backend/routes/auth.js
 ./Backend/routes/cart.js
 ./Backend/routes/order.js
+./Backend/routes/payment.js
 ./Backend/routes/product.js
 ./Backend/seedProducts.js
 ./Backend/seedTestUser.js
@@ -45,9 +48,6 @@
 ./Frontend/src/context/AuthContext.jsx
 ./Frontend/src/context/CartContext.jsx
 ./Frontend/src/context/ProductContext.jsx
-./Frontend/src/main.jsx
-./Frontend/src/pages/Cart/Cart.jsx
-./Frontend/src/pages/Home/Home.jsx
 === PACKAGE.JSON CONTENTS ===
 
 {
@@ -67,7 +67,8 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.3",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

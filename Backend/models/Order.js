@@ -66,8 +66,8 @@ const paymentSchema = new mongoose.Schema({
     default: "pending",
   },
   transactionId: String,
-  paymentIntentId: String, // ✅ NEW: For Stripe payment intent ID
-  clientSecret: String,    // ✅ NEW: For Stripe client secret
+  paymentIntentId: String,
+  clientSecret: String,
   paidAt: Date,
 });
 
@@ -81,6 +81,11 @@ const orderSchema = new mongoose.Schema(
     orderItems: [orderItemSchema],
     shippingAddress: shippingAddressSchema,
     payment: paymentSchema,
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
+    },
     itemsPrice: {
       type: Number,
       required: true,
@@ -104,7 +109,7 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String,
       required: true,
-      enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+      enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
     isPaid: {
@@ -121,7 +126,7 @@ const orderSchema = new mongoose.Schema(
     deliveredAt: Date,
     notes: String,
     
-    // ✅ NEW: Stripe Payment Details
+    // Stripe Payment Details
     stripePayment: {
       paymentIntentId: String,
       clientSecret: String,
@@ -134,12 +139,11 @@ const orderSchema = new mongoose.Schema(
         type: String,
         default: "usd"
       },
-      amount: Number, // in cents
+      amount: Number,
       receiptUrl: String,
       lastPaymentError: mongoose.Schema.Types.Mixed,
     },
     
-    // ✅ NEW: Payment Result for webhook updates
     paymentResult: {
       id: String,
       status: String,
@@ -163,8 +167,8 @@ orderSchema.pre("save", function (next) {
   // Calculate total price
   this.totalPrice = this.itemsPrice + this.shippingPrice + this.taxPrice;
   
-  // Update isPaid based on payment status
-  if (this.payment && this.payment.status === "paid") {
+  // Update isPaid based on paymentStatus
+  if (this.paymentStatus === "paid") {
     this.isPaid = true;
     if (!this.paidAt) {
       this.paidAt = Date.now();
@@ -185,33 +189,42 @@ orderSchema.virtual("orderNumber").get(function() {
   return `ORD-${this._id.toString().slice(-8).toUpperCase()}`;
 });
 
-// Static method to create order with Stripe payment
-orderSchema.statics.createWithStripePayment = async function(orderData, paymentIntent) {
-  const order = new this({
-    ...orderData,
-    payment: {
-      method: "stripe",
-      status: "pending",
-      paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret,
-    },
-    stripePayment: {
-      paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret,
-      status: paymentIntent.status,
-      currency: paymentIntent.currency,
-      amount: paymentIntent.amount,
-    },
-  });
-  
-  return await order.save();
+// Instance method to mark as paid and reduce stock
+orderSchema.methods.confirmAndReduceStock = async function() {
+  try {
+    // Update payment status
+    this.isPaid = true;
+    this.paidAt = Date.now();
+    this.payment.status = "paid";
+    this.paymentStatus = "paid";
+    this.orderStatus = "confirmed";
+    
+    // Import Product model dynamically to avoid circular dependency
+    const Product = mongoose.model("Product");
+    
+    // Reduce stock for each product
+    for (const item of this.orderItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock -= item.quantity;
+        await product.save();
+      }
+    }
+    
+    return await this.save();
+  } catch (error) {
+    console.error("Error confirming order and reducing stock:", error);
+    throw error;
+  }
 };
 
-// Instance method to mark as paid
+// Instance method to mark as paid from webhook
 orderSchema.methods.markAsPaid = function(paymentResult) {
   this.isPaid = true;
   this.paidAt = Date.now();
   this.payment.status = "paid";
+  this.paymentStatus = "paid";
+  this.orderStatus = "confirmed";
   
   if (this.stripePayment) {
     this.stripePayment.status = "succeeded";
@@ -250,6 +263,16 @@ orderSchema.methods.updateStripePayment = function(paymentIntent) {
   }
   
   return this.save();
+};
+
+// Static method to find by payment intent
+orderSchema.statics.findByPaymentIntentId = function(paymentIntentId) {
+  return this.findOne({
+    $or: [
+      { 'payment.paymentIntentId': paymentIntentId },
+      { 'stripePayment.paymentIntentId': paymentIntentId }
+    ]
+  });
 };
 
 const Order = mongoose.model("Order", orderSchema);
