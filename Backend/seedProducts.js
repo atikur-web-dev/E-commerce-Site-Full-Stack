@@ -12,10 +12,12 @@ const products = [
     description:
       "Latest iPhone with A17 Pro chip, Titanium design, 48MP camera",
     price: 1299.99,
-    category: "Smartphones", // ✅ Exact match with enum
+    category: "Smartphones",
     brand: "Apple",
-    image: "/images/products/Mobile/iPhone 15 Pro Max.jpg",
-
+    images: [
+      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500",
+      "https://images.unsplash.com/photo-1691498369138-3d6d8b2e7b3a?w=500"
+    ],
     stock: 15,
     rating: 4.8,
     numReviews: 124,
@@ -36,7 +38,10 @@ const products = [
     price: 1199.99,
     category: "Smartphones",
     brand: "Samsung",
-    image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500",
+      "https://images.unsplash.com/photo-1610945265084-0e34e5519bbf?w=500"
+    ],
     stock: 20,
     rating: 4.7,
     numReviews: 89,
@@ -56,7 +61,10 @@ const products = [
     price: 999.99,
     category: "Smartphones",
     brand: "Google",
-    image: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500",
+      "https://images.unsplash.com/photo-1598327105856-5b89351aff97?w=500"
+    ],
     stock: 18,
     rating: 4.6,
     numReviews: 67,
@@ -75,7 +83,10 @@ const products = [
     price: 899.99,
     category: "Smartphones",
     brand: "OnePlus",
-    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500",
+      "https://images.unsplash.com/photo-1592899677978-9c10ca588bbd?w=500"
+    ],
     stock: 25,
     rating: 4.5,
     numReviews: 45,
@@ -95,9 +106,12 @@ const products = [
     name: "MacBook Pro 16-inch M3 Max",
     description: "Professional laptop for creators and developers",
     price: 3499.99,
-    category: "Laptops", // ✅ Exact match
+    category: "Laptops",
     brand: "Apple",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
+      "https://images.unsplash.com/photo-1517336714732-489689fd1ca8?w=500"
+    ],
     stock: 10,
     rating: 4.9,
     numReviews: 56,
@@ -116,7 +130,10 @@ const products = [
     price: 1999.99,
     category: "Laptops",
     brand: "Dell",
-    image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500",
+      "https://images.unsplash.com/photo-1593640408183-31c70c8268f5?w=500"
+    ],
     stock: 12,
     rating: 4.7,
     numReviews: 78,
@@ -135,7 +152,10 @@ const products = [
     price: 2499.99,
     category: "Laptops",
     brand: "ASUS",
-    image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500",
+      "https://images.unsplash.com/photo-1603302576838-37561b2e2302?w=500"
+    ],
     stock: 8,
     rating: 4.8,
     numReviews: 42,
@@ -153,7 +173,10 @@ const products = [
     price: 1799.99,
     category: "Laptops",
     brand: "Lenovo",
-    image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+    ],
     stock: 15,
     rating: 4.6,
     numReviews: 34,
@@ -171,9 +194,12 @@ const products = [
     name: "iPad Pro 12.9-inch M2",
     description: "Professional tablet with Liquid Retina XDR display",
     price: 1299.99,
-    category: "Tablets", // ✅ Exact match
+    category: "Tablets",
     brand: "Apple",
-    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500",
+      "https://images.unsplash.com/photo-1544244015-1df4b3ffc6b0?w=500"
+    ],
     stock: 14,
     rating: 4.8,
     numReviews: 89,
@@ -192,7 +218,10 @@ const products = [
     price: 1199.99,
     category: "Tablets",
     brand: "Samsung",
-    image: "https://images.unsplash.com/photo-1546054451-4cffa2c1d4e7?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1546054451-4cffa2c1d4e7?w=500",
+      "https://images.unsplash.com/photo-1546054451-5cffa2c1d4e7?w=500"
+    ],
     stock: 18,
     rating: 4.7,
     numReviews: 56,
@@ -211,7 +240,10 @@ const products = [
     price: 1499.99,
     category: "Tablets",
     brand: "Microsoft",
-    image: "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=500",
+      "https://images.unsplash.com/photo-1561154464-83e9adf32764?w=500"
+    ],
     stock: 9,
     rating: 4.6,
     numReviews: 34,
@@ -229,7 +261,10 @@ const products = [
     price: 599.99,
     category: "Tablets",
     brand: "OnePlus",
-    image: "https://images.unsplash.com/photo-1565330503288-44f2a4e9c73e?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1565330503288-44f2a4e9c73e?w=500",
+      "https://images.unsplash.com/photo-1565330503289-44f2a4e9c73e?w=500"
+    ],
     stock: 22,
     rating: 4.4,
     numReviews: 28,
@@ -247,9 +282,12 @@ const products = [
     name: "PlayStation 5 Pro",
     description: "Next-gen gaming console with 4K 120FPS",
     price: 699.99,
-    category: "Gaming", // ✅ Exact match
+    category: "Gaming",
     brand: "Sony",
-    image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=500",
+      "https://images.unsplash.com/photo-1606144042615-b2417e99c4e3?w=500"
+    ],
     stock: 7,
     rating: 4.9,
     numReviews: 156,
@@ -269,7 +307,10 @@ const products = [
     price: 599.99,
     category: "Gaming",
     brand: "Microsoft",
-    image: "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=500",
+      "https://images.unsplash.com/photo-1605901309585-818e25960a8f?w=500"
+    ],
     stock: 11,
     rating: 4.8,
     numReviews: 98,
@@ -287,7 +328,10 @@ const products = [
     price: 349.99,
     category: "Gaming",
     brand: "Nintendo",
-    image: "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500",
+      "https://images.unsplash.com/photo-1578303512598-81e6cc155b3e?w=500"
+    ],
     stock: 25,
     rating: 4.7,
     numReviews: 203,
@@ -305,7 +349,10 @@ const products = [
     price: 799.99,
     category: "Gaming",
     brand: "ASUS",
-    image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500",
+      "https://images.unsplash.com/photo-1593359677880-a4bb92f829d1?w=500"
+    ],
     stock: 6,
     rating: 4.6,
     numReviews: 45,
@@ -323,9 +370,12 @@ const products = [
     name: "NVIDIA RTX 4090",
     description: "Flagship GPU with 24GB GDDR6X, DLSS 3",
     price: 1599.99,
-    category: "PC Components", // ✅ Exact match
+    category: "PC Components",
     brand: "NVIDIA",
-    image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500",
+      "https://images.unsplash.com/photo-1591488320450-011701bb6704?w=500"
+    ],
     stock: 5,
     rating: 4.9,
     numReviews: 234,
@@ -344,7 +394,10 @@ const products = [
     price: 699.99,
     category: "PC Components",
     brand: "AMD",
-    image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500",
+      "https://images.unsplash.com/photo-1587202372776-e229f172b9d7?w=500"
+    ],
     stock: 12,
     rating: 4.8,
     numReviews: 156,
@@ -362,7 +415,10 @@ const products = [
     price: 299.99,
     category: "PC Components",
     brand: "Corsair",
-    image: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=500",
+      "https://images.unsplash.com/photo-1591799264319-7e6ef8ddb7ea?w=500"
+    ],
     stock: 30,
     rating: 4.7,
     numReviews: 89,
@@ -380,7 +436,10 @@ const products = [
     price: 199.99,
     category: "PC Components",
     brand: "Samsung",
-    image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+    ],
     stock: 25,
     rating: 4.9,
     numReviews: 203,
@@ -398,9 +457,12 @@ const products = [
     name: "Apple Magic Keyboard",
     description: "Wireless keyboard with Touch ID for Mac",
     price: 149.99,
-    category: "Accessories", // ✅ Exact match
+    category: "Accessories",
     brand: "Apple",
-    image: "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=500",
+      "https://images.unsplash.com/photo-1541140532155-b024d705b90a?w=500"
+    ],
     stock: 40,
     rating: 4.6,
     numReviews: 178,
@@ -418,7 +480,10 @@ const products = [
     price: 99.99,
     category: "Accessories",
     brand: "Logitech",
-    image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500",
+      "https://images.unsplash.com/photo-1526170375886-4d8ecf77b99f?w=500"
+    ],
     stock: 35,
     rating: 4.8,
     numReviews: 256,
@@ -437,7 +502,10 @@ const products = [
     price: 129.99,
     category: "Accessories",
     brand: "Anker",
-    image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+    ],
     stock: 28,
     rating: 4.7,
     numReviews: 134,
@@ -455,7 +523,10 @@ const products = [
     price: 129.99,
     category: "Accessories",
     brand: "Samsung",
-    image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
+      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+    ],
     stock: 22,
     rating: 4.5,
     numReviews: 89,
@@ -473,9 +544,12 @@ const products = [
     name: "TP-Link Archer AXE95",
     description: "Tri-band WiFi 6E router with 10G port",
     price: 399.99,
-    category: "Networking", // ✅ Exact match
+    category: "Networking",
     brand: "TP-Link",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+    ],
     stock: 15,
     rating: 4.7,
     numReviews: 67,
@@ -493,7 +567,10 @@ const products = [
     price: 649.99,
     category: "Networking",
     brand: "ASUS",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+    ],
     stock: 8,
     rating: 4.9,
     numReviews: 45,
@@ -511,7 +588,10 @@ const products = [
     price: 449.99,
     category: "Networking",
     brand: "Netgear",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+    ],
     stock: 12,
     rating: 4.6,
     numReviews: 56,
@@ -529,7 +609,10 @@ const products = [
     price: 399.99,
     category: "Networking",
     brand: "Google",
-    image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+    images: [
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
+      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+    ],
     stock: 20,
     rating: 4.5,
     numReviews: 89,
