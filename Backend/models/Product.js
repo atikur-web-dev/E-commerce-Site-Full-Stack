@@ -1,37 +1,46 @@
-// Backend/models/Product.js - সম্পূর্ণ ফাইলটা এটার সাথে replace করো
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Product name is required"],
+      trim: true,
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Product description is required"],
     },
     price: {
       type: Number,
-      required: true,
+      required: [true, "Product price is required"],
+      min: [0, "Price cannot be negative"],
     },
     category: {
       type: String,
-      required: true,
-      // ✅ ENUM টা remove করছি - সব category accept করবে
+      required: [true, "Product category is required"],
     },
     brand: {
       type: String,
-      required: true,
+      required: [true, "Product brand is required"],
     },
-    image: {
-      type: String,
+    // এটা বদলালাম: singular image -> array images
+    images: {
+      type: [String],
       required: true,
+      default: ["/default-product.jpg"],
+      validate: {
+        validator: function (images) {
+          return images.length > 0;
+        },
+        message: "At least one image is required",
+      },
     },
     stock: {
       type: Number,
       required: true,
       default: 0,
+      min: [0, "Stock cannot be negative"],
     },
     rating: {
       type: Number,
@@ -59,19 +68,43 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    salePrice: {
+      type: Number,
+      default: 0,
+    },
     specifications: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
     warranty: {
       type: Number,
-      default: 12,
+      default: 12, // months
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
+// Virtual field for display price (sale or regular)
+productSchema.virtual("displayPrice").get(function () {
+  return this.isOnSale && this.salePrice > 0 ? this.salePrice : this.price;
+});
+
+// Virtual field for discount percentage
+productSchema.virtual("discountPercentage").get(function () {
+  if (this.isOnSale && this.salePrice > 0 && this.price > 0) {
+    return Math.round(((this.price - this.salePrice) / this.price) * 100);
+  }
+  return 0;
+});
+
 const Product = mongoose.model("Product", productSchema);
+
 export default Product;

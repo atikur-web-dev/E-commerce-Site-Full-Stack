@@ -189,7 +189,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "name email")
-      .populate("orderItems.product", "name images");
+      .populate("orderItems.product", "name images price");
 
     if (!order) {
       return res.status(404).json({
@@ -226,7 +226,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
       .sort("-createdAt")
-      .populate("orderItems.product", "name image");
+      .populate("orderItems.product", "name images price");
 
     res.json({
       success: true,
@@ -431,6 +431,27 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error cancelling order",
+    });
+  }
+});
+
+// @desc    Clear order history
+// @route   DELETE /api/orders/clear-history
+// @access  Private
+export const clearOrderHistory = asyncHandler(async (req, res) => {
+  try {
+    const result = await Order.deleteMany({ user: req.user._id });
+    
+    res.json({
+      success: true,
+      message: `Successfully cleared ${result.deletedCount} orders from your history`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Clear Order History Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error clearing order history",
     });
   }
 });
