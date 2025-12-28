@@ -7,7 +7,7 @@ import "./Checkout.css";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { cartItems, getTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,6 @@ const Checkout = () => {
     notes: ""
   });
 
-  // Demo card state
   const [cardDetails, setCardDetails] = useState({
     number: "4242 4242 4242 4242",
     expiry: "12/34",
@@ -33,12 +32,11 @@ const Checkout = () => {
   });
 
   // Calculate totals
-  const itemsTotal = getCartTotal();
+  const itemsTotal = getTotalPrice();
   const shipping = itemsTotal > 500 ? 0 : 50;
   const tax = itemsTotal * 0.05;
   const grandTotal = itemsTotal + shipping + tax;
 
-  // Auto-fill user data
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -81,7 +79,7 @@ const Checkout = () => {
 
   const placeOrder = async () => {
     if (!validateForm()) return;
-    if (cart.items.length === 0) {
+    if (cartItems.length === 0) {
       alert("Your cart is empty");
       return;
     }
@@ -109,10 +107,8 @@ const Checkout = () => {
         setOrderSuccess(true);
         setOrderDetails(response.data.data);
         
-        // Clear cart
         clearCart();
         
-        // Show success message
         setTimeout(() => {
           navigate(`/order/${response.data.data._id}`);
         }, 3000);
@@ -125,10 +121,10 @@ const Checkout = () => {
     }
   };
 
-  if (cart.items.length === 0 && !orderSuccess) {
+  if (cartItems.length === 0 && !orderSuccess) {
     return (
       <div className="checkout-empty">
-        <h2>🛒 Your cart is empty</h2>
+        <h2>Your cart is empty</h2>
         <p>Add some products to your cart before checkout</p>
         <button onClick={() => navigate("/shop")}>Continue Shopping</button>
       </div>
@@ -139,7 +135,7 @@ const Checkout = () => {
     return (
       <div className="order-success">
         <div className="success-icon">✅</div>
-        <h2>🎉 Order Placed Successfully!</h2>
+        <h2>Order Placed Successfully!</h2>
         <p className="success-message">
           {paymentMethod === "cod" 
             ? "Your COD order has been placed. You'll pay when the product arrives."
@@ -157,7 +153,7 @@ const Checkout = () => {
         )}
 
         <div className="demo-notice">
-          <h4>🎓 Practicum Project Demo</h4>
+          <h4>Practicum Project Demo</h4>
           <p>This is a demonstration of the checkout process. In a real application:</p>
           <ul>
             <li>Real payment gateway integration</li>
@@ -180,11 +176,9 @@ const Checkout = () => {
       <h2 className="page-title">Checkout</h2>
       
       <div className="checkout-container">
-        {/* Left Column - Shipping & Payment */}
         <div className="checkout-left">
-          {/* Shipping Address */}
           <div className="checkout-section">
-            <h3>🚚 Shipping Address</h3>
+            <h3>Shipping Address</h3>
             <div className="form-grid">
               <div className="form-group">
                 <label>Street Address *</label>
@@ -270,9 +264,8 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Payment Method */}
           <div className="checkout-section">
-            <h3>💳 Payment Method</h3>
+            <h3>Payment Method</h3>
             
             <div className="payment-methods">
               <div 
@@ -316,11 +309,10 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Demo Card Form */}
             {paymentMethod === "card" && (
               <div className="demo-card-form">
                 <div className="demo-header">
-                  <h4>🎓 Demo Payment Form</h4>
+                  <h4>Demo Payment Form</h4>
                   <span className="demo-badge">For Presentation Only</span>
                 </div>
                 
@@ -377,7 +369,7 @@ const Checkout = () => {
                 </div>
                 
                 <div className="test-cards">
-                  <p><strong>💡 Test Cards for Demo:</strong></p>
+                  <p><strong>Test Cards for Demo:</strong></p>
                   <div className="test-card-list">
                     <div className="test-card">
                       <code>4242 4242 4242 4242</code>
@@ -398,13 +390,12 @@ const Checkout = () => {
           </div>
         </div>
 
-        {/* Right Column - Order Summary */}
         <div className="checkout-right">
           <div className="order-summary-card">
             <h3>Order Summary</h3>
             
             <div className="order-items">
-              {cart.items.map((item, index) => (
+              {cartItems.map((item, index) => (
                 <div key={index} className="order-item">
                   <div className="item-info">
                     <span className="item-name">{item.product?.name || "Product"}</span>
@@ -450,12 +441,12 @@ const Checkout = () => {
             </button>
             
             <div className="security-note">
-              <p>🔒 Your payment information is secure</p>
-              <p>📦 Estimated delivery: 3-5 business days</p>
+              <p>Your payment information is secure</p>
+              <p>Estimated delivery: 3-5 business days</p>
             </div>
             
             <div className="practicum-note">
-              <h4>🎓 Practicum Project</h4>
+              <h4>Practicum Project</h4>
               <p>This checkout system demonstrates:</p>
               <ul>
                 <li>Cart management</li>
@@ -463,7 +454,7 @@ const Checkout = () => {
                 <li>Payment simulation</li>
                 <li>Database integration</li>
               </ul>
-              <small>Presented by: Your Name | Date: January 2026</small>
+              <small>Presented by: {user?.name || "Student"} | Date: {new Date().toLocaleDateString()}</small>
             </div>
           </div>
         </div>

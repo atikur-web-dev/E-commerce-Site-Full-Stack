@@ -137,7 +137,7 @@ const orderSchema = new mongoose.Schema(
       },
       currency: {
         type: String,
-        default: "usd"
+        default: "bdt"
       },
       amount: Number,
       receiptUrl: String,

@@ -1,0 +1,15 @@
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Backend env
+Backend/.env
+Backend/.env.local
+Backend/.env.development
+
+# Frontend env
+Frontend/.env
+Frontend/.env.local
+Frontend/.env.development
