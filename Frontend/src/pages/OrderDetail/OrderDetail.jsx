@@ -203,11 +203,14 @@ const OrderDetail = () => {
             {order.orderItems?.map((item, index) => (
               <div key={index} className="order-item-detail">
                 <div className="item-image">
-                  {item.image || item.product?.images?.[0] ? (
-                    <img src={item.image || item.product.images[0]} alt={item.name} />
-                  ) : (
-                    <div className="image-placeholder">📱</div>
-                  )}
+                  <img 
+                    src={item.image || item.product?.images?.[0] || "/default-product.jpg"} 
+                    alt={item.name}
+                    onError={(e) => {
+                      e.target.src = "/default-product.jpg";
+                      e.target.onerror = null;
+                    }}
+                  />
                 </div>
                 <div className="item-info">
                   <h4>{item.name}</h4>
