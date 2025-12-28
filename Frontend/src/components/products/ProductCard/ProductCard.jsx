@@ -1,99 +1,159 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
+import { useAuth } from "../../../context/AuthContext";
 import "./ProductCard.css";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
-  const [adding, setAdding] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
 
   const handleAddToCart = async () => {
-    setAdding(true);
+    if (!user) {
+      if (window.confirm("Please login to add items to cart. Go to login page?")) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    setLoading(true);
     try {
-      await addToCart(product._id, 1);
+      await addToCart(product);
+      // Show success notification (you can add toast here)
     } catch (error) {
       console.error("Error adding to cart:", error);
     } finally {
-      setTimeout(() => setAdding(false), 500);
+      setLoading(false);
     }
   };
 
-  // Get default image
-  const productImage = product.images?.[0] || product.image || "/default-product.jpg";
+  const handleWishlist = () => {
+    if (!user) {
+      alert("Please login to add to wishlist");
+      return;
+    }
+    setWishlisted(!wishlisted);
+    // Add wishlist API call here
+  };
+
+  // Get product image with fallback
+  const getProductImage = () => {
+    if (product.images && product.images.length > 0) {
+      return product.images[0];
+    }
+    if (product.image) {
+      return product.image;
+    }
+    // Professional placeholder for electronics
+    return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop&crop=center";
+  };
+
+  // Get stock status
+  const getStockStatus = () => {
+    if (!product.stock || product.stock === 0) return { text: "Out of Stock", className: "out-of-stock" };
+    if (product.stock < 5) return { text: `Only ${product.stock} left`, className: "low-stock" };
+    return { text: "In Stock", className: "in-stock" };
+  };
+
+  const stockStatus = getStockStatus();
 
   return (
     <div className="product-card">
       {/* Product Image */}
       <div className="product-image-container">
-        <Link to={`/product/${product._id}`}>
-          <img 
-            src={productImage} 
+        <Link to={`/product/${product._id}`} className="product-image-link">
+          <img
+            src={getProductImage()}
             alt={product.name}
             className="product-image"
+            loading="lazy"
             onError={(e) => {
-              e.target.src = "/default-product.jpg";
+              e.target.src = "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop&crop=center";
               e.target.onerror = null;
             }}
           />
         </Link>
         
-        {/* Product Badges */}
-        {product.stock < 5 && product.stock > 0 && (
-          <span className="stock-badge low-stock">Low Stock: {product.stock}</span>
-        )}
-        {product.stock === 0 && (
-          <span className="stock-badge out-of-stock">Out of Stock</span>
-        )}
-        {product.isFeatured && (
-          <span className="featured-badge">🔥 Featured</span>
-        )}
-        
-        {/* Quick View Button */}
-        <button className="quick-view-btn">
-          👁️ Quick View
+        {/* Wishlist Button */}
+        <button 
+          className={`wishlist-btn ${wishlisted ? "active" : ""}`}
+          onClick={handleWishlist}
+          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          {wishlisted ? "❤️" : "🤍"}
         </button>
+
+        {/* Stock Badge */}
+        <span className={`stock-badge ${stockStatus.className}`}>
+          {stockStatus.text}
+        </span>
+
+        {/* Quick Actions */}
+        <div className="quick-actions">
+          <button 
+            className="quick-view-btn"
+            onClick={() => navigate(`/product/${product._id}`)}
+          >
+            👁️ Quick View
+          </button>
+        </div>
       </div>
 
       {/* Product Info */}
       <div className="product-info">
+        {/* Category */}
         <div className="product-category">
-          <span className="category-tag">{product.category}</span>
-          {product.brand && <span className="brand-tag">{product.brand}</span>}
+          <span className="category-badge">{product.category || "Electronics"}</span>
+          {product.brand && <span className="brand-badge">{product.brand}</span>}
         </div>
-        
-        <Link to={`/product/${product._id}`} className="product-name">
-          {product.name}
-        </Link>
-        
+
+        {/* Name */}
+        <h3 className="product-name">
+          <Link to={`/product/${product._id}`} title={product.name}>
+            {product.name}
+          </Link>
+        </h3>
+
+        {/* Description */}
         <p className="product-description">
-          {product.description?.substring(0, 60) || "Premium quality product"}...
+          {product.description?.substring(0, 80) || "High-quality electronics product"}...
         </p>
-        
+
         {/* Rating */}
         <div className="product-rating">
           <div className="stars">
-            {"★".repeat(Math.floor(product.rating || 0))}
-            {"☆".repeat(5 - Math.floor(product.rating || 0))}
+            {[...Array(5)].map((_, i) => (
+              <span key={i} className={i < Math.floor(product.rating || 0) ? "filled" : "empty"}>
+                ★
+              </span>
+            ))}
           </div>
           <span className="rating-count">({product.numReviews || 0})</span>
         </div>
 
-        {/* Price and Actions */}
-        <div className="product-footer">
-          <div className="price-section">
-            <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
-            {product.originalPrice && (
-              <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
-            )}
-          </div>
-          
+        {/* Price */}
+        <div className="product-price">
+          <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
+          {product.originalPrice && (
+            <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
+          )}
+          {product.discount && (
+            <span className="discount-badge">-{product.discount}%</span>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="product-actions">
           <button
             onClick={handleAddToCart}
-            disabled={product.stock === 0 || adding}
+            disabled={loading || product.stock === 0}
             className={`add-to-cart-btn ${product.stock === 0 ? "disabled" : ""}`}
           >
-            {adding ? (
-              <span className="spinner"></span>
+            {loading ? (
+              <span className="loading-spinner"></span>
             ) : product.stock === 0 ? (
               "Out of Stock"
             ) : (
@@ -103,6 +163,10 @@ const ProductCard = ({ product }) => {
               </>
             )}
           </button>
+          
+          <Link to={`/product/${product._id}`} className="view-details-btn">
+            View Details
+          </Link>
         </div>
       </div>
     </div>

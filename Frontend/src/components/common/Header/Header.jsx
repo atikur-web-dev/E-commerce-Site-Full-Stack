@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { useCart } from "../../../context/CartContext"; // ✅ CartContext import
+import { useCart } from "../../../context/CartContext";
 import "./Header.css";
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { cart } = useCart(); // ✅ Cart data access
+  const { cartItems, getTotalItems } = useCart();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    setCartCount(getTotalItems());
+  }, [cartItems, getTotalItems]);
 
   const handleLogout = () => {
     logout();
@@ -20,51 +26,58 @@ const Header = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // Calculate cart items count
-  const cartItemsCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
+
+  const navLinks = [
+    { path: "/", label: "Home", icon: "🏠" },
+    { path: "/shop", label: "Shop", icon: "🛍️" },
+    { path: "/cart", label: "Cart", icon: "🛒", badge: cartCount > 0 ? cartCount : null }
+  ];
 
   return (
     <header className="header">
-      <div className="header-container">
-        {/* Logo */}
-        <div className="logo">
-          <Link to="/" className="logo-link">
-            <span className="logo-icon">🛒</span>
-            <span className="logo-text">ShopEasy</span>
-          </Link>
-        </div>
+      <div className="container">
+        <div className="header-content">
+          {/* Logo */}
+          <div className="logo">
+            <Link to="/" className="logo-link">
+              <div className="logo-icon">⚡</div>
+              <div className="logo-text">
+                <span className="logo-main">TechGadget</span>
+                <span className="logo-sub">Electronics Store</span>
+              </div>
+            </Link>
+          </div>
 
-        {/* Navigation */}
-        <nav className="nav">
-          <ul className="nav-list">
-            {/* Public Links - Always Visible */}
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link" activeClassName="active">
-                Home
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/shop" className="nav-link" activeClassName="active">
-                Shop
-              </NavLink>
-            </li>
+          {/* Desktop Navigation */}
+          <nav className="desktop-nav">
+            <ul className="nav-list">
+              {navLinks.map((link) => (
+                <li key={link.path} className="nav-item">
+                  <NavLink 
+                    to={link.path} 
+                    className={({ isActive }) => 
+                      `nav-link ${isActive ? "active" : ""}`
+                    }
+                  >
+                    <span className="nav-icon">{link.icon}</span>
+                    <span className="nav-label">{link.label}</span>
+                    {link.badge && (
+                      <span className="nav-badge">{link.badge}</span>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-            {/* Cart Link with Badge */}
-            <li className="nav-item cart-item">
-              <NavLink to="/cart" className="nav-link cart-link" activeClassName="active">
-                <span className="cart-icon">🛒</span>
-                Cart
-                {cartItemsCount > 0 && (
-                  <span className="cart-badge">{cartItemsCount}</span>
-                )}
-              </NavLink>
-            </li>
-
-            {/* Conditional Links */}
+          {/* User Actions */}
+          <div className="user-actions">
             {user ? (
-              // Logged In User
-              <li className="nav-item user-menu">
-                <div
+              <div className="user-menu">
+                <div 
                   className="user-profile"
                   onClick={toggleDropdown}
                   onMouseEnter={() => setShowDropdown(true)}
@@ -73,98 +86,154 @@ const Header = () => {
                   <div className="user-avatar">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="user-name">{user.name.split(" ")[0]}</span>
+                  <div className="user-info">
+                    <span className="user-name">Hi, {user.name.split(" ")[0]}</span>
+                    <span className="user-email">{user.email}</span>
+                  </div>
                   <span className="dropdown-arrow">▼</span>
                 </div>
 
-                {/* Dropdown Menu */}
                 {showDropdown && (
-                  <div
+                  <div 
                     className="dropdown-menu"
                     onMouseEnter={() => setShowDropdown(true)}
                     onMouseLeave={() => setShowDropdown(false)}
                   >
-                    <div className="user-info">
-                      <strong>{user.name}</strong>
-                      <small>{user.email}</small>
+                    <div className="dropdown-header">
+                      <div className="dropdown-avatar">{user.name.charAt(0).toUpperCase()}</div>
+                      <div>
+                        <div className="dropdown-name">{user.name}</div>
+                        <div className="dropdown-email">{user.email}</div>
+                      </div>
                     </div>
-
+                    
                     <div className="dropdown-divider"></div>
-
-                    <Link
-                      to="/profile"
-                      className="dropdown-item"
-                      onClick={() => setShowDropdown(false)}
-                    >
-                      👤 Profile
+                    
+                    <Link to="/profile" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                      <span className="item-icon">👤</span>
+                      <span>My Profile</span>
                     </Link>
-
-                    <Link
-                      to="/orders"
-                      className="dropdown-item"
-                      onClick={() => setShowDropdown(false)}
-                    >
-                      📦 My Orders
+                    
+                    <Link to="/orders" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                      <span className="item-icon">📦</span>
+                      <span>My Orders</span>
                     </Link>
-
-                    {/* Checkout Link in Dropdown */}
-                    {cartItemsCount > 0 && (
-                      <Link
-                        to="/checkout"
-                        className="dropdown-item checkout-item"
-                        onClick={() => setShowDropdown(false)}
-                      >
-                        💳 Checkout ({cartItemsCount} items)
-                      </Link>
-                    )}
-
-                    {/* Admin Panel Link (if admin) */}
-                    {user.role === "admin" && (
-                      <>
-                        <div className="dropdown-divider"></div>
-                        <Link
-                          to="/admin"
-                          className="dropdown-item admin-item"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          👑 Admin Panel
-                        </Link>
-                      </>
-                    )}
-
+                    
+                    <Link to="/wishlist" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                      <span className="item-icon">❤️</span>
+                      <span>Wishlist</span>
+                    </Link>
+                    
                     <div className="dropdown-divider"></div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="dropdown-item logout-btn"
-                    >
-                      🚪 Logout
+                    
+                    <button onClick={handleLogout} className="dropdown-item logout">
+                      <span className="item-icon">🚪</span>
+                      <span>Logout</span>
                     </button>
                   </div>
                 )}
-              </li>
+              </div>
             ) : (
-              // Not Logged In
-              <>
-                <li className="nav-item">
-                  <NavLink to="/login" className="nav-link btn-login" activeClassName="active">
-                    Login
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/register" className="nav-link btn-register" activeClassName="active">
-                    Sign Up
-                  </NavLink>
-                </li>
-              </>
+              <div className="auth-buttons">
+                <Link to="/login" className="btn btn-outline btn-sm">
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-primary btn-sm">
+                  Sign Up
+                </Link>
+              </div>
             )}
-          </ul>
+          </div>
 
-          {/* Mobile Menu Button */}
-          <button className="mobile-menu-btn">
+          {/* Mobile Menu Toggle */}
+          <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
             <span className="menu-icon">☰</span>
+            {cartCount > 0 && (
+              <span className="mobile-cart-badge">{cartCount}</span>
+            )}
           </button>
-        </nav>
+        </div>
+
+        {/* Mobile Navigation */}
+        {showMobileMenu && (
+          <div className="mobile-nav">
+            <div className="mobile-nav-header">
+              <h3>Menu</h3>
+              <button className="close-menu" onClick={toggleMobileMenu}>×</button>
+            </div>
+            
+            <div className="mobile-nav-links">
+              {navLinks.map((link) => (
+                <NavLink 
+                  key={link.path}
+                  to={link.path} 
+                  className={({ isActive }) => 
+                    `mobile-nav-link ${isActive ? "active" : ""}`
+                  }
+                  onClick={toggleMobileMenu}
+                >
+                  <span className="mobile-nav-icon">{link.icon}</span>
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="mobile-nav-badge">{link.badge}</span>
+                  )}
+                </NavLink>
+              ))}
+              
+              {user ? (
+                <>
+                  <div className="mobile-nav-divider"></div>
+                  <Link 
+                    to="/profile" 
+                    className="mobile-nav-link" 
+                    onClick={toggleMobileMenu}
+                  >
+                    <span className="mobile-nav-icon">👤</span>
+                    <span>My Profile</span>
+                  </Link>
+                  <Link 
+                    to="/orders" 
+                    className="mobile-nav-link" 
+                    onClick={toggleMobileMenu}
+                  >
+                    <span className="mobile-nav-icon">📦</span>
+                    <span>My Orders</span>
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      handleLogout();
+                      toggleMobileMenu();
+                    }} 
+                    className="mobile-nav-link logout"
+                  >
+                    <span className="mobile-nav-icon">🚪</span>
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="mobile-nav-divider"></div>
+                  <Link 
+                    to="/login" 
+                    className="mobile-nav-link" 
+                    onClick={toggleMobileMenu}
+                  >
+                    <span className="mobile-nav-icon">🔑</span>
+                    <span>Login</span>
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="mobile-nav-link" 
+                    onClick={toggleMobileMenu}
+                  >
+                    <span className="mobile-nav-icon">📝</span>
+                    <span>Sign Up</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
