@@ -1,74 +1,74 @@
-// ./Frontend/src/components/products/ProductCard/ProductCard.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
-import { useAuth } from "../../../context/AuthContext";
 import "./ProductCard.css";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const [adding, setAdding] = useState(false);
 
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!isAuthenticated()) {
-      alert("Please login to add items to cart");
-      window.location.href = "/login";
-      return;
+  const handleAddToCart = async () => {
+    setAdding(true);
+    try {
+      await addToCart(product._id, 1);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    } finally {
+      setTimeout(() => setAdding(false), 500);
     }
-
-    addToCart({
-      ...product,
-      quantity: 1,
-    });
   };
 
-  // Check if product is in stock
-  const isInStock = product.countInStock > 0 || product.stock > 0;
-  const stockCount = product.countInStock || product.stock || 0;
+  // Get default image
+  const productImage = product.images?.[0] || product.image || "/default-product.jpg";
 
   return (
     <div className="product-card">
       {/* Product Image */}
-      <div className="product-image">
-        <Link to={`/product/${product._id || product.id}`}>
-          <img
-            src={
-              product.image ||
-              product.images?.[0] ||
-              "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80"
-            }
+      <div className="product-image-container">
+        <Link to={`/product/${product._id}`}>
+          <img 
+            src={productImage} 
             alt={product.name}
+            className="product-image"
             onError={(e) => {
-              e.target.src =
-                "https://via.placeholder.com/400x300?text=No+Image";
+              e.target.src = "/default-product.jpg";
+              e.target.onerror = null;
             }}
           />
         </Link>
-
-        {/* Stock Badge */}
-        {!isInStock && <div className="out-of-stock-badge">Out of Stock</div>}
+        
+        {/* Product Badges */}
+        {product.stock < 5 && product.stock > 0 && (
+          <span className="stock-badge low-stock">Low Stock: {product.stock}</span>
+        )}
+        {product.stock === 0 && (
+          <span className="stock-badge out-of-stock">Out of Stock</span>
+        )}
+        {product.isFeatured && (
+          <span className="featured-badge">🔥 Featured</span>
+        )}
+        
+        {/* Quick View Button */}
+        <button className="quick-view-btn">
+          👁️ Quick View
+        </button>
       </div>
 
       {/* Product Info */}
       <div className="product-info">
-        {/* Category */}
         <div className="product-category">
-          {product.category || "Uncategorized"}
+          <span className="category-tag">{product.category}</span>
+          {product.brand && <span className="brand-tag">{product.brand}</span>}
         </div>
-
-        {/* Product Name */}
-        <h3 className="product-name">
-          <Link to={`/product/${product._id || product.id}`}>
-            {product.name}
-          </Link>
-        </h3>
-
-        {/* Brand */}
-        <div className="product-brand">{product.brand || "Generic Brand"}</div>
-
+        
+        <Link to={`/product/${product._id}`} className="product-name">
+          {product.name}
+        </Link>
+        
+        <p className="product-description">
+          {product.description?.substring(0, 60) || "Premium quality product"}...
+        </p>
+        
         {/* Rating */}
         <div className="product-rating">
           <div className="stars">
@@ -78,27 +78,31 @@ const ProductCard = ({ product }) => {
           <span className="rating-count">({product.numReviews || 0})</span>
         </div>
 
-        {/* Price */}
-        <div className="product-price">
-          <span className="price">${product.price?.toFixed(2) || "0.00"}</span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="product-actions">
+        {/* Price and Actions */}
+        <div className="product-footer">
+          <div className="price-section">
+            <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
+            {product.originalPrice && (
+              <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
+            )}
+          </div>
+          
           <button
-            className={`add-to-cart-btn ${!isInStock ? "disabled" : ""}`}
             onClick={handleAddToCart}
-            disabled={!isInStock}
+            disabled={product.stock === 0 || adding}
+            className={`add-to-cart-btn ${product.stock === 0 ? "disabled" : ""}`}
           >
-            {isInStock ? "Add to Cart" : "Out of Stock"}
+            {adding ? (
+              <span className="spinner"></span>
+            ) : product.stock === 0 ? (
+              "Out of Stock"
+            ) : (
+              <>
+                <span className="cart-icon">🛒</span>
+                Add to Cart
+              </>
+            )}
           </button>
-
-          <Link
-            to={`/product/${product._id || product.id}`}
-            className="view-details-btn"
-          >
-            View Details
-          </Link>
         </div>
       </div>
     </div>
