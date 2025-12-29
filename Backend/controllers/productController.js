@@ -8,12 +8,23 @@ import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.j
 // @access  Public
 export const getProducts = asyncHandler(async (req, res) => {
   try {
+    console.log("📦 Fetching all products...");
     const products = await Product.find({});
 
-    // ✅ Direct array return - NO object wrapper
+    // Debug: Check first product's images
+    if (products.length > 0) {
+      console.log("✅ First product data:", {
+        name: products[0].name,
+        images: products[0].images,
+        imagesType: typeof products[0].images,
+        imagesLength: products[0].images?.length
+      });
+    }
+
+    console.log(`✅ Total products: ${products.length}`);
     res.json(products);
   } catch (error) {
-    console.error("Get Products Error:", error);
+    console.error("❌ Get Products Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -47,7 +58,6 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
       `✅ [API] Found ${products.length} products for "${decodedCategory}"`
     );
 
-    // ✅ Direct array return - NO object wrapper
     res.json(products);
   } catch (error) {
     console.error("Category Products Error:", error);
@@ -63,16 +73,25 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
 // @access  Public
 export const getProductById = asyncHandler(async (req, res) => {
   try {
+    console.log(`🔍 Fetching product by ID: ${req.params.id}`);
+    
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      // ✅ Direct object return - NO object wrapper
+      console.log("✅ Product found:", {
+        name: product.name,
+        hasImages: !!product.images,
+        images: product.images,
+        imagesLength: product.images?.length
+      });
+      
       res.json(product);
     } else {
+      console.log("❌ Product not found for ID:", req.params.id);
       res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
-    console.error("Get Product By ID Error:", error);
+    console.error("❌ Get Product By ID Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -86,8 +105,7 @@ export const getProductById = asyncHandler(async (req, res) => {
 export const getFeaturedProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({ isFeatured: true });
-
-    // ✅ Direct array return
+    console.log(`⭐ Featured products: ${products.length}`);
     res.json(products);
   } catch (error) {
     console.error("Featured Products Error:", error);
@@ -103,26 +121,46 @@ export const getFeaturedProducts = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const createProduct = asyncHandler(async (req, res) => {
   try {
+    console.log("🆕 Creating new product...");
+    
+    // Handle images - convert to array format
+    let imagesArray = [];
+    
+    if (req.body.images && Array.isArray(req.body.images)) {
+      imagesArray = req.body.images;
+    } else if (req.body.images && typeof req.body.images === 'string') {
+      imagesArray = [req.body.images];
+    } else if (req.body.image) {
+      imagesArray = [req.body.image];
+    } else {
+      imagesArray = ["/default-product.jpg"];
+    }
+    
+    console.log("📸 Product images to save:", imagesArray);
+
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
       brand: req.body.brand,
-      image: req.body.image,
+      images: imagesArray, // Use images array
       stock: req.body.stock || 0,
       rating: 0,
       numReviews: 0,
       specifications: req.body.specifications || {},
       warranty: req.body.warranty || 12,
+      isFeatured: req.body.isFeatured || false,
+      isNewArrival: req.body.isNewArrival || true,
+      isBestSeller: req.body.isBestSeller || false,
     });
 
     const createdProduct = await product.save();
-
-    // ✅ Direct object return
+    
+    console.log("✅ Product created successfully:", createdProduct._id);
     res.status(201).json(createdProduct);
   } catch (error) {
-    console.error("Create Product Error:", error);
+    console.error("❌ Create Product Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -135,6 +173,8 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const updateProduct = asyncHandler(async (req, res) => {
   try {
+    console.log(`✏️ Updating product: ${req.params.id}`);
+    
     const product = await Product.findById(req.params.id);
 
     if (product) {
@@ -143,21 +183,34 @@ export const updateProduct = asyncHandler(async (req, res) => {
       product.price = req.body.price || product.price;
       product.category = req.body.category || product.category;
       product.brand = req.body.brand || product.brand;
-      product.image = req.body.image || product.image;
+      
+      // Handle images update
+      if (req.body.images !== undefined) {
+        if (Array.isArray(req.body.images)) {
+          product.images = req.body.images;
+        } else if (typeof req.body.images === 'string') {
+          product.images = [req.body.images];
+        }
+        console.log("📸 Updated images:", product.images);
+      }
+      
       product.stock = req.body.stock || product.stock;
-      product.specifications =
-        req.body.specifications || product.specifications;
+      product.specifications = req.body.specifications || product.specifications;
       product.warranty = req.body.warranty || product.warranty;
+      product.isFeatured = req.body.isFeatured !== undefined ? req.body.isFeatured : product.isFeatured;
+      product.isNewArrival = req.body.isNewArrival !== undefined ? req.body.isNewArrival : product.isNewArrival;
+      product.isBestSeller = req.body.isBestSeller !== undefined ? req.body.isBestSeller : product.isBestSeller;
 
       const updatedProduct = await product.save();
-
-      // ✅ Direct object return
+      
+      console.log("✅ Product updated successfully");
       res.json(updatedProduct);
     } else {
+      console.log("❌ Product not found for update");
       res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
-    console.error("Update Product Error:", error);
+    console.error("❌ Update Product Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -174,8 +227,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
     if (product) {
       await product.deleteOne();
-
-      // ✅ Simple success message
+      console.log("🗑️ Product deleted:", req.params.id);
       res.json({ message: "Product removed" });
     } else {
       res.status(404).json({ message: "Product not found" });
@@ -313,7 +365,6 @@ export const testCloudinaryConnection = asyncHandler(async (req, res) => {
   try {
     console.log('🔄 Testing Cloudinary connection...');
     
-    // Check if Cloudinary credentials are set
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
     
@@ -330,64 +381,20 @@ export const testCloudinaryConnection = asyncHandler(async (req, res) => {
       });
     }
     
-    // Try to import cloudinary to test connection
-    let cloudinary;
-    try {
-      cloudinary = await import('../config/cloudinary.js');
-      console.log('✅ Cloudinary module loaded successfully');
-    } catch (importError) {
-      console.error('❌ Cloudinary module import error:', importError);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to load Cloudinary module',
-        error: importError.message,
-      });
-    }
+    const configCheck = {
+      cloudName: cloudName,
+      apiKeyPresent: !!apiKey,
+      apiSecretPresent: !!process.env.CLOUDINARY_API_SECRET,
+    };
     
-    // Test connection by pinging Cloudinary
-    try {
-      // Note: Cloudinary doesn't have a direct ping API
-      // We'll just check if configuration is valid
-      const configCheck = {
-        cloudName: cloudName,
-        apiKeyPresent: !!apiKey,
-        apiSecretPresent: !!process.env.CLOUDINARY_API_SECRET,
-        configFileExists: true,
-      };
-      
-      console.log('✅ Cloudinary configuration check:', configCheck);
-      
-      res.status(200).json({
-        success: true,
-        message: 'Cloudinary connection test successful',
-        timestamp: new Date().toISOString(),
-        configuration: {
-          cloudName: cloudName,
-          apiKeyConfigured: !!apiKey,
-          apiSecretConfigured: !!process.env.CLOUDINARY_API_SECRET,
-          nodeEnv: process.env.NODE_ENV,
-        },
-        endpoints: {
-          singleUpload: 'POST /api/products/upload',
-          multipleUpload: 'POST /api/products/upload-multiple',
-          deleteImage: 'DELETE /api/products/image/:publicId',
-        },
-        nextSteps: [
-          'Test single image upload: POST /api/products/upload',
-          'Check Cloudinary dashboard: https://cloudinary.com/console',
-          'Verify images in Media Library under "shopeasy/products" folder',
-        ],
-      });
-      
-    } catch (cloudinaryError) {
-      console.error('❌ Cloudinary connection error:', cloudinaryError);
-      res.status(500).json({
-        success: false,
-        message: 'Cloudinary connection test failed',
-        error: cloudinaryError.message,
-        stack: process.env.NODE_ENV === 'development' ? cloudinaryError.stack : undefined,
-      });
-    }
+    console.log('✅ Cloudinary configuration check:', configCheck);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Cloudinary connection test successful',
+      timestamp: new Date().toISOString(),
+      configuration: configCheck,
+    });
     
   } catch (error) {
     console.error('❌ Unexpected error in testCloudinaryConnection:', error);
