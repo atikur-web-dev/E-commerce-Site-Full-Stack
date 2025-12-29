@@ -151,21 +151,7 @@ const Orders = () => {
         </div>
       )}
 
-      {/* Demo Notice */}
-      <div className="demo-notice">
-        <h3>🎓 Practicum Project Demo</h3>
-        <p>
-          This orders page demonstrates order management features. In
-          production:
-        </p>
-        <ul>
-          <li>Real-time order tracking</li>
-          <li>Email/SMS notifications</li>
-          <li>Order cancellation/return</li>
-          <li>Invoice download</li>
-          <li>Shipping carrier integration</li>
-        </ul>
-      </div>
+      
 
       {orders.length === 0 ? (
         <div className="empty-orders">

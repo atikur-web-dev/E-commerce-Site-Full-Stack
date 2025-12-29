@@ -10,7 +10,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { user } = useAuth();
-  
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,9 +25,11 @@ const ProductDetail = () => {
     try {
       setLoading(true);
       setError("");
-      
-      const response = await axios.get(`http://localhost:5000/api/products/${id}`);
-      
+
+      const response = await axios.get(
+        `http://localhost:5000/api/products/${id}`
+      );
+
       if (response.data) {
         setProduct(response.data);
         console.log("✅ Product loaded:", response.data.name);
@@ -38,7 +40,7 @@ const ProductDetail = () => {
     } catch (error) {
       console.error("Error fetching product:", error);
       setError("Failed to load product. Using demo data.");
-      
+
       // Demo data for presentation
       setProduct(generateDemoProduct());
     } finally {
@@ -50,14 +52,15 @@ const ProductDetail = () => {
     return {
       _id: id || "demo_product_123",
       name: "Samsung Galaxy S24 Ultra",
-      description: "AI-powered smartphone with S Pen, 200MP camera, Snapdragon 8 Gen 3 processor",
+      description:
+        "AI-powered smartphone with S Pen, 200MP camera, Snapdragon 8 Gen 3 processor",
       price: 1199.99,
       category: "Smartphones",
       brand: "Samsung",
       images: [
         "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600",
         "https://images.unsplash.com/photo-1610945265084-0e34e5519bbf?w=600",
-        "https://images.unsplash.com/photo-1610945265074-0e34e5519bbf?w=600"
+        "https://images.unsplash.com/photo-1610945265074-0e34e5519bbf?w=600",
       ],
       stock: 20,
       rating: 4.7,
@@ -70,7 +73,7 @@ const ProductDetail = () => {
         storage: "512GB",
         battery: "5000mAh",
         camera: "200MP + 50MP + 12MP + 10MP",
-        os: "Android 14 with One UI 6.1"
+        os: "Android 14 with One UI 6.1",
       },
       warranty: 12,
     };
@@ -105,15 +108,19 @@ const ProductDetail = () => {
   // Get images array safely
   const getProductImages = () => {
     if (!product) return ["https://via.placeholder.com/600x400?text=No+Image"];
-    
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+
+    if (
+      product.images &&
+      Array.isArray(product.images) &&
+      product.images.length > 0
+    ) {
       return product.images;
     }
-    
+
     if (product.image) {
       return [product.image];
     }
-    
+
     return ["https://via.placeholder.com/600x400?text=No+Image"];
   };
 
@@ -148,7 +155,9 @@ const ProductDetail = () => {
       {error && (
         <div className="demo-notice">
           <h3>🎓 Practicum Project Demo</h3>
-          <p><strong>Note:</strong> {error}</p>
+          <p>
+            <strong>Note:</strong> {error}
+          </p>
         </div>
       )}
 
@@ -158,8 +167,8 @@ const ProductDetail = () => {
         <button onClick={() => navigate("/shop")}>Shop</button> /
         <button onClick={() => navigate(`/shop?category=${product.category}`)}>
           {product.category}
-        </button> /
-        <span>{product.name}</span>
+        </button>{" "}
+        /<span>{product.name}</span>
       </div>
 
       <div className="product-detail-grid">
@@ -170,7 +179,8 @@ const ProductDetail = () => {
               src={productImages[selectedImage]}
               alt={product.name}
               onError={(e) => {
-                e.target.src = "https://via.placeholder.com/600x400?text=No+Image";
+                e.target.src =
+                  "https://via.placeholder.com/600x400?text=No+Image";
                 e.target.onerror = null;
               }}
             />
@@ -181,14 +191,17 @@ const ProductDetail = () => {
               {productImages.map((img, index) => (
                 <button
                   key={index}
-                  className={`thumbnail-btn ${selectedImage === index ? "active" : ""}`}
+                  className={`thumbnail-btn ${
+                    selectedImage === index ? "active" : ""
+                  }`}
                   onClick={() => setSelectedImage(index)}
                 >
                   <img
                     src={img}
                     alt={`${product.name} view ${index + 1}`}
                     onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/100x100?text=Image";
+                      e.target.src =
+                        "https://via.placeholder.com/100x100?text=Image";
                       e.target.onerror = null;
                     }}
                   />
@@ -228,7 +241,11 @@ const ProductDetail = () => {
             )}
           </div>
 
-          <div className={`stock-status ${product.stock > 0 ? "in-stock" : "out-of-stock"}`}>
+          <div
+            className={`stock-status ${
+              product.stock > 0 ? "in-stock" : "out-of-stock"
+            }`}
+          >
             {product.stock > 0
               ? `✅ ${product.stock} in stock`
               : "❌ Out of stock"}
@@ -240,19 +257,22 @@ const ProductDetail = () => {
           </div>
 
           {/* Specifications */}
-          {product.specifications && Object.keys(product.specifications).length > 0 && (
-            <div className="specifications">
-              <h3>Specifications</h3>
-              <div className="specs-grid">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="spec-item">
-                    <span className="spec-key">{key}:</span>
-                    <span className="spec-value">{value}</span>
-                  </div>
-                ))}
+          {product.specifications &&
+            Object.keys(product.specifications).length > 0 && (
+              <div className="specifications">
+                <h3>Specifications</h3>
+                <div className="specs-grid">
+                  {Object.entries(product.specifications).map(
+                    ([key, value]) => (
+                      <div key={key} className="spec-item">
+                        <span className="spec-key">{key}:</span>
+                        <span className="spec-value">{value}</span>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Add to Cart Section */}
           {product.stock > 0 && (
@@ -319,25 +339,6 @@ const ProductDetail = () => {
               </button>
             </div>
           )}
-
-          {/* Warranty */}
-          <div className="warranty-info">
-            <span className="warranty-icon">🛡️</span>
-            <span>{product.warranty || 12} Months Warranty</span>
-          </div>
-
-          {/* Demo Features */}
-          <div className="demo-features">
-            <h3>🎓 Practicum Demo Features</h3>
-            <ul>
-              <li>Product image gallery</li>
-              <li>Detailed specifications</li>
-              <li>Stock management</li>
-              <li>Quantity selector</li>
-              <li>Price calculation</li>
-              <li>Add to cart functionality</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

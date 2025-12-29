@@ -45,8 +45,8 @@ const Header = () => {
             <Link to="/" className="logo-link">
               <div className="logo-icon">⚡</div>
               <div className="logo-text">
-                <span className="logo-main">TechGadget</span>
-                <span className="logo-sub">Electronics Store</span>
+                <span className="logo-main">TechShop</span>
+                <span className="logo-sub">Electronics Store of Atikur</span>
               </div>
             </Link>
           </div>

@@ -307,19 +307,7 @@ const OrderDetail = () => {
             </div>
           </div>
 
-          {/* Demo Features */}
-          <div className="info-card card demo-features">
-            <h3>🎓 Practicum Demo Features</h3>
-            <ul>
-              <li>Order tracking timeline</li>
-              <li>Invoice generation (print)</li>
-              <li>Order cancellation/return</li>
-              <li>Real-time status updates</li>
-              <li>Email/SMS notifications</li>
-              <li>Shipping carrier integration</li>
-            </ul>
-            <small><strong>Technologies:</strong> MERN Stack, REST APIs, MongoDB</small>
-          </div>
+         
         </div>
       </div>
     </div>

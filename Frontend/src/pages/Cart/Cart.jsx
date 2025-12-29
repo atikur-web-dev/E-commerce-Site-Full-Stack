@@ -214,11 +214,11 @@ const Cart = () => {
                 <div className="shipping-info">
                   {subtotal < 500 ? (
                     <p className="free-shipping-note">
-                      🎁 Add ৳{(500 - subtotal).toFixed(2)} more to get FREE shipping!
+                       Add ৳{(500 - subtotal).toFixed(2)} more to get FREE shipping!
                     </p>
                   ) : (
                     <p className="free-shipping-note">
-                      🎉 You qualify for FREE shipping!
+                       You qualify for FREE shipping!
                     </p>
                   )}
                 </div>
@@ -232,14 +232,6 @@ const Cart = () => {
                 {user ? "Proceed to Checkout" : "Login to Checkout"}
               </button>
               
-              <div className="payment-security">
-                <p className="security-note">🔒 Secure & Encrypted Payment</p>
-                <div className="payment-methods">
-                  <span className="payment-icon">💳</span>
-                  <span className="payment-icon">📱</span>
-                  <span className="payment-icon">💰</span>
-                </div>
-              </div>
               
               <Link to="/shop" className="continue-shopping">
                 ← Continue Shopping

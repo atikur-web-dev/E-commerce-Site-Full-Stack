@@ -445,17 +445,7 @@ const Checkout = () => {
               <p>Estimated delivery: 3-5 business days</p>
             </div>
             
-            <div className="practicum-note">
-              <h4>Practicum Project</h4>
-              <p>This checkout system demonstrates:</p>
-              <ul>
-                <li>Cart management</li>
-                <li>Order processing</li>
-                <li>Payment simulation</li>
-                <li>Database integration</li>
-              </ul>
-              <small>Presented by: {user?.name || "Student"} | Date: {new Date().toLocaleDateString()}</small>
-            </div>
+            
           </div>
         </div>
       </div>
