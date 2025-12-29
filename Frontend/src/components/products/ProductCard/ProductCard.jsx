@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -11,6 +11,15 @@ const ProductCard = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
 
+  useEffect(() => {
+    // Check if product is in wishlist when component mounts
+    if (user && product?._id) {
+      const savedWishlist = JSON.parse(localStorage.getItem(`wishlist_${user._id}`)) || [];
+      const isInWishlist = savedWishlist.some(item => item._id === product._id);
+      setWishlisted(isInWishlist);
+    }
+  }, [user, product?._id]);
+
   const handleAddToCart = async () => {
     if (!user) {
       if (window.confirm("Please login to add items to cart. Go to login page?")) {
@@ -22,43 +31,78 @@ const ProductCard = ({ product }) => {
     setLoading(true);
     try {
       await addToCart(product);
-      // Show success notification (you can add toast here)
     } catch (error) {
       console.error("Error adding to cart:", error);
+      alert("Failed to add product to cart");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleWishlist = () => {
+  const handleWishlist = (e) => {
+    e.stopPropagation();
+    
     if (!user) {
-      alert("Please login to add to wishlist");
+      if (window.confirm("Please login to add to wishlist. Go to login page?")) {
+        navigate("/login");
+      }
       return;
     }
-    setWishlisted(!wishlisted);
-    // Add wishlist API call here
+    
+    if (!product?._id) return;
+
+    const savedWishlist = JSON.parse(localStorage.getItem(`wishlist_${user._id}`)) || [];
+    
+    if (wishlisted) {
+      const updatedWishlist = savedWishlist.filter(item => item._id !== product._id);
+      localStorage.setItem(`wishlist_${user._id}`, JSON.stringify(updatedWishlist));
+      setWishlisted(false);
+    } else {
+      const productToSave = {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        images: product.images || [],
+        image: product.image,
+        category: product.category,
+        brand: product.brand,
+        stock: product.stock,
+        originalPrice: product.originalPrice
+      };
+      
+      const updatedWishlist = [...savedWishlist, productToSave];
+      localStorage.setItem(`wishlist_${user._id}`, JSON.stringify(updatedWishlist));
+      setWishlisted(true);
+    }
   };
 
-  // Get product image with fallback
+  // Get product image
   const getProductImage = () => {
-    if (product.images && product.images.length > 0) {
+    if (product?.images && product.images.length > 0) {
       return product.images[0];
     }
-    if (product.image) {
+    if (product?.image) {
       return product.image;
     }
-    // Professional placeholder for electronics
     return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop&crop=center";
   };
 
   // Get stock status
   const getStockStatus = () => {
-    if (!product.stock || product.stock === 0) return { text: "Out of Stock", className: "out-of-stock" };
-    if (product.stock < 5) return { text: `Only ${product.stock} left`, className: "low-stock" };
+    if (!product?.stock || product.stock === 0) {
+      return { text: "Out of Stock", className: "out-of-stock" };
+    }
+    if (product.stock < 5) {
+      return { text: `Only ${product.stock} left`, className: "low-stock" };
+    }
     return { text: "In Stock", className: "in-stock" };
   };
 
   const stockStatus = getStockStatus();
+
+  if (!product) {
+    return <div className="product-card loading">Loading...</div>;
+  }
 
   return (
     <div className="product-card">
@@ -77,11 +121,11 @@ const ProductCard = ({ product }) => {
           />
         </Link>
         
-        {/* Wishlist Button */}
+        {/* Simple Wishlist Button */}
         <button 
           className={`wishlist-btn ${wishlisted ? "active" : ""}`}
           onClick={handleWishlist}
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
           {wishlisted ? "❤️" : "🤍"}
         </button>
@@ -90,39 +134,25 @@ const ProductCard = ({ product }) => {
         <span className={`stock-badge ${stockStatus.className}`}>
           {stockStatus.text}
         </span>
-
-        {/* Quick Actions */}
-        <div className="quick-actions">
-          <button 
-            className="quick-view-btn"
-            onClick={() => navigate(`/product/${product._id}`)}
-          >
-            👁️ Quick View
-          </button>
-        </div>
       </div>
 
       {/* Product Info */}
       <div className="product-info">
-        {/* Category */}
         <div className="product-category">
           <span className="category-badge">{product.category || "Electronics"}</span>
           {product.brand && <span className="brand-badge">{product.brand}</span>}
         </div>
 
-        {/* Name */}
         <h3 className="product-name">
-          <Link to={`/product/${product._id}`} title={product.name}>
+          <Link to={`/product/${product._id}`}>
             {product.name}
           </Link>
         </h3>
 
-        {/* Description */}
         <p className="product-description">
           {product.description?.substring(0, 80) || "High-quality electronics product"}...
         </p>
 
-        {/* Rating */}
         <div className="product-rating">
           <div className="stars">
             {[...Array(5)].map((_, i) => (
@@ -134,18 +164,18 @@ const ProductCard = ({ product }) => {
           <span className="rating-count">({product.numReviews || 0})</span>
         </div>
 
-        {/* Price */}
         <div className="product-price">
           <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
-          {product.originalPrice && (
-            <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
-          )}
-          {product.discount && (
-            <span className="discount-badge">-{product.discount}%</span>
+          {product.originalPrice && product.originalPrice > product.price && (
+            <>
+              <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
+              <span className="discount-badge">
+                -{Math.round((1 - product.price / product.originalPrice) * 100)}%
+              </span>
+            </>
           )}
         </div>
 
-        {/* Actions */}
         <div className="product-actions">
           <button
             onClick={handleAddToCart}

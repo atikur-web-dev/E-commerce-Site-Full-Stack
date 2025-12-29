@@ -33,7 +33,12 @@ const Header = () => {
   const navLinks = [
     { path: "/", label: "Home", icon: "🏠" },
     { path: "/shop", label: "Shop", icon: "🛍️" },
-    { path: "/cart", label: "Cart", icon: "🛒", badge: cartCount > 0 ? cartCount : null }
+    {
+      path: "/cart",
+      label: "Cart",
+      icon: "🛒",
+      badge: cartCount > 0 ? cartCount : null,
+    },
   ];
 
   return (
@@ -56,9 +61,9 @@ const Header = () => {
             <ul className="nav-list">
               {navLinks.map((link) => (
                 <li key={link.path} className="nav-item">
-                  <NavLink 
-                    to={link.path} 
-                    className={({ isActive }) => 
+                  <NavLink
+                    to={link.path}
+                    className={({ isActive }) =>
                       `nav-link ${isActive ? "active" : ""}`
                     }
                   >
@@ -77,7 +82,7 @@ const Header = () => {
           <div className="user-actions">
             {user ? (
               <div className="user-menu">
-                <div 
+                <div
                   className="user-profile"
                   onClick={toggleDropdown}
                   onMouseEnter={() => setShowDropdown(true)}
@@ -87,46 +92,66 @@ const Header = () => {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="user-info">
-                    <span className="user-name">Hi, {user.name.split(" ")[0]}</span>
+                    <span className="user-name">
+                      Hi, {user.name.split(" ")[0]}
+                    </span>
                     <span className="user-email">{user.email}</span>
                   </div>
                   <span className="dropdown-arrow">▼</span>
                 </div>
 
                 {showDropdown && (
-                  <div 
+                  <div
                     className="dropdown-menu"
                     onMouseEnter={() => setShowDropdown(true)}
                     onMouseLeave={() => setShowDropdown(false)}
                   >
                     <div className="dropdown-header">
-                      <div className="dropdown-avatar">{user.name.charAt(0).toUpperCase()}</div>
+                      <div className="dropdown-avatar">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
                       <div>
                         <div className="dropdown-name">{user.name}</div>
                         <div className="dropdown-email">{user.email}</div>
                       </div>
                     </div>
-                    
                     <div className="dropdown-divider"></div>
                     
-                    <Link to="/profile" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                    <Link
+                      to="/profile"
+                      className="dropdown-item"
+                      onClick={() => setShowDropdown(false)}
+                    >
                       <span className="item-icon">👤</span>
                       <span>My Profile</span>
                     </Link>
-                    
-                    <Link to="/orders" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                    <Link
+                      to="/orders"
+                      className="dropdown-item"
+                      onClick={() => setShowDropdown(false)}
+                    >
                       <span className="item-icon">📦</span>
                       <span>My Orders</span>
                     </Link>
-                    
-                    <Link to="/wishlist" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                   
+                    <Link
+                      to="/profile?tab=wishlist"
+                      className="dropdown-item"
+                      onClick={() => setShowDropdown(false)}
+                    >
                       <span className="item-icon">❤️</span>
                       <span>Wishlist</span>
+                      <span className="dropdown-badge">
+                        {JSON.parse(
+                          localStorage.getItem(`wishlist_${user._id}`)
+                        )?.length || 0}
+                      </span>
                     </Link>
-                    
                     <div className="dropdown-divider"></div>
-                    
-                    <button onClick={handleLogout} className="dropdown-item logout">
+                    <button
+                      onClick={handleLogout}
+                      className="dropdown-item logout"
+                    >
                       <span className="item-icon">🚪</span>
                       <span>Logout</span>
                     </button>
@@ -159,15 +184,17 @@ const Header = () => {
           <div className="mobile-nav">
             <div className="mobile-nav-header">
               <h3>Menu</h3>
-              <button className="close-menu" onClick={toggleMobileMenu}>×</button>
+              <button className="close-menu" onClick={toggleMobileMenu}>
+                ×
+              </button>
             </div>
-            
+
             <div className="mobile-nav-links">
               {navLinks.map((link) => (
-                <NavLink 
+                <NavLink
                   key={link.path}
-                  to={link.path} 
-                  className={({ isActive }) => 
+                  to={link.path}
+                  className={({ isActive }) =>
                     `mobile-nav-link ${isActive ? "active" : ""}`
                   }
                   onClick={toggleMobileMenu}
@@ -179,31 +206,31 @@ const Header = () => {
                   )}
                 </NavLink>
               ))}
-              
+
               {user ? (
                 <>
                   <div className="mobile-nav-divider"></div>
-                  <Link 
-                    to="/profile" 
-                    className="mobile-nav-link" 
+                  <Link
+                    to="/profile"
+                    className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
                     <span className="mobile-nav-icon">👤</span>
                     <span>My Profile</span>
                   </Link>
-                  <Link 
-                    to="/orders" 
-                    className="mobile-nav-link" 
+                  <Link
+                    to="/orders"
+                    className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
                     <span className="mobile-nav-icon">📦</span>
                     <span>My Orders</span>
                   </Link>
-                  <button 
+                  <button
                     onClick={() => {
                       handleLogout();
                       toggleMobileMenu();
-                    }} 
+                    }}
                     className="mobile-nav-link logout"
                   >
                     <span className="mobile-nav-icon">🚪</span>
@@ -213,17 +240,17 @@ const Header = () => {
               ) : (
                 <>
                   <div className="mobile-nav-divider"></div>
-                  <Link 
-                    to="/login" 
-                    className="mobile-nav-link" 
+                  <Link
+                    to="/login"
+                    className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
                     <span className="mobile-nav-icon">🔑</span>
                     <span>Login</span>
                   </Link>
-                  <Link 
-                    to="/register" 
-                    className="mobile-nav-link" 
+                  <Link
+                    to="/register"
+                    className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
                     <span className="mobile-nav-icon">📝</span>

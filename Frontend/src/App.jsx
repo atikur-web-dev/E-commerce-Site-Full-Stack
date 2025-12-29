@@ -16,6 +16,7 @@ import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Checkout from "./pages/Checkout/CheckoutPage";
 import Orders from "./pages/Orders/Orders";
 import OrderDetail from "./pages/OrderDetail/OrderDetail";
+import Profile from "./pages/Profile/Profile"; // ← এটা import করো
 
 // Import Components
 import Header from "./components/common/Header/Header";
@@ -66,6 +67,16 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <OrderDetail />
+                        </ProtectedRoute>
+                      }
+                    />
+                    
+                    {/* Profile Route - নতুন যোগ করো */}
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
                         </ProtectedRoute>
                       }
                     />

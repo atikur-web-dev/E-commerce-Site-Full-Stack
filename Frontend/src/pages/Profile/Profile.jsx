@@ -28,6 +28,13 @@ const Profile = () => {
       return;
     }
     
+    // Check URL for tab parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['profile', 'orders', 'wishlist', 'security', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    
     // Load user data
     setFormData({
       name: user.name || "",
@@ -111,6 +118,14 @@ const Profile = () => {
     return orders.reduce((total, order) => total + order.totalPrice, 0);
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // Update URL without page reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tab);
+    window.history.pushState({}, '', url);
+  };
+
   if (!user) {
     return (
       <div className="profile-loading">
@@ -142,14 +157,14 @@ const Profile = () => {
           <div className="sidebar-menu">
             <button 
               className={`menu-item ${activeTab === "profile" ? "active" : ""}`}
-              onClick={() => setActiveTab("profile")}
+              onClick={() => handleTabChange("profile")}
             >
               <span className="menu-icon">👤</span>
               <span>My Profile</span>
             </button>
             <button 
               className={`menu-item ${activeTab === "orders" ? "active" : ""}`}
-              onClick={() => setActiveTab("orders")}
+              onClick={() => handleTabChange("orders")}
             >
               <span className="menu-icon">📦</span>
               <span>My Orders</span>
@@ -157,7 +172,7 @@ const Profile = () => {
             </button>
             <button 
               className={`menu-item ${activeTab === "wishlist" ? "active" : ""}`}
-              onClick={() => setActiveTab("wishlist")}
+              onClick={() => handleTabChange("wishlist")}
             >
               <span className="menu-icon">❤️</span>
               <span>Wishlist</span>
@@ -165,14 +180,14 @@ const Profile = () => {
             </button>
             <button 
               className={`menu-item ${activeTab === "security" ? "active" : ""}`}
-              onClick={() => setActiveTab("security")}
+              onClick={() => handleTabChange("security")}
             >
               <span className="menu-icon">🔒</span>
               <span>Security</span>
             </button>
             <button 
               className={`menu-item ${activeTab === "settings" ? "active" : ""}`}
-              onClick={() => setActiveTab("settings")}
+              onClick={() => handleTabChange("settings")}
             >
               <span className="menu-icon">⚙️</span>
               <span>Settings</span>
@@ -417,19 +432,19 @@ const Profile = () => {
                     <div key={product._id} className="wishlist-item">
                       <div className="wishlist-image">
                         <img 
-                          src={product.images?.[0] || product.image} 
+                          src={product.images?.[0] || product.image || "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop"} 
                           alt={product.name}
                           onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1498049794561-7780e7231661?w-200&h=200&fit=crop";
+                            e.target.src = "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop";
                             e.target.onerror = null;
                           }}
                         />
                       </div>
                       <div className="wishlist-info">
                         <h4>{product.name}</h4>
-                        <p className="wishlist-category">{product.category}</p>
+                        <p className="wishlist-category">{product.category || "Electronics"}</p>
                         <div className="wishlist-price">
-                          <span className="current-price">৳{product.price?.toFixed(2)}</span>
+                          <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
                           {product.originalPrice && (
                             <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
                           )}
