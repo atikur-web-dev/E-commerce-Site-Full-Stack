@@ -159,7 +159,7 @@ const OrderDetail = () => {
       {/* Demo Notice */}
       {error && (
         <div className="demo-notice">
-          <h3>🎓 Practicum Project Demo</h3>
+          <h3>Project Demo</h3>
           <p><strong>Note:</strong> {error} This page demonstrates order tracking features.</p>
         </div>
       )}

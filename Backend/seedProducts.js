@@ -1,27 +1,21 @@
-// Backend/seedProducts.js - LOCAL IMAGES VERSION
+// Backend/seedProducts.js - FIXED PRICES + LOCAL IMAGES
 import mongoose from "mongoose";
 import Product from "./models/Product.js";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 
 dotenv.config();
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const products = [
   // ==================== SMARTPHONES ====================
   {
     name: "iPhone 15 Pro Max",
     description: "Latest iPhone with A17 Pro chip, Titanium design, 48MP camera",
-    price: 1299.99,
+    price: 199999, 
     category: "Smartphones",
     brand: "Apple",
     images: [
-      "/images/Mobile/iPhone15ProMax.jpg",
-      "/images/Mobile/iPhone15ProMax_2.jpg"
+      "/images/products/Mobile/iPhone15ProMax.jpg",
+      "/images/products/Mobile/iPhone15ProMax_2.jpg"
     ],
     stock: 15,
     rating: 4.8,
@@ -40,12 +34,12 @@ const products = [
   {
     name: "Samsung Galaxy S24 Ultra",
     description: "AI-powered smartphone with S Pen, 200MP camera",
-    price: 1199.99,
+    price: 149999, // ৳149,999
     category: "Smartphones",
     brand: "Samsung",
     images: [
-      "/images/Mobile/SamsungGalaxyS24Ultra.jpg",
-      "/images/Mobile/SamsungGalaxyS24Ultra_2.jpg"
+      "/images/products/Mobile/SamsungGalaxyS24Ultra.jpg",
+      "/images/products/Mobile/SamsungGalaxyS24Ultra_2.jpg"
     ],
     stock: 20,
     rating: 4.7,
@@ -63,12 +57,12 @@ const products = [
   {
     name: "Google Pixel 8 Pro",
     description: "Best camera smartphone with Tensor G3 chip",
-    price: 999.99,
+    price: 129999, // ৳129,999
     category: "Smartphones",
     brand: "Google",
     images: [
-      "/images/Mobile/GooglePixel8Pro.jpg",
-      "/images/Mobile/GooglePixel8Pro_2.jpg"
+      "/images/products/Mobile/GooglePixel8Pro.jpg",
+      "/images/products/Mobile/GooglePixel8Pro_2.jpg"
     ],
     stock: 18,
     rating: 4.6,
@@ -85,12 +79,12 @@ const products = [
   {
     name: "OnePlus 12",
     description: "Flagship killer with Snapdragon 8 Gen 3",
-    price: 899.99,
+    price: 99999, // ৳99,999
     category: "Smartphones",
     brand: "OnePlus",
     images: [
-      "/images/Mobile/OnePlus12.jpg",
-      "/images/Mobile/OnePlus12_2.jpg"
+      "/images/products/Mobile/OnePlus12.jpg",
+      "/images/products/Mobile/OnePlus12_2.jpg"
     ],
     stock: 25,
     rating: 4.5,
@@ -110,12 +104,12 @@ const products = [
   {
     name: "MacBook Pro 16-inch M3 Max",
     description: "Professional laptop for creators and developers",
-    price: 3499.99,
+    price: 449999, // ৳449,999
     category: "Laptops",
     brand: "Apple",
     images: [
-      "/images/Laptops/MacBookPro16inchM3Max.jpg",
-      "/images/Laptops/MacBookPro16inchM3Max_2.jpg"
+      "/images/products/Laptops/MacBookPro16inchM3Max.jpg",
+      "/images/products/Laptops/MacBookPro16inchM3Max_2.jpg"
     ],
     stock: 10,
     rating: 4.9,
@@ -132,12 +126,12 @@ const products = [
   {
     name: "Dell XPS 15",
     description: "Premium Windows laptop with OLED display",
-    price: 1999.99,
+    price: 249999, // ৳249,999
     category: "Laptops",
     brand: "Dell",
     images: [
-      "/images/Laptops/DellXPS15.jpg",
-      "/images/Laptops/DellXPS15_2.jpg"
+      "/images/products/Laptops/DellXPS15.jpg",
+      "/images/products/Laptops/DellXPS15_2.jpg"
     ],
     stock: 12,
     rating: 4.7,
@@ -154,12 +148,12 @@ const products = [
   {
     name: "ASUS ROG Zephyrus G14",
     description: "Gaming laptop with RTX 4090, AMD Ryzen 9",
-    price: 2499.99,
+    price: 299999, // ৳299,999
     category: "Laptops",
     brand: "ASUS",
     images: [
-      "/images/Laptops/ASUSROGZephyrusG14.jpg",
-      "/images/Laptops/ASUSROGZephyrusG14_2.jpg"
+      "/images/products/Laptops/ASUSROGZephyrusG14.jpg",
+      "/images/products/Laptops/ASUSROGZephyrusG14_2.jpg"
     ],
     stock: 8,
     rating: 4.8,
@@ -175,12 +169,12 @@ const products = [
   {
     name: "Lenovo ThinkPad X1 Carbon",
     description: "Business laptop with military-grade durability",
-    price: 1799.99,
+    price: 219999, // ৳219,999
     category: "Laptops",
     brand: "Lenovo",
     images: [
-      "/images/Laptops/LenovoThinkPadX1Carbon.jpg",
-      "/images/Laptops/LenovoThinkPadX1Carbon_2.jpg"
+      "/images/products/Laptops/LenovoThinkPadX1Carbon.jpg",
+      "/images/products/Laptops/LenovoThinkPadX1Carbon_2.jpg"
     ],
     stock: 15,
     rating: 4.6,
@@ -198,12 +192,12 @@ const products = [
   {
     name: "iPad Pro 12.9-inch M2",
     description: "Professional tablet with Liquid Retina XDR display",
-    price: 1299.99,
+    price: 169999, // ৳169,999
     category: "Tablets",
     brand: "Apple",
     images: [
-      "/images/Tablets/iPadPro12.9inchM2.jpg",
-      "/images/Tablets/iPadPro12.9inchM2_2.jpg"
+      "/images/products/Tablets/iPadPro12.9inchM2.jpg",
+      "/images/products/Tablets/iPadPro12.9inchM2_2.jpg"
     ],
     stock: 14,
     rating: 4.8,
@@ -220,12 +214,12 @@ const products = [
   {
     name: "Samsung Galaxy Tab S9 Ultra",
     description: "Android tablet with S Pen, AMOLED display",
-    price: 1199.99,
+    price: 149999, // ৳149,999
     category: "Tablets",
     brand: "Samsung",
     images: [
-      "/images/Tablets/SamsungGalaxyTabS9Ultra.jpg",
-      "/images/Tablets/SamsungGalaxyTabS9Ultra_2.jpg"
+      "/images/products/Tablets/SamsungGalaxyTabS9Ultra.jpg",
+      "/images/products/Tablets/SamsungGalaxyTabS9Ultra_2.jpg"
     ],
     stock: 18,
     rating: 4.7,
@@ -242,12 +236,12 @@ const products = [
   {
     name: "Microsoft Surface Pro 9",
     description: "2-in-1 laptop tablet with Intel Core i7",
-    price: 1499.99,
+    price: 179999, // ৳179,999
     category: "Tablets",
     brand: "Microsoft",
     images: [
-      "/images/Tablets/MicrosoftSurfacePro9.jpg",
-      "/images/Tablets/MicrosoftSurfacePro9_2.jpg"
+      "/images/products/Tablets/MicrosoftSurfacePro9.jpg",
+      "/images/products/Tablets/MicrosoftSurfacePro9_2.jpg"
     ],
     stock: 9,
     rating: 4.6,
@@ -263,12 +257,12 @@ const products = [
   {
     name: "OnePlus Pad",
     description: "Premium Android tablet with 144Hz display",
-    price: 599.99,
+    price: 79999, // ৳79,999
     category: "Tablets",
     brand: "OnePlus",
     images: [
-      "/images/Tablets/OnePlusPad.jpg",
-      "/images/Tablets/OnePlusPad_2.jpg"
+      "/images/products/Tablets/OnePlusPad.jpg",
+      "/images/products/Tablets/OnePlusPad_2.jpg"
     ],
     stock: 22,
     rating: 4.4,
@@ -286,12 +280,12 @@ const products = [
   {
     name: "PlayStation 5 Pro",
     description: "Next-gen gaming console with 4K 120FPS",
-    price: 699.99,
+    price: 89999, // ৳89,999
     category: "Gaming",
     brand: "Sony",
     images: [
-      "/images/Gaming/PlayStation5Pro.jpg",
-      "/images/Gaming/PlayStation5Pro_2.jpg"
+      "/images/products/Gaming/PlayStation5Pro.jpg",
+      "/images/products/Gaming/PlayStation5Pro_2.jpg"
     ],
     stock: 7,
     rating: 4.9,
@@ -309,12 +303,12 @@ const products = [
   {
     name: "Xbox Series X",
     description: "Most powerful Xbox with Game Pass",
-    price: 599.99,
+    price: 79999, // ৳79,999
     category: "Gaming",
     brand: "Microsoft",
     images: [
-      "/images/Gaming/XboxSeriesX.jpg",
-      "/images/Gaming/XboxSeriesX_2.jpg"
+      "/images/products/Gaming/XboxSeriesX.jpg",
+      "/images/products/Gaming/XboxSeriesX_2.jpg"
     ],
     stock: 11,
     rating: 4.8,
@@ -330,12 +324,12 @@ const products = [
   {
     name: "Nintendo Switch OLED",
     description: "Hybrid gaming console with OLED screen",
-    price: 349.99,
+    price: 49999, // ৳49,999
     category: "Gaming",
     brand: "Nintendo",
     images: [
-      "/images/Gaming/NintendoSwitchOLED.jpg",
-      "/images/Gaming/NintendoSwitchOLED_2.jpg"
+      "/images/products/Gaming/NintendoSwitchOLED.jpg",
+      "/images/products/Gaming/NintendoSwitchOLED_2.jpg"
     ],
     stock: 25,
     rating: 4.7,
@@ -351,12 +345,12 @@ const products = [
   {
     name: "ASUS ROG Ally",
     description: "Windows gaming handheld with AMD Z1 Extreme",
-    price: 799.99,
+    price: 99999, // ৳99,999
     category: "Gaming",
     brand: "ASUS",
     images: [
-      "/images/Gaming/ASUSROGAlly.jpg",
-      "/images/Gaming/ASUSROGAlly_2.jpg"
+      "/images/products/Gaming/ASUSROGAlly.jpg",
+      "/images/products/Gaming/ASUSROGAlly_2.jpg"
     ],
     stock: 6,
     rating: 4.6,
@@ -374,12 +368,12 @@ const products = [
   {
     name: "NVIDIA RTX 4090",
     description: "Flagship GPU with 24GB GDDR6X, DLSS 3",
-    price: 1599.99,
+    price: 249999, // ৳249,999
     category: "PC Components",
     brand: "NVIDIA",
     images: [
-      "/images/PC Components/NVIDIARTX4090.jpg",
-      "/images/PC Components/NVIDIARTX4090_2.jpg"
+      "/images/products/PC Components/NVIDIARTX4090.jpg",
+      "/images/products/PC Components/NVIDIARTX4090_2.jpg"
     ],
     stock: 5,
     rating: 4.9,
@@ -396,12 +390,12 @@ const products = [
   {
     name: "AMD Ryzen 9 7950X3D",
     description: "16-core gaming CPU with 3D V-Cache",
-    price: 699.99,
+    price: 99999, // ৳99,999
     category: "PC Components",
     brand: "AMD",
     images: [
-      "/images/PC Components/AMDRyzen97950X3D.jpg",
-      "/images/PC Components/AMDRyzen97950X3D_2.jpg"
+      "/images/products/PC Components/AMDRyzen97950X3D.jpg",
+      "/images/products/PC Components/AMDRyzen97950X3D_2.jpg"
     ],
     stock: 12,
     rating: 4.8,
@@ -417,12 +411,12 @@ const products = [
   {
     name: "Corsair Dominator Platinum RGB",
     description: "Premium DDR5 RAM with RGB lighting",
-    price: 299.99,
+    price: 49999, // ৳49,999
     category: "PC Components",
     brand: "Corsair",
     images: [
-      "/images/PC Components/CorsairDominatorPlatinumRGB.jpg",
-      "/images/PC Components/CorsairDominatorPlatinumRGB_2.jpg"
+      "/images/products/PC Components/CorsairDominatorPlatinumRGB.jpg",
+      "/images/products/PC Components/CorsairDominatorPlatinumRGB_2.jpg"
     ],
     stock: 30,
     rating: 4.7,
@@ -438,12 +432,12 @@ const products = [
   {
     name: "Samsung 990 Pro 2TB",
     description: "Fastest consumer SSD with PCIe 4.0",
-    price: 199.99,
+    price: 29999, // ৳29,999
     category: "PC Components",
     brand: "Samsung",
     images: [
-      "/images/PC Components/Samsung990Pro2TB.jpg",
-      "/images/PC Components/Samsung990Pro2TB_2.jpg"
+      "/images/products/PC Components/Samsung990Pro2TB.jpg",
+      "/images/products/PC Components/Samsung990Pro2TB_2.jpg"
     ],
     stock: 25,
     rating: 4.9,
@@ -461,12 +455,12 @@ const products = [
   {
     name: "Apple Magic Keyboard",
     description: "Wireless keyboard with Touch ID for Mac",
-    price: 149.99,
+    price: 19999, // ৳19,999
     category: "Accessories",
     brand: "Apple",
     images: [
-      "/images/Accessories/AppleMagicKeyboard.jpg",
-      "/images/Accessories/AppleMagicKeyboard_2.jpg"
+      "/images/products/Accessories/AppleMagicKeyboard.jpg",
+      "/images/products/Accessories/AppleMagicKeyboard_2.jpg"
     ],
     stock: 40,
     rating: 4.6,
@@ -482,12 +476,12 @@ const products = [
   {
     name: "Logitech MX Master 3S",
     description: "Advanced wireless mouse for productivity",
-    price: 99.99,
+    price: 12999, // ৳12,999
     category: "Accessories",
     brand: "Logitech",
     images: [
-      "/images/Accessories/LogitechMXMaster3S.jpg",
-      "/images/Accessories/LogitechMXMaster3S_2.jpg"
+      "/images/products/Accessories/LogitechMXMaster3S.jpg",
+      "/images/products/Accessories/LogitechMXMaster3S_2.jpg"
     ],
     stock: 35,
     rating: 4.8,
@@ -504,12 +498,12 @@ const products = [
   {
     name: "Anker 737 Power Bank",
     description: "140W GaN Prime power bank with display",
-    price: 129.99,
+    price: 15999, // ৳15,999
     category: "Accessories",
     brand: "Anker",
     images: [
-      "/images/Accessories/Anker737PowerBank.jpg",
-      "/images/Accessories/Anker737PowerBank_2.jpg"
+      "/images/products/Accessories/Anker737PowerBank.jpg",
+      "/images/products/Accessories/Anker737PowerBank_2.jpg"
     ],
     stock: 28,
     rating: 4.7,
@@ -525,12 +519,12 @@ const products = [
   {
     name: "Samsung T7 Shield SSD",
     description: "Rugged portable SSD with waterproof design",
-    price: 129.99,
+    price: 16999, // ৳16,999
     category: "Accessories",
     brand: "Samsung",
     images: [
-      "/images/Accessories/SamsungT7ShieldSSD.jpg",
-      "/images/Accessories/SamsungT7ShieldSSD_2.jpg"
+      "/images/products/Accessories/SamsungT7ShieldSSD.jpg",
+      "/images/products/Accessories/SamsungT7ShieldSSD_2.jpg"
     ],
     stock: 22,
     rating: 4.5,
@@ -548,12 +542,12 @@ const products = [
   {
     name: "TP-Link Archer AXE95",
     description: "Tri-band WiFi 6E router with 10G port",
-    price: 399.99,
+    price: 49999, // ৳49,999
     category: "Networking",
     brand: "TP-Link",
     images: [
-      "/images/Networking/TPLinkArcherAXE95.jpg",
-      "/images/Networking/TPLinkArcherAXE95_2.jpg"
+      "/images/products/Networking/TPLinkArcherAXE95.jpg",
+      "/images/products/Networking/TPLinkArcherAXE95_2.jpg"
     ],
     stock: 15,
     rating: 4.7,
@@ -569,12 +563,12 @@ const products = [
   {
     name: "ASUS ROG Rapture GT-AXE16000",
     description: "Gaming router with quad-band WiFi 6E",
-    price: 649.99,
+    price: 89999, // ৳89,999
     category: "Networking",
     brand: "ASUS",
     images: [
-      "/images/Networking/ASUS-ROG-Rapture-GT-AXE16000.jpg",
-      "/images/Networking/ASUS-ROG-Rapture-GT-AXE16000_2.jpg"
+      "/images/products/Networking/ASUS-ROG-Rapture-GT-AXE16000.jpg",
+      "/images/products/Networking/ASUS-ROG-Rapture-GT-AXE16000_2.jpg"
     ],
     stock: 8,
     rating: 4.9,
@@ -590,12 +584,12 @@ const products = [
   {
     name: "Netgear Nighthawk RAXE300",
     description: "Tri-band WiFi 6E router for 8K streaming",
-    price: 449.99,
+    price: 59999, // ৳59,999
     category: "Networking",
     brand: "Netgear",
     images: [
-      "/images/Networking/NetgearNighthawkRAXE300.jpg",
-      "/images/Networking/NetgearNighthawkRAXE300_2.jpg"
+      "/images/products/Networking/NetgearNighthawkRAXE300.jpg",
+      "/images/products/Networking/NetgearNighthawkRAXE300_2.jpg"
     ],
     stock: 12,
     rating: 4.6,
@@ -611,12 +605,12 @@ const products = [
   {
     name: "Google Nest Wifi Pro",
     description: "Mesh WiFi 6E system with smart features",
-    price: 399.99,
+    price: 49999, // ৳49,999
     category: "Networking",
     brand: "Google",
     images: [
-      "/images/Networking/Google-Nest-Wifi-Pro.jpg",
-      "/images/Networking/Google-Nest-Wifi-Pro_2.jpg"
+      "/images/products/Networking/Google-Nest-Wifi-Pro.jpg",
+      "/images/products/Networking/Google-Nest-Wifi-Pro_2.jpg"
     ],
     stock: 20,
     rating: 4.5,
@@ -660,7 +654,8 @@ const seedProducts = async () => {
 
     console.log("\n🎯 TOTAL PRODUCTS:", products.length);
     console.log("🏷️  CATEGORIES:", Object.keys(categoryCounts).length);
-    console.log("📸 USING LOCAL IMAGES");
+    console.log("💰 PRICES IN BANGLADESHI TAKA (৳)");
+    console.log("📸 USING LOCAL IMAGES FROM /images/products/");
 
     process.exit(0);
   } catch (error) {

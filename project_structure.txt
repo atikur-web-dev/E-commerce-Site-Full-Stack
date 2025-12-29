@@ -1,6 +1,7 @@
 ./Backend/.env
 ./Backend/checkCategories.js
 ./Backend/config/cloudinary.js
+./Backend/config/stripe-simple.js
 ./Backend/config/stripe.js
 ./Backend/controllers/analyticsController.js
 ./Backend/controllers/authController.js
@@ -8,6 +9,7 @@
 ./Backend/controllers/orderController.js
 ./Backend/controllers/paymentController.js
 ./Backend/controllers/productController.js
+./Backend/fix-product-model.js
 ./Backend/manualSeed.js
 ./Backend/middleware/auth.js
 ./Backend/middleware/upload.js
@@ -27,6 +29,9 @@
 ./Backend/seedProducts.js
 ./Backend/seedTestUser.js
 ./Backend/server.js
+./Backend/test-cart-order.js
+./Backend/test-payment-flow.js
+./Backend/test-simple-payment.js
 ./Frontend/index.html
 ./Frontend/package-lock.json
 ./Frontend/package.json
@@ -43,11 +48,6 @@
 ./Frontend/src/components/products/ProductCard/index.js
 ./Frontend/src/components/products/ProductCard/ProductCard.jsx
 ./Frontend/src/components/products/ProductList/index.js
-./Frontend/src/components/products/ProductList/ProductList.jsx
-./Frontend/src/components/ProtectedRoute.jsx
-./Frontend/src/context/AuthContext.jsx
-./Frontend/src/context/CartContext.jsx
-./Frontend/src/context/ProductContext.jsx
 === PACKAGE.JSON CONTENTS ===
 
 {
