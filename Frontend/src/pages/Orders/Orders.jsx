@@ -10,6 +10,9 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -54,8 +57,18 @@ const Orders = () => {
         payment: { method: "card", status: "paid" },
         createdAt: "2024-01-10",
         orderItems: [
-          { name: "iPhone 15 Pro", quantity: 1, price: 999.99, image: "" },
-          { name: "AirPods Pro", quantity: 1, price: 250.0, image: "" },
+          { 
+            name: "iPhone 15 Pro", 
+            quantity: 1, 
+            price: 999.99, 
+            image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=200&h=200&fit=crop" 
+          },
+          { 
+            name: "AirPods Pro", 
+            quantity: 1, 
+            price: 250.0, 
+            image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w-200&h=200&fit=crop" 
+          },
         ],
       },
       {
@@ -66,9 +79,24 @@ const Orders = () => {
         payment: { method: "cod", status: "pending" },
         createdAt: "2024-01-08",
         orderItems: [
-          { name: "Samsung Galaxy S24", quantity: 1, price: 899.99, image: "" },
-          { name: "Galaxy Watch 6", quantity: 1, price: 299.99, image: "" },
-          { name: "Phone Case", quantity: 2, price: 20.0, image: "" },
+          { 
+            name: "Samsung Galaxy S24", 
+            quantity: 1, 
+            price: 899.99, 
+            image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=200&h=200&fit=crop" 
+          },
+          { 
+            name: "Galaxy Watch 6", 
+            quantity: 1, 
+            price: 299.99, 
+            image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop" 
+          },
+          { 
+            name: "Phone Case", 
+            quantity: 2, 
+            price: 20.0, 
+            image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=200&h=200&fit=crop" 
+          },
         ],
       },
       {
@@ -79,11 +107,49 @@ const Orders = () => {
         payment: { method: "card", status: "paid" },
         createdAt: "2024-01-05",
         orderItems: [
-          { name: "Wireless Earbuds", quantity: 1, price: 149.99, image: "" },
-          { name: "Power Bank", quantity: 2, price: 299.99, image: "" },
+          { 
+            name: "Wireless Earbuds", 
+            quantity: 1, 
+            price: 149.99, 
+            image: "https://images.unsplash.com/photo-1590658165737-15a047b8b5e8?w=200&h=200&fit=crop" 
+          },
+          { 
+            name: "Power Bank", 
+            quantity: 2, 
+            price: 299.99, 
+            image: "https://images.unsplash.com/photo-1605276373954-0c4a0dac5b12?w=200&h=200&fit=crop" 
+          },
         ],
       },
     ];
+  };
+
+  const handleClearHistory = () => {
+    setShowClearModal(true);
+  };
+
+  const confirmClearHistory = async () => {
+    setDeleting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setShowAnimation(true);
+      
+      setTimeout(() => {
+        setOrders([]);
+        setShowClearModal(false);
+        setDeleting(false);
+        setShowAnimation(false);
+        
+        // Show success message
+        setError("Order history cleared successfully!");
+        
+        // Remove success message after 3 seconds
+        setTimeout(() => {
+          setError("");
+        }, 3000);
+      }, 1000);
+    }, 1500);
   };
 
   const getStatusColor = (status) => {
@@ -146,12 +212,27 @@ const Orders = () => {
       </div>
 
       {error && (
-        <div className="alert alert-warning">
-          <strong>Demo Mode:</strong> {error} Using demonstration data.
+        <div className={`alert ${orders.length === 0 ? 'alert-success' : 'alert-warning'}`}>
+          {orders.length === 0 ? "✅ " : "⚠️ "}
+          {error}
         </div>
       )}
 
-      
+      {/* Clear History Section - নতুন যোগ করা */}
+      {orders.length > 0 && (
+        <div className="clear-history-section">
+          <div className="clear-history-content">
+            <h3>Manage Your Order History</h3>
+            <p>You have {orders.length} orders in your history</p>
+          </div>
+          <button 
+            className="clear-history-btn"
+            onClick={handleClearHistory}
+          >
+            🗑️ Clear All History
+          </button>
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <div className="empty-orders">
@@ -167,10 +248,12 @@ const Orders = () => {
           {/* Orders Summary */}
           <div className="orders-summary">
             <div className="summary-card">
+              <div className="summary-icon">📊</div>
               <h3>{orders.length}</h3>
               <p>Total Orders</p>
             </div>
             <div className="summary-card">
+              <div className="summary-icon">💰</div>
               <h3>
                 ৳
                 {orders
@@ -180,10 +263,18 @@ const Orders = () => {
               <p>Total Spent</p>
             </div>
             <div className="summary-card">
+              <div className="summary-icon">✅</div>
               <h3>
                 {orders.filter((o) => o.orderStatus === "delivered").length}
               </h3>
               <p>Delivered</p>
+            </div>
+            <div className="summary-card">
+              <div className="summary-icon">⏳</div>
+              <h3>
+                {orders.filter((o) => o.orderStatus !== "delivered").length}
+              </h3>
+              <p>In Progress</p>
             </div>
           </div>
 
@@ -198,7 +289,7 @@ const Orders = () => {
                       {order.orderNumber || order._id.slice(-8).toUpperCase()}
                     </h4>
                     <p className="order-date">
-                      Placed on: {formatDate(order.createdAt)}
+                      📅 Placed on: {formatDate(order.createdAt)}
                     </p>
                   </div>
                   <div className="order-status">
@@ -221,11 +312,11 @@ const Orders = () => {
                           src={
                             item.image ||
                             item.product?.images?.[0] ||
-                            "/default-product.jpg"
+                            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop"
                           }
                           alt={item.name}
                           onError={(e) => {
-                            e.target.src = "/default-product.jpg";
+                            e.target.src = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop";
                             e.target.onerror = null;
                           }}
                         />
@@ -251,10 +342,10 @@ const Orders = () => {
                 <div className="order-footer">
                   <div className="order-total">
                     <strong>
-                      Total: ৳{order.totalPrice?.toFixed(2) || "0.00"}
+                      💰 Total: ৳{order.totalPrice?.toFixed(2) || "0.00"}
                     </strong>
                     <small>
-                      Payment: {order.payment?.method?.toUpperCase() || "COD"}
+                      💳 Payment: {order.payment?.method?.toUpperCase() || "COD"}
                     </small>
                   </div>
                   <div className="order-actions">
@@ -262,16 +353,16 @@ const Orders = () => {
                       onClick={() => navigate(`/order/${order._id}`)}
                       className="btn btn-outline btn-sm"
                     >
-                      View Details
+                      👁️ View Details
                     </button>
                     {order.orderStatus === "pending" && (
                       <button className="btn btn-danger btn-sm">
-                        Cancel Order
+                        ❌ Cancel Order
                       </button>
                     )}
                     {order.orderStatus === "delivered" && (
                       <button className="btn btn-success btn-sm">
-                        Download Invoice
+                        📄 Download Invoice
                       </button>
                     )}
                   </div>
@@ -308,6 +399,70 @@ const Orders = () => {
           </div>
         </div>
       </div>
+
+      {/* Clear History Modal */}
+      {showClearModal && (
+        <div className="clear-modal-overlay">
+          <div className="clear-modal">
+            <div className="modal-header">
+              <h3>⚠️ Clear Order History</h3>
+              <button 
+                className="modal-close"
+                onClick={() => setShowClearModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {showAnimation ? (
+                <div className="deleting-animation">
+                  <div className="trash-icon">🗑️</div>
+                  <p>Clearing your order history...</p>
+                  <div className="loading-bar">
+                    <div className="loading-progress"></div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="warning-icon">⚠️</div>
+                  <p>Are you sure you want to clear your entire order history?</p>
+                  <p className="warning-text">
+                    <strong>This action cannot be undone!</strong><br/>
+                    You will lose all your order records.
+                  </p>
+                  
+                  <div className="order-stats">
+                    <p>📊 Total Orders: {orders.length}</p>
+                    <p>💰 Total Spent: ৳{orders.reduce((sum, order) => sum + order.totalPrice, 0).toFixed(2)}</p>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <div className="modal-footer">
+              {!showAnimation && (
+                <>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => setShowClearModal(false)}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={confirmClearHistory}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Clearing..." : "Yes, Clear All"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
