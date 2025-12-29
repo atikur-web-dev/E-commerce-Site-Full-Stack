@@ -152,16 +152,7 @@ const Checkout = () => {
           </div>
         )}
 
-        <div className="demo-notice">
-          <h4>Practicum Project Demo</h4>
-          <p>This is a demonstration of the checkout process. In a real application:</p>
-          <ul>
-            <li>Real payment gateway integration</li>
-            <li>Email confirmation</li>
-            <li>SMS notifications</li>
-            <li>Order tracking</li>
-          </ul>
-        </div>
+        
 
         <div className="action-buttons">
           <button onClick={() => navigate("/orders")}>View My Orders</button>
