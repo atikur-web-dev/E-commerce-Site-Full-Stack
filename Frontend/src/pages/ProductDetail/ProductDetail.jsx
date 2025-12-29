@@ -1,88 +1,123 @@
-// ./Frontend/src/pages/ProductDetail/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import { useProducts } from "../../context/ProductContext";
 import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
 import "./ProductDetail.css";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const { addToCart } = useCart();
-  const {
-    fetchProductById,
-    currentProduct,
-    loading,
-    error,
-    clearCurrentProduct,
-  } = useProducts();
-  const { isAuthenticated } = useAuth();
-
+  const { user } = useAuth();
+  
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Load product
   useEffect(() => {
-    if (!id) {
-      console.error("❌ No product ID in URL");
-      return;
-    }
-
-    console.log("🔄 ProductDetail: Loading product with ID:", id);
-
-    const loadProduct = async () => {
-      try {
-        await fetchProductById(id);
-        setIsInitialLoad(false);
-      } catch (err) {
-        console.error("Failed to load product:", err);
-      }
-    };
-
-    loadProduct();
-
-    // Cleanup function
-    return () => {
-      console.log("🧹 ProductDetail: Cleaning up...");
-      clearCurrentProduct();
-    };
+    fetchProduct();
   }, [id]);
 
-  // Handle add to cart
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+      
+      if (response.data) {
+        setProduct(response.data);
+        console.log("✅ Product loaded:", response.data.name);
+        console.log("📸 Product images:", response.data.images);
+      } else {
+        setError("Product not found");
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      setError("Failed to load product. Using demo data.");
+      
+      // Demo data for presentation
+      setProduct(generateDemoProduct());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateDemoProduct = () => {
+    return {
+      _id: id || "demo_product_123",
+      name: "Samsung Galaxy S24 Ultra",
+      description: "AI-powered smartphone with S Pen, 200MP camera, Snapdragon 8 Gen 3 processor",
+      price: 1199.99,
+      category: "Smartphones",
+      brand: "Samsung",
+      images: [
+        "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600",
+        "https://images.unsplash.com/photo-1610945265084-0e34e5519bbf?w=600",
+        "https://images.unsplash.com/photo-1610945265074-0e34e5519bbf?w=600"
+      ],
+      stock: 20,
+      rating: 4.7,
+      numReviews: 89,
+      isNewArrival: true,
+      specifications: {
+        display: "6.8-inch Dynamic AMOLED 2X",
+        processor: "Snapdragon 8 Gen 3",
+        ram: "12GB",
+        storage: "512GB",
+        battery: "5000mAh",
+        camera: "200MP + 50MP + 12MP + 10MP",
+        os: "Android 14 with One UI 6.1"
+      },
+      warranty: 12,
+    };
+  };
+
   const handleAddToCart = () => {
-    if (!isAuthenticated()) {
+    if (!user) {
       alert("Please login to add items to cart");
       navigate("/login");
       return;
     }
 
-    if (currentProduct && currentProduct.stock > 0) {
-      const success = addToCart({ ...currentProduct, quantity });
-      if (success) {
-        alert(`${quantity} ${currentProduct.name} added to cart!`);
-      }
+    if (product && product.stock > 0) {
+      addToCart({ ...product, quantity });
+      alert(`${quantity} ${product.name} added to cart!`);
     } else {
       alert("This product is out of stock!");
     }
   };
 
-  // Handle quantity change
   const handleQuantityChange = (change) => {
-    if (!currentProduct) return;
+    if (!product) return;
 
     const newQuantity = quantity + change;
-    const maxQuantity = Math.min(currentProduct.stock, 10);
+    const maxQuantity = Math.min(product.stock, 10);
 
     if (newQuantity >= 1 && newQuantity <= maxQuantity) {
       setQuantity(newQuantity);
     }
   };
 
-  // Loading state
-  if (loading && isInitialLoad) {
+  // Get images array safely
+  const getProductImages = () => {
+    if (!product) return ["https://via.placeholder.com/600x400?text=No+Image"];
+    
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      return product.images;
+    }
+    
+    if (product.image) {
+      return [product.image];
+    }
+    
+    return ["https://via.placeholder.com/600x400?text=No+Image"];
+  };
+
+  if (loading) {
     return (
       <div className="product-detail-page">
         <div className="loading-container">
@@ -93,8 +128,7 @@ const ProductDetail = () => {
     );
   }
 
-  // Error state
-  if (error || !currentProduct) {
+  if (error || !product) {
     return (
       <div className="product-not-found">
         <h2>Product Not Found</h2>
@@ -106,27 +140,26 @@ const ProductDetail = () => {
     );
   }
 
-  // Prepare images
-  const productImages =
-    currentProduct.images && currentProduct.images.length > 0
-      ? currentProduct.images
-      : [
-          currentProduct.image ||
-            "https://via.placeholder.com/600x400?text=No+Image",
-        ];
+  const productImages = getProductImages();
 
   return (
     <div className="product-detail-container">
+      {/* Demo Notice */}
+      {error && (
+        <div className="demo-notice">
+          <h3>🎓 Practicum Project Demo</h3>
+          <p><strong>Note:</strong> {error}</p>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="breadcrumb">
         <button onClick={() => navigate("/")}>Home</button> /
         <button onClick={() => navigate("/shop")}>Shop</button> /
-        <button
-          onClick={() => navigate(`/shop?category=${currentProduct.category}`)}
-        >
-          {currentProduct.category}
-        </button>{" "}
-        /<span>{currentProduct.name}</span>
+        <button onClick={() => navigate(`/shop?category=${product.category}`)}>
+          {product.category}
+        </button> /
+        <span>{product.name}</span>
       </div>
 
       <div className="product-detail-grid">
@@ -135,10 +168,10 @@ const ProductDetail = () => {
           <div className="main-image">
             <img
               src={productImages[selectedImage]}
-              alt={currentProduct.name}
+              alt={product.name}
               onError={(e) => {
-                e.target.src =
-                  "https://via.placeholder.com/600x400?text=No+Image";
+                e.target.src = "https://via.placeholder.com/600x400?text=No+Image";
+                e.target.onerror = null;
               }}
             />
           </div>
@@ -148,14 +181,16 @@ const ProductDetail = () => {
               {productImages.map((img, index) => (
                 <button
                   key={index}
-                  className={`thumbnail-btn ${
-                    selectedImage === index ? "active" : ""
-                  }`}
+                  className={`thumbnail-btn ${selectedImage === index ? "active" : ""}`}
                   onClick={() => setSelectedImage(index)}
                 >
                   <img
                     src={img}
-                    alt={`${currentProduct.name} view ${index + 1}`}
+                    alt={`${product.name} view ${index + 1}`}
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/100x100?text=Image";
+                      e.target.onerror = null;
+                    }}
                   />
                 </button>
               ))}
@@ -166,72 +201,61 @@ const ProductDetail = () => {
         {/* Right Column - Info */}
         <div className="product-info">
           <div className="product-header">
-            <h1 className="product-title">{currentProduct.name}</h1>
+            <h1 className="product-title">{product.name}</h1>
 
             <div className="product-meta">
-              <span className="product-category">
-                {currentProduct.category}
-              </span>
-              <span className="product-brand">{currentProduct.brand}</span>
+              <span className="product-category">{product.category}</span>
+              <span className="product-brand">{product.brand}</span>
             </div>
 
             <div className="product-rating">
               <span className="stars">
-                {"★".repeat(Math.floor(currentProduct.rating || 0))}
-                {"☆".repeat(5 - Math.floor(currentProduct.rating || 0))}
+                {"★".repeat(Math.floor(product.rating || 0))}
+                {"☆".repeat(5 - Math.floor(product.rating || 0))}
               </span>
               <span className="rating-value">
-                ({currentProduct.numReviews || 0} reviews)
+                ({product.numReviews || 0} reviews)
               </span>
             </div>
           </div>
 
           <div className="product-price-section">
-            <span className="current-price">
-              ${currentProduct.price.toFixed(2)}
-            </span>
-            {currentProduct.isOnSale && (
+            <span className="current-price">৳{product.price?.toFixed(2)}</span>
+            {product.isOnSale && (
               <span className="original-price">
-                ${(currentProduct.price * 1.2).toFixed(2)}
+                ৳{(product.price * 1.2).toFixed(2)}
               </span>
             )}
           </div>
 
-          <div
-            className={`stock-status ${
-              currentProduct.stock > 0 ? "in-stock" : "out-of-stock"
-            }`}
-          >
-            {currentProduct.stock > 0
-              ? `✅ ${currentProduct.stock} in stock`
+          <div className={`stock-status ${product.stock > 0 ? "in-stock" : "out-of-stock"}`}>
+            {product.stock > 0
+              ? `✅ ${product.stock} in stock`
               : "❌ Out of stock"}
           </div>
 
           <div className="product-description">
             <h3>Description</h3>
-            <p>{currentProduct.description}</p>
+            <p>{product.description}</p>
           </div>
 
           {/* Specifications */}
-          {currentProduct.specifications &&
-            Object.keys(currentProduct.specifications).length > 0 && (
-              <div className="specifications">
-                <h3>Specifications</h3>
-                <div className="specs-grid">
-                  {Object.entries(currentProduct.specifications).map(
-                    ([key, value]) => (
-                      <div key={key} className="spec-item">
-                        <span className="spec-key">{key}:</span>
-                        <span className="spec-value">{value}</span>
-                      </div>
-                    )
-                  )}
-                </div>
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="specifications">
+              <h3>Specifications</h3>
+              <div className="specs-grid">
+                {Object.entries(product.specifications).map(([key, value]) => (
+                  <div key={key} className="spec-item">
+                    <span className="spec-key">{key}:</span>
+                    <span className="spec-value">{value}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* Add to Cart Section */}
-          {currentProduct.stock > 0 && (
+          {product.stock > 0 && (
             <div className="add-to-cart-section">
               <div className="quantity-control">
                 <label>Quantity:</label>
@@ -246,20 +270,17 @@ const ProductDetail = () => {
                     type="number"
                     value={quantity}
                     min="1"
-                    max={Math.min(currentProduct.stock, 10)}
+                    max={Math.min(product.stock, 10)}
                     onChange={(e) => {
                       const val = parseInt(e.target.value);
-                      if (
-                        val >= 1 &&
-                        val <= Math.min(currentProduct.stock, 10)
-                      ) {
+                      if (val >= 1 && val <= Math.min(product.stock, 10)) {
                         setQuantity(val);
                       }
                     }}
                   />
                   <button
                     onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= Math.min(currentProduct.stock, 10)}
+                    disabled={quantity >= Math.min(product.stock, 10)}
                   >
                     +
                   </button>
@@ -272,7 +293,7 @@ const ProductDetail = () => {
                   <div className="price-row">
                     <span>Price per item:</span>
                     <span className="price-value">
-                      ${currentProduct.price.toFixed(2)}
+                      ৳{product.price.toFixed(2)}
                     </span>
                   </div>
                   <div className="price-row">
@@ -282,7 +303,7 @@ const ProductDetail = () => {
                   <div className="price-row total">
                     <span className="total-label">Total:</span>
                     <span className="total-value">
-                      ${(currentProduct.price * quantity).toFixed(2)}
+                      ৳{(product.price * quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -291,7 +312,7 @@ const ProductDetail = () => {
               <button
                 className="add-to-cart-btn"
                 onClick={handleAddToCart}
-                disabled={currentProduct.stock === 0}
+                disabled={product.stock === 0}
               >
                 <span className="cart-icon">🛒</span>
                 <span>Add to Cart</span>
@@ -302,7 +323,20 @@ const ProductDetail = () => {
           {/* Warranty */}
           <div className="warranty-info">
             <span className="warranty-icon">🛡️</span>
-            <span>{currentProduct.warranty || 12} Months Warranty</span>
+            <span>{product.warranty || 12} Months Warranty</span>
+          </div>
+
+          {/* Demo Features */}
+          <div className="demo-features">
+            <h3>🎓 Practicum Demo Features</h3>
+            <ul>
+              <li>Product image gallery</li>
+              <li>Detailed specifications</li>
+              <li>Stock management</li>
+              <li>Quantity selector</li>
+              <li>Price calculation</li>
+              <li>Add to cart functionality</li>
+            </ul>
           </div>
         </div>
       </div>

@@ -1,22 +1,27 @@
-// Backend/seedProducts.js
+// Backend/seedProducts.js - LOCAL IMAGES VERSION
 import mongoose from "mongoose";
 import Product from "./models/Product.js";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const products = [
-  // ==================== SMARTPHONES (4 products) ====================
+  // ==================== SMARTPHONES ====================
   {
     name: "iPhone 15 Pro Max",
-    description:
-      "Latest iPhone with A17 Pro chip, Titanium design, 48MP camera",
+    description: "Latest iPhone with A17 Pro chip, Titanium design, 48MP camera",
     price: 1299.99,
     category: "Smartphones",
     brand: "Apple",
     images: [
-      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500",
-      "https://images.unsplash.com/photo-1691498369138-3d6d8b2e7b3a?w=500"
+      "/images/Mobile/iPhone15ProMax.jpg",
+      "/images/Mobile/iPhone15ProMax_2.jpg"
     ],
     stock: 15,
     rating: 4.8,
@@ -39,8 +44,8 @@ const products = [
     category: "Smartphones",
     brand: "Samsung",
     images: [
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500",
-      "https://images.unsplash.com/photo-1610945265084-0e34e5519bbf?w=500"
+      "/images/Mobile/SamsungGalaxyS24Ultra.jpg",
+      "/images/Mobile/SamsungGalaxyS24Ultra_2.jpg"
     ],
     stock: 20,
     rating: 4.7,
@@ -62,8 +67,8 @@ const products = [
     category: "Smartphones",
     brand: "Google",
     images: [
-      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500",
-      "https://images.unsplash.com/photo-1598327105856-5b89351aff97?w=500"
+      "/images/Mobile/GooglePixel8Pro.jpg",
+      "/images/Mobile/GooglePixel8Pro_2.jpg"
     ],
     stock: 18,
     rating: 4.6,
@@ -84,8 +89,8 @@ const products = [
     category: "Smartphones",
     brand: "OnePlus",
     images: [
-      "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500",
-      "https://images.unsplash.com/photo-1592899677978-9c10ca588bbd?w=500"
+      "/images/Mobile/OnePlus12.jpg",
+      "/images/Mobile/OnePlus12_2.jpg"
     ],
     stock: 25,
     rating: 4.5,
@@ -101,7 +106,7 @@ const products = [
     warranty: 12,
   },
 
-  // ==================== LAPTOPS (4 products) ====================
+  // ==================== LAPTOPS ====================
   {
     name: "MacBook Pro 16-inch M3 Max",
     description: "Professional laptop for creators and developers",
@@ -109,8 +114,8 @@ const products = [
     category: "Laptops",
     brand: "Apple",
     images: [
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
-      "https://images.unsplash.com/photo-1517336714732-489689fd1ca8?w=500"
+      "/images/Laptops/MacBookPro16inchM3Max.jpg",
+      "/images/Laptops/MacBookPro16inchM3Max_2.jpg"
     ],
     stock: 10,
     rating: 4.9,
@@ -131,8 +136,8 @@ const products = [
     category: "Laptops",
     brand: "Dell",
     images: [
-      "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=500",
-      "https://images.unsplash.com/photo-1593640408183-31c70c8268f5?w=500"
+      "/images/Laptops/DellXPS15.jpg",
+      "/images/Laptops/DellXPS15_2.jpg"
     ],
     stock: 12,
     rating: 4.7,
@@ -153,8 +158,8 @@ const products = [
     category: "Laptops",
     brand: "ASUS",
     images: [
-      "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500",
-      "https://images.unsplash.com/photo-1603302576838-37561b2e2302?w=500"
+      "/images/Laptops/ASUSROGZephyrusG14.jpg",
+      "/images/Laptops/ASUSROGZephyrusG14_2.jpg"
     ],
     stock: 8,
     rating: 4.8,
@@ -174,8 +179,8 @@ const products = [
     category: "Laptops",
     brand: "Lenovo",
     images: [
-      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
-      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+      "/images/Laptops/LenovoThinkPadX1Carbon.jpg",
+      "/images/Laptops/LenovoThinkPadX1Carbon_2.jpg"
     ],
     stock: 15,
     rating: 4.6,
@@ -189,7 +194,7 @@ const products = [
     warranty: 12,
   },
 
-  // ==================== TABLETS (4 products) ====================
+  // ==================== TABLETS ====================
   {
     name: "iPad Pro 12.9-inch M2",
     description: "Professional tablet with Liquid Retina XDR display",
@@ -197,8 +202,8 @@ const products = [
     category: "Tablets",
     brand: "Apple",
     images: [
-      "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500",
-      "https://images.unsplash.com/photo-1544244015-1df4b3ffc6b0?w=500"
+      "/images/Tablets/iPadPro12.9inchM2.jpg",
+      "/images/Tablets/iPadPro12.9inchM2_2.jpg"
     ],
     stock: 14,
     rating: 4.8,
@@ -219,8 +224,8 @@ const products = [
     category: "Tablets",
     brand: "Samsung",
     images: [
-      "https://images.unsplash.com/photo-1546054451-4cffa2c1d4e7?w=500",
-      "https://images.unsplash.com/photo-1546054451-5cffa2c1d4e7?w=500"
+      "/images/Tablets/SamsungGalaxyTabS9Ultra.jpg",
+      "/images/Tablets/SamsungGalaxyTabS9Ultra_2.jpg"
     ],
     stock: 18,
     rating: 4.7,
@@ -241,8 +246,8 @@ const products = [
     category: "Tablets",
     brand: "Microsoft",
     images: [
-      "https://images.unsplash.com/photo-1561154464-82e9adf32764?w=500",
-      "https://images.unsplash.com/photo-1561154464-83e9adf32764?w=500"
+      "/images/Tablets/MicrosoftSurfacePro9.jpg",
+      "/images/Tablets/MicrosoftSurfacePro9_2.jpg"
     ],
     stock: 9,
     rating: 4.6,
@@ -262,8 +267,8 @@ const products = [
     category: "Tablets",
     brand: "OnePlus",
     images: [
-      "https://images.unsplash.com/photo-1565330503288-44f2a4e9c73e?w=500",
-      "https://images.unsplash.com/photo-1565330503289-44f2a4e9c73e?w=500"
+      "/images/Tablets/OnePlusPad.jpg",
+      "/images/Tablets/OnePlusPad_2.jpg"
     ],
     stock: 22,
     rating: 4.4,
@@ -277,7 +282,7 @@ const products = [
     warranty: 12,
   },
 
-  // ==================== GAMING (4 products) ====================
+  // ==================== GAMING ====================
   {
     name: "PlayStation 5 Pro",
     description: "Next-gen gaming console with 4K 120FPS",
@@ -285,8 +290,8 @@ const products = [
     category: "Gaming",
     brand: "Sony",
     images: [
-      "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=500",
-      "https://images.unsplash.com/photo-1606144042615-b2417e99c4e3?w=500"
+      "/images/Gaming/PlayStation5Pro.jpg",
+      "/images/Gaming/PlayStation5Pro_2.jpg"
     ],
     stock: 7,
     rating: 4.9,
@@ -308,8 +313,8 @@ const products = [
     category: "Gaming",
     brand: "Microsoft",
     images: [
-      "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=500",
-      "https://images.unsplash.com/photo-1605901309585-818e25960a8f?w=500"
+      "/images/Gaming/XboxSeriesX.jpg",
+      "/images/Gaming/XboxSeriesX_2.jpg"
     ],
     stock: 11,
     rating: 4.8,
@@ -329,8 +334,8 @@ const products = [
     category: "Gaming",
     brand: "Nintendo",
     images: [
-      "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500",
-      "https://images.unsplash.com/photo-1578303512598-81e6cc155b3e?w=500"
+      "/images/Gaming/NintendoSwitchOLED.jpg",
+      "/images/Gaming/NintendoSwitchOLED_2.jpg"
     ],
     stock: 25,
     rating: 4.7,
@@ -350,8 +355,8 @@ const products = [
     category: "Gaming",
     brand: "ASUS",
     images: [
-      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500",
-      "https://images.unsplash.com/photo-1593359677880-a4bb92f829d1?w=500"
+      "/images/Gaming/ASUSROGAlly.jpg",
+      "/images/Gaming/ASUSROGAlly_2.jpg"
     ],
     stock: 6,
     rating: 4.6,
@@ -365,7 +370,7 @@ const products = [
     warranty: 12,
   },
 
-  // ==================== PC COMPONENTS (4 products) ====================
+  // ==================== PC COMPONENTS ====================
   {
     name: "NVIDIA RTX 4090",
     description: "Flagship GPU with 24GB GDDR6X, DLSS 3",
@@ -373,8 +378,8 @@ const products = [
     category: "PC Components",
     brand: "NVIDIA",
     images: [
-      "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=500",
-      "https://images.unsplash.com/photo-1591488320450-011701bb6704?w=500"
+      "/images/PC Components/NVIDIARTX4090.jpg",
+      "/images/PC Components/NVIDIARTX4090_2.jpg"
     ],
     stock: 5,
     rating: 4.9,
@@ -395,8 +400,8 @@ const products = [
     category: "PC Components",
     brand: "AMD",
     images: [
-      "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500",
-      "https://images.unsplash.com/photo-1587202372776-e229f172b9d7?w=500"
+      "/images/PC Components/AMDRyzen97950X3D.jpg",
+      "/images/PC Components/AMDRyzen97950X3D_2.jpg"
     ],
     stock: 12,
     rating: 4.8,
@@ -416,8 +421,8 @@ const products = [
     category: "PC Components",
     brand: "Corsair",
     images: [
-      "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=500",
-      "https://images.unsplash.com/photo-1591799264319-7e6ef8ddb7ea?w=500"
+      "/images/PC Components/CorsairDominatorPlatinumRGB.jpg",
+      "/images/PC Components/CorsairDominatorPlatinumRGB_2.jpg"
     ],
     stock: 30,
     rating: 4.7,
@@ -437,8 +442,8 @@ const products = [
     category: "PC Components",
     brand: "Samsung",
     images: [
-      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
-      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+      "/images/PC Components/Samsung990Pro2TB.jpg",
+      "/images/PC Components/Samsung990Pro2TB_2.jpg"
     ],
     stock: 25,
     rating: 4.9,
@@ -452,7 +457,7 @@ const products = [
     warranty: 36,
   },
 
-  // ==================== ACCESSORIES (4 products) ====================
+  // ==================== ACCESSORIES ====================
   {
     name: "Apple Magic Keyboard",
     description: "Wireless keyboard with Touch ID for Mac",
@@ -460,8 +465,8 @@ const products = [
     category: "Accessories",
     brand: "Apple",
     images: [
-      "https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=500",
-      "https://images.unsplash.com/photo-1541140532155-b024d705b90a?w=500"
+      "/images/Accessories/AppleMagicKeyboard.jpg",
+      "/images/Accessories/AppleMagicKeyboard_2.jpg"
     ],
     stock: 40,
     rating: 4.6,
@@ -481,8 +486,8 @@ const products = [
     category: "Accessories",
     brand: "Logitech",
     images: [
-      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500",
-      "https://images.unsplash.com/photo-1526170375886-4d8ecf77b99f?w=500"
+      "/images/Accessories/LogitechMXMaster3S.jpg",
+      "/images/Accessories/LogitechMXMaster3S_2.jpg"
     ],
     stock: 35,
     rating: 4.8,
@@ -503,8 +508,8 @@ const products = [
     category: "Accessories",
     brand: "Anker",
     images: [
-      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
-      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+      "/images/Accessories/Anker737PowerBank.jpg",
+      "/images/Accessories/Anker737PowerBank_2.jpg"
     ],
     stock: 28,
     rating: 4.7,
@@ -524,8 +529,8 @@ const products = [
     category: "Accessories",
     brand: "Samsung",
     images: [
-      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500",
-      "https://images.unsplash.com/photo-1588872657579-7efd1f1555ed?w=500"
+      "/images/Accessories/SamsungT7ShieldSSD.jpg",
+      "/images/Accessories/SamsungT7ShieldSSD_2.jpg"
     ],
     stock: 22,
     rating: 4.5,
@@ -539,7 +544,7 @@ const products = [
     warranty: 12,
   },
 
-  // ==================== NETWORKING (4 products) ====================
+  // ==================== NETWORKING ====================
   {
     name: "TP-Link Archer AXE95",
     description: "Tri-band WiFi 6E router with 10G port",
@@ -547,8 +552,8 @@ const products = [
     category: "Networking",
     brand: "TP-Link",
     images: [
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
-      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+      "/images/Networking/TPLinkArcherAXE95.jpg",
+      "/images/Networking/TPLinkArcherAXE95_2.jpg"
     ],
     stock: 15,
     rating: 4.7,
@@ -568,8 +573,8 @@ const products = [
     category: "Networking",
     brand: "ASUS",
     images: [
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
-      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+      "/images/Networking/ASUS-ROG-Rapture-GT-AXE16000.jpg",
+      "/images/Networking/ASUS-ROG-Rapture-GT-AXE16000_2.jpg"
     ],
     stock: 8,
     rating: 4.9,
@@ -589,8 +594,8 @@ const products = [
     category: "Networking",
     brand: "Netgear",
     images: [
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
-      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+      "/images/Networking/NetgearNighthawkRAXE300.jpg",
+      "/images/Networking/NetgearNighthawkRAXE300_2.jpg"
     ],
     stock: 12,
     rating: 4.6,
@@ -610,8 +615,8 @@ const products = [
     category: "Networking",
     brand: "Google",
     images: [
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500",
-      "https://images.unsplash.com/photo-1563013544-825ae1b704d3?w=500"
+      "/images/Networking/Google-Nest-Wifi-Pro.jpg",
+      "/images/Networking/Google-Nest-Wifi-Pro_2.jpg"
     ],
     stock: 20,
     rating: 4.5,
@@ -638,24 +643,24 @@ const seedProducts = async () => {
     console.log(`Deleted ${deleteResult.deletedCount} products`);
 
     // Insert new products
-    console.log("📦 Inserting products...");
+    console.log("📦 Inserting products with local images...");
     const result = await Product.insertMany(products);
     console.log(`✅ ${result.length} products added successfully!`);
 
-    // Show detailed summary
-    console.log("\n📊 DETAILED SUMMARY BY CATEGORY:");
-
+    // Show summary
     const categoryCounts = {};
     products.forEach((p) => {
       categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
     });
 
+    console.log("\n📊 SUMMARY BY CATEGORY:");
     Object.entries(categoryCounts).forEach(([category, count]) => {
       console.log(`   📁 ${category}: ${count} products`);
     });
 
     console.log("\n🎯 TOTAL PRODUCTS:", products.length);
     console.log("🏷️  CATEGORIES:", Object.keys(categoryCounts).length);
+    console.log("📸 USING LOCAL IMAGES");
 
     process.exit(0);
   } catch (error) {
