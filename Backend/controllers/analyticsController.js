@@ -1,4 +1,4 @@
-// Backend/controllers/analyticsController.js - নতুন ফাইল তৈরি
+// Backend/controllers/analyticsController.js 
 import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";

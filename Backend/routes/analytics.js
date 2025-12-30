@@ -1,4 +1,4 @@
-// Backend/routes/analytics.js - নতুন ফাইল তৈরি
+// Backend/routes/analytics.js
 import express from "express";
 import { protect, admin } from "../middleware/auth.js";
 import {

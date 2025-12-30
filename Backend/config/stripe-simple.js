@@ -2,13 +2,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log('🎯 Using SIMPLE payment mode for Practicum project');
+console.log(' Using SIMPLE payment mode for Practicum project');
 
 const SimpleStripe = {
-  // Mock functions for presentation
+  
   paymentIntents: {
     create: async (params) => {
-      console.log(`💳 [MOCK] Payment intent created for $${(params.amount / 100).toFixed(2)}`);
+      console.log(` [MOCK] Payment intent created for $${(params.amount / 100).toFixed(2)}`);
       
       return {
         id: 'pi_mock_' + Date.now(),
@@ -22,11 +22,11 @@ const SimpleStripe = {
     },
     
     retrieve: async (id) => {
-      console.log(`💳 [MOCK] Retrieving payment intent: ${id}`);
+      console.log(` [MOCK] Retrieving payment intent: ${id}`);
       
       return {
         id: id,
-        status: 'succeeded', // Always success for presentation
+        status: 'succeeded',
         amount: 1000,
         currency: 'usd',
         client_secret: 'mock_secret',
@@ -42,7 +42,7 @@ const SimpleStripe = {
     },
     
     confirm: async (id) => {
-      console.log(`✅ [MOCK] Payment confirmed: ${id}`);
+      console.log(` [MOCK] Payment confirmed: ${id}`);
       return {
         id: id,
         status: 'succeeded'
@@ -64,7 +64,7 @@ const SimpleStripe = {
   }
 };
 
-// Always return success for presentation
+// Always return success
 export const testStripeConnection = async () => ({
   connected: true,
   mode: 'presentation',

@@ -315,7 +315,7 @@ const Checkout = () => {
                   required
                   className="form-input"
                 />
-                <div className="input-icon">🏠</div>
+                <div className="input-icon"></div>
               </div>
               
               <div className="form-group">
@@ -329,7 +329,7 @@ const Checkout = () => {
                   required
                   className="form-input"
                 />
-                <div className="input-icon">🏙️</div>
+                <div className="input-icon"></div>
               </div>
               
               <div className="form-group">
@@ -343,7 +343,7 @@ const Checkout = () => {
                   required
                   className="form-input"
                 />
-                <div className="input-icon">🗺️</div>
+                <div className="input-icon"></div>
               </div>
               
               <div className="form-group">
@@ -357,7 +357,7 @@ const Checkout = () => {
                   required
                   className="form-input"
                 />
-                <div className="input-icon">📮</div>
+                <div className="input-icon"></div>
               </div>
               
               <div className="form-group">
@@ -386,7 +386,7 @@ const Checkout = () => {
                   required
                   className="form-input"
                 />
-                <div className="input-icon">📱</div>
+                <div className="input-icon"></div>
               </div>
             </div>
             
@@ -544,7 +544,7 @@ const Checkout = () => {
                 
                 <div className="test-cards">
                   <h5>
-                    <span className="test-icon">🧪</span>
+                    <span className="test-icon"></span>
                     Test Cards for Demo
                   </h5>
                   <div className="test-card-list">

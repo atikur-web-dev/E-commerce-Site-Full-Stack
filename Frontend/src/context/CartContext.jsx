@@ -84,13 +84,13 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (product) => {
     // Check authentication
     if (!isAuthenticated()) {
-      alert("⚠️ Please login to add items to cart");
+      alert(" Please login to add items to cart");
       return false;
     }
 
     try {
       setLoading(true);
-      console.log("🛒 Adding to cart:", product.name);
+      console.log(" Adding to cart:", product.name);
 
       const response = await cartAPI.addToCart(
         product._id,
@@ -100,13 +100,13 @@ export const CartProvider = ({ children }) => {
       if (response && response.success && response.data) {
         const items = response.data.items || [];
         setCartItems(items);
-        console.log("✅ Added to cart successfully");
+        console.log(" Added to cart successfully");
         return true;
       } else {
         throw new Error("Failed to add to cart");
       }
     } catch (err) {
-      console.error("❌ Failed to add to cart:", err.message);
+      console.error(" Failed to add to cart:", err.message);
       setError(err.message || "Failed to add to cart");
 
       // Fallback: Add to localStorage
@@ -259,7 +259,7 @@ export const CartProvider = ({ children }) => {
     getTotalItems,
     getTotalPrice,
     isInCart,
-    loadCartFromBackend, // For manual refresh
+    loadCartFromBackend,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

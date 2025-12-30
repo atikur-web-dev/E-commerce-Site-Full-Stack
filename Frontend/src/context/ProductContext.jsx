@@ -19,9 +19,9 @@ export const ProductProvider = ({ children }) => {
     setError("");
 
     try {
-      console.log("🔄 [ProductContext] Fetching all products...");
+      console.log(" [ProductContext] Fetching all products...");
       const response = await productAPI.getAllProducts();
-      console.log("📥 [ProductContext] API Response:", response);
+      console.log(" [ProductContext] API Response:", response);
 
       let productsArray = [];
 
@@ -29,7 +29,7 @@ export const ProductProvider = ({ children }) => {
       if (response && Array.isArray(response)) {
         // Case 1: Direct array
         productsArray = response;
-        console.log("✅ [ProductContext] Format: Direct array");
+        console.log(" [ProductContext] Format: Direct array");
       } else if (
         response &&
         response.products &&
@@ -37,7 +37,7 @@ export const ProductProvider = ({ children }) => {
       ) {
         // Case 2: { products: [...] }
         productsArray = response.products;
-        console.log("✅ [ProductContext] Format: { products: [...] }");
+        console.log(" [ProductContext] Format: { products: [...] }");
       } else if (
         response &&
         response.success &&
@@ -46,22 +46,22 @@ export const ProductProvider = ({ children }) => {
         // Case 3: { success: true, products: [...] }
         productsArray = response.products;
         console.log(
-          "✅ [ProductContext] Format: { success: true, products: [...] }"
+          " [ProductContext] Format: { success: true, products: [...] }"
         );
       } else if (response && response.data && Array.isArray(response.data)) {
         // Case 4: { data: [...] }
         productsArray = response.data;
-        console.log("✅ [ProductContext] Format: { data: [...] }");
+        console.log(" [ProductContext] Format: { data: [...] }");
       } else {
         console.log(
-          "⚠️ [ProductContext] Unexpected format, defaulting to empty array:",
+          " [ProductContext] Unexpected format, defaulting to empty array:",
           response
         );
         productsArray = [];
       }
 
       console.log(
-        `📦 [ProductContext] ${productsArray.length} products loaded`
+        ` [ProductContext] ${productsArray.length} products loaded`
       );
       setProducts(productsArray);
 
@@ -73,7 +73,7 @@ export const ProductProvider = ({ children }) => {
 
       return { success: true, products: productsArray };
     } catch (err) {
-      console.error("❌ [ProductContext] Fetch error:", err);
+      console.error(" [ProductContext] Fetch error:", err);
       setError(err.message || "Failed to load products");
       return { success: false, error: err.message };
     } finally {
@@ -84,9 +84,9 @@ export const ProductProvider = ({ children }) => {
   // ==================== FETCH FEATURED PRODUCTS ====================
   const fetchFeaturedProducts = async () => {
     try {
-      console.log("⭐ [ProductContext] Fetching featured products...");
+      console.log(" [ProductContext] Fetching featured products...");
       const response = await productAPI.getFeaturedProducts();
-      console.log("📥 [ProductContext] Featured response:", response);
+      console.log(" [ProductContext] Featured response:", response);
 
       let featuredArray = [];
 
@@ -120,28 +120,28 @@ export const ProductProvider = ({ children }) => {
     setCurrentProduct(null);
 
     try {
-      console.log(`🔍 [ProductContext] Fetching product ID: ${id}`);
-      console.log(`🔗 [ProductContext] Calling: productAPI.getProduct(${id})`);
+      console.log(` [ProductContext] Fetching product ID: ${id}`);
+      console.log(` [ProductContext] Calling: productAPI.getProduct(${id})`);
 
       const response = await productAPI.getProduct(id);
-      console.log("📥 [ProductContext] Product API Response:", response);
-      console.log("📊 [ProductContext] Response Type:", typeof response);
-      console.log("📊 [ProductContext] Has _id?", response?._id ? "YES" : "NO");
+      console.log(" [ProductContext] Product API Response:", response);
+      console.log(" [ProductContext] Response Type:", typeof response);
+      console.log(" [ProductContext] Has _id?", response?._id ? "YES" : "NO");
 
       let productData = null;
 
       // তোমার backend সরাসরি product object return করে
       // Example: {_id: "6936fb9ba02e69839c4f7518", name: "iPhone 15 Pro Max", ...}
       if (response && response._id) {
-        console.log("✅ [ProductContext] Format: Direct product object");
+        console.log(" [ProductContext] Format: Direct product object");
         productData = response;
       }
       // যদি wrapped format থাকে
       else if (response && response.product && response.product._id) {
-        console.log("✅ [ProductContext] Format: Wrapped in 'product' field");
+        console.log(" [ProductContext] Format: Wrapped in 'product' field");
         productData = response.product;
       } else if (response && response.data && response.data._id) {
-        console.log("✅ [ProductContext] Format: Wrapped in 'data' field");
+        console.log(" [ProductContext] Format: Wrapped in 'data' field");
         productData = response.data;
       } else if (
         response &&
@@ -150,26 +150,26 @@ export const ProductProvider = ({ children }) => {
         response.product._id
       ) {
         console.log(
-          "✅ [ProductContext] Format: { success: true, product: {...} }"
+          " [ProductContext] Format: { success: true, product: {...} }"
         );
         productData = response.product;
       } else {
-        console.error("❌ [ProductContext] Unknown response format:", response);
+        console.error(" [ProductContext] Unknown response format:", response);
         throw new Error("Product not found or invalid response format");
       }
 
       console.log(
-        "🎯 [ProductContext] Setting product data:",
+        " [ProductContext] Setting product data:",
         productData.name
       );
       setCurrentProduct(productData);
       return { success: true, product: productData };
     } catch (err) {
-      console.error("❌ [ProductContext] Product fetch error:", err);
+      console.error(" [ProductContext] Product fetch error:", err);
       setError(err.message || "Product not found");
       return { success: false, error: err.message };
     } finally {
-      console.log("⚡ [ProductContext] Loading complete");
+      console.log(" [ProductContext] Loading complete");
       setLoading(false);
     }
   };
@@ -179,7 +179,7 @@ export const ProductProvider = ({ children }) => {
     setLoading(true);
 
     try {
-      console.log(`🔎 [ProductContext] Searching for: "${query}"`);
+      console.log(` [ProductContext] Searching for: "${query}"`);
       const response = await productAPI.searchProducts(query);
 
       let searchResults = [];
@@ -196,7 +196,7 @@ export const ProductProvider = ({ children }) => {
         searchResults = response.products;
       }
 
-      console.log(`🔎 [ProductContext] Found ${searchResults.length} results`);
+      console.log(` [ProductContext] Found ${searchResults.length} results`);
       setProducts(searchResults);
       return { success: true, products: searchResults };
     } catch (err) {
@@ -225,7 +225,7 @@ export const ProductProvider = ({ children }) => {
     setLoading(true);
 
     try {
-      console.log(`📁 [ProductContext] Fetching category: "${category}"`);
+      console.log(` [ProductContext] Fetching category: "${category}"`);
       const response = await productAPI.getProductsByCategory(category);
 
       let categoryProducts = [];
@@ -243,7 +243,7 @@ export const ProductProvider = ({ children }) => {
       }
 
       console.log(
-        `📁 [ProductContext] ${categoryProducts.length} products in category`
+        ` [ProductContext] ${categoryProducts.length} products in category`
       );
       setProducts(categoryProducts);
       return { success: true, products: categoryProducts };
@@ -258,14 +258,14 @@ export const ProductProvider = ({ children }) => {
 
   // ==================== CLEAR CURRENT PRODUCT ====================
   const clearCurrentProduct = () => {
-    console.log("🗑️ [ProductContext] Clearing current product");
+    console.log(" [ProductContext] Clearing current product");
     setCurrentProduct(null);
   };
 
   // ==================== USE EFFECTS ====================
   // Initialize
   useEffect(() => {
-    console.log("🚀 [ProductContext] Initializing...");
+    console.log(" [ProductContext] Initializing...");
     const initialize = async () => {
       await fetchProducts();
       await fetchFeaturedProducts();

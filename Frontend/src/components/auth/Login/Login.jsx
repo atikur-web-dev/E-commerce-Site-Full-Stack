@@ -22,8 +22,8 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // ✅ MUST HAVE THIS
-    e.stopPropagation(); // ✅ Prevent event bubbling
+    e.preventDefault(); 
+    e.stopPropagation(); 
 
     setError("");
     setLoading(true);
@@ -32,7 +32,7 @@ const Login = () => {
       const result = await login(formData);
 
       if (result.success) {
-        navigate("/", { replace: true }); // ✅ Replace instead of push
+        navigate("/", { replace: true });
       } else {
         setError(
           result.error || "Login failed. Please check your credentials."

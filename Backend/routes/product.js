@@ -21,10 +21,10 @@ const router = express.Router();
 
 // ====================== SPECIFIC ROUTES FIRST ======================
 
-// ✅ MUST BE FIRST: Test Cloudinary connection
+//  MUST BE FIRST: Test Cloudinary connection
 router.get("/test-upload", protect, admin, testCloudinaryConnection);
 
-// ✅ Image Upload Routes
+//  Image Upload Routes
 router.post(
   "/upload",
   protect,
@@ -45,10 +45,10 @@ router.post(
 
 router.delete("/image/:publicId", protect, admin, deleteProductImage);
 
-// ✅ Featured products route
+//  Featured products route
 router.get("/featured", getFeaturedProducts);
 
-// ✅ Category products route
+//  Category products route
 router.get("/category/:category", getProductsByCategory);
 
 // ====================== DYNAMIC ROUTES LAST ======================

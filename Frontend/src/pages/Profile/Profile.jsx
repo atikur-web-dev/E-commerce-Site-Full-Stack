@@ -1,103 +1,227 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import axios from "axios";
 import "./Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, updateProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState("profile");
+  const { user, updateProfile, logout, syncUserProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [wishlist, setWishlist] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [imagePreview, setImagePreview] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  
+  // User state
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    avatar: ""
+  });
+  
+  // Form state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
+    shippingAddress: {
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "Bangladesh"
+    },
+    avatar: ""
   });
+
+  // Orders and wishlist state
+  const [orders, setOrders] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
       return;
     }
-    
-    // Check URL for tab parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    if (tabParam && ['profile', 'orders', 'wishlist', 'security', 'settings'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-    
+
+    loadAllData();
+  }, [user, navigate]);
+
+  const loadAllData = () => {
     // Load user data
+    setUserData({
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      avatar: user.avatar || ""
+    });
+
     setFormData({
       name: user.name || "",
       email: user.email || "",
       phone: user.phone || "",
-      street: user.address?.street || "",
-      city: user.address?.city || "",
-      state: user.address?.state || "",
-      zipCode: user.address?.zipCode || "",
+      shippingAddress: user.shippingAddress || {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "Bangladesh"
+      },
+      avatar: user.avatar || ""
     });
-    
+
+    setImagePreview(user.avatar || "");
+
     // Load wishlist from localStorage
+    loadWishlist();
+    
+    // Load orders from localStorage
+    loadOrders();
+  };
+
+  const loadWishlist = () => {
     const savedWishlist = JSON.parse(localStorage.getItem(`wishlist_${user._id}`)) || [];
     setWishlist(savedWishlist);
-    
-    // Fetch orders
-    fetchOrders();
-  }, [user, navigate]);
+  };
 
-  const fetchOrders = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:5000/api/orders/myorders",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.data.success) {
-        setOrders(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+  const loadOrders = () => {
+    // Check localStorage first
+    const savedOrders = JSON.parse(localStorage.getItem(`orders_${user._id}`));
+    
+    if (savedOrders && savedOrders.length > 0) {
+      setOrders(savedOrders);
+    } else {
+      // Create initial orders if none exist
+      const initialOrders = createInitialOrders();
+      setOrders(initialOrders);
+      localStorage.setItem(`orders_${user._id}`, JSON.stringify(initialOrders));
     }
+  };
+
+  const createInitialOrders = () => {
+    return [
+      {
+        _id: "order_1_" + Date.now(),
+        orderNumber: "ORD-2024-001",
+        createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+        totalPrice: 1250.00,
+        status: "Delivered",
+        items: 2,
+        products: [
+          { name: "Wireless Headphones", price: 450.00, quantity: 1 },
+          { name: "USB-C Cable", price: 800.00, quantity: 1 }
+        ]
+      },
+      {
+        _id: "order_2_" + Date.now(),
+        orderNumber: "ORD-2024-002",
+        createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+        totalPrice: 899.99,
+        status: "Processing",
+        items: 1,
+        products: [
+          { name: "Smart Watch", price: 899.99, quantity: 1 }
+        ]
+      }
+    ];
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name.startsWith("shippingAddress.")) {
+      const field = name.split(".")[1];
+      setFormData(prev => ({
+        ...prev,
+        shippingAddress: {
+          ...prev.shippingAddress,
+          [field]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert("❌ Image size should be less than 2MB");
+        return;
+      }
+
+      setSelectedFile(file);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setFormData(prev => ({
+          ...prev,
+          avatar: base64String
+        }));
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert("❌ Please select a valid image file (JPG, PNG, GIF)");
+    }
   };
 
   const handleSaveProfile = async () => {
+    if (!formData.name.trim()) {
+      alert("❌ Name is required");
+      return;
+    }
+
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        "http://localhost:5000/api/auth/profile",
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // Prepare data for backend
+      const updateData = {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        shippingAddress: formData.shippingAddress
+      };
+
+      // Only send avatar if it's a new base64 image
+      if (formData.avatar && formData.avatar !== user.avatar && formData.avatar.startsWith("data:image")) {
+        updateData.avatar = formData.avatar;
+      }
+
+      console.log("🚀 Sending profile update...");
+
+      const response = await updateProfile(updateData);
       
-      if (response.data.success) {
-        updateProfile(response.data.user);
-        alert("Profile updated successfully!");
+      if (response.success) {
+        // Refresh user data
+        await syncUserProfile();
+        
+        // Update local state
+        const updatedUser = JSON.parse(localStorage.getItem('user'));
+        if (updatedUser) {
+          setUserData({
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            avatar: updatedUser.avatar
+          });
+          
+          setImagePreview(updatedUser.avatar || "");
+        }
+        
+        alert("✅ Profile updated successfully!");
+        setActiveTab("dashboard");
+      } else {
+        alert("❌ Failed to update profile: " + response.error);
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      console.error("❌ Profile update error:", error);
+      alert("❌ Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -107,24 +231,59 @@ const Profile = () => {
     const updatedWishlist = wishlist.filter(item => item._id !== productId);
     setWishlist(updatedWishlist);
     localStorage.setItem(`wishlist_${user._id}`, JSON.stringify(updatedWishlist));
+    alert("✅ Item removed from wishlist");
   };
 
   const clearWishlist = () => {
-    setWishlist([]);
-    localStorage.setItem(`wishlist_${user._id}`, JSON.stringify([]));
+    if (window.confirm("⚠️ Are you sure you want to clear your entire wishlist?")) {
+      setWishlist([]);
+      localStorage.setItem(`wishlist_${user._id}`, JSON.stringify([]));
+      alert("✅ Wishlist cleared successfully");
+    }
   };
 
-  const getTotalSpent = () => {
-    return orders.reduce((total, order) => total + order.totalPrice, 0);
+  const clearOrderHistory = () => {
+    if (window.confirm("⚠️ Are you sure you want to permanently delete ALL your order history? This action cannot be undone!")) {
+      // Clear from state
+      setOrders([]);
+      
+      // Clear from localStorage
+      localStorage.removeItem(`orders_${user._id}`);
+      
+      // Clear initialization flag
+      localStorage.removeItem(`orders_initialized_${user._id}`);
+      
+      alert("✅ Order history has been permanently deleted!");
+    }
   };
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    // Update URL without page reload
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tab);
-    window.history.pushState({}, '', url);
+  const addTestOrder = () => {
+    const newOrder = {
+      _id: `order_${Date.now()}`,
+      orderNumber: `ORD-${new Date().getFullYear()}-${String(orders.length + 1).padStart(3, '0')}`,
+      createdAt: new Date().toISOString(),
+      totalPrice: Math.floor(Math.random() * 5000) + 500,
+      status: ["Pending", "Processing", "Shipped", "Delivered"][Math.floor(Math.random() * 4)],
+      items: Math.floor(Math.random() * 5) + 1,
+      products: [
+        { name: "Test Product " + (orders.length + 1), price: 1000, quantity: 1 }
+      ]
+    };
+
+    const updatedOrders = [newOrder, ...orders];
+    setOrders(updatedOrders);
+    localStorage.setItem(`orders_${user._id}`, JSON.stringify(updatedOrders));
+    alert("✅ Test order added successfully");
   };
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  // Calculate stats
+  const totalSpent = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+  const totalOrders = orders.length;
+  const totalWishlist = wishlist.length;
 
   if (!user) {
     return (
@@ -137,422 +296,581 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      <div className="profile-header">
-        <h1>👤 My Profile</h1>
-        <p>Manage your account, orders, and wishlist</p>
-      </div>
-
       <div className="profile-container">
         {/* Sidebar */}
         <div className="profile-sidebar">
-          <div className="user-summary">
-            <div className="user-avatar-large">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+          <div className="user-card">
+            <div className="user-avatar">
+              {imagePreview ? (
+                <img src={imagePreview} alt={userData.name} className="avatar-image" />
+              ) : userData.avatar ? (
+                <img src={userData.avatar} alt={userData.name} className="avatar-image" />
+              ) : (
+                <div className="avatar-placeholder">
+                  {userData.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              
+              <label className="avatar-upload">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload}
+                />
+                Change Photo
+              </label>
             </div>
-            <h3>{user.name}</h3>
-            <p className="user-email">{user.email}</p>
-            <p className="user-member">Member since: {new Date(user.createdAt).toLocaleDateString()}</p>
+            
+            <h3 className="user-name">{userData.name}</h3>
+            <p className="user-email">{userData.email}</p>
+            <p className="user-phone">{userData.phone || "No phone number"}</p>
+            
+            <div className="user-stats">
+              <div className="stat-item">
+                <div className="stat-value">{totalOrders}</div>
+                <div className="stat-label">Orders</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-value">{totalWishlist}</div>
+                <div className="stat-label">Wishlist</div>
+              </div>
+              <div className="stat-item">
+                <div className="stat-value">৳{totalSpent.toFixed(2)}</div>
+                <div className="stat-label">Spent</div>
+              </div>
+            </div>
           </div>
 
-          <div className="sidebar-menu">
+          <nav className="sidebar-nav">
             <button 
-              className={`menu-item ${activeTab === "profile" ? "active" : ""}`}
-              onClick={() => handleTabChange("profile")}
+              className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveTab("dashboard")}
             >
-              <span className="menu-icon">👤</span>
-              <span>My Profile</span>
+              Dashboard
             </button>
             <button 
-              className={`menu-item ${activeTab === "orders" ? "active" : ""}`}
-              onClick={() => handleTabChange("orders")}
+              className={`nav-item ${activeTab === "orders" ? "active" : ""}`}
+              onClick={() => setActiveTab("orders")}
             >
-              <span className="menu-icon">📦</span>
-              <span>My Orders</span>
-              <span className="menu-badge">{orders.length}</span>
+              My Orders
             </button>
             <button 
-              className={`menu-item ${activeTab === "wishlist" ? "active" : ""}`}
-              onClick={() => handleTabChange("wishlist")}
+              className={`nav-item ${activeTab === "wishlist" ? "active" : ""}`}
+              onClick={() => setActiveTab("wishlist")}
             >
-              <span className="menu-icon">❤️</span>
-              <span>Wishlist</span>
-              <span className="menu-badge">{wishlist.length}</span>
+              Wishlist
             </button>
             <button 
-              className={`menu-item ${activeTab === "security" ? "active" : ""}`}
-              onClick={() => handleTabChange("security")}
+              className={`nav-item ${activeTab === "update" ? "active" : ""}`}
+              onClick={() => setActiveTab("update")}
             >
-              <span className="menu-icon">🔒</span>
-              <span>Security</span>
+              Update Profile
             </button>
             <button 
-              className={`menu-item ${activeTab === "settings" ? "active" : ""}`}
-              onClick={() => handleTabChange("settings")}
+              className="nav-item logout-btn"
+              onClick={handleLogout}
             >
-              <span className="menu-icon">⚙️</span>
-              <span>Settings</span>
+              Logout
             </button>
-          </div>
-
-          <div className="sidebar-stats">
-            <div className="stat-item">
-              <span className="stat-icon">📦</span>
-              <div className="stat-content">
-                <h4>{orders.length}</h4>
-                <p>Total Orders</p>
-              </div>
-            </div>
-            <div className="stat-item">
-              <span className="stat-icon">💰</span>
-              <div className="stat-content">
-                <h4>৳{getTotalSpent().toFixed(2)}</h4>
-                <p>Total Spent</p>
-              </div>
-            </div>
-            <div className="stat-item">
-              <span className="stat-icon">❤️</span>
-              <div className="stat-content">
-                <h4>{wishlist.length}</h4>
-                <p>Wishlisted Items</p>
-              </div>
-            </div>
-          </div>
+          </nav>
         </div>
 
         {/* Main Content */}
         <div className="profile-content">
-          {activeTab === "profile" && (
-            <div className="profile-section">
-              <div className="section-header">
-                <h2>Personal Information</h2>
-                <p>Update your personal details and contact information</p>
-              </div>
-
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="form-input"
-                  />
+          {activeTab === "dashboard" && (
+            <div className="dashboard-tab">
+              <div className="dashboard-header">
+                <div>
+                  <h2>Welcome back, {userData.name}</h2>
+                  <p className="dashboard-subtitle">Here is your account overview</p>
                 </div>
-                <div className="form-group">
-                  <label>Email Address *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    disabled
-                  />
-                  <small className="form-help">Email cannot be changed</small>
-                </div>
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="+8801XXXXXXXXX"
-                  />
+                <div className="dashboard-actions">
+                  <button 
+                    className="action-btn secondary"
+                    onClick={addTestOrder}
+                  >
+                    Add Test Order
+                  </button>
+                  <button 
+                    className="action-btn danger"
+                    onClick={clearOrderHistory}
+                    disabled={orders.length === 0}
+                  >
+                    Clear History
+                  </button>
                 </div>
               </div>
+              
+              <div className="dashboard-cards">
+                <div className="dashboard-card">
+                  <div className="card-header">
+                    <h3>Recent Orders</h3>
+                    <span className="card-badge">{totalOrders}</span>
+                  </div>
+                  {orders.length > 0 ? (
+                    <div className="recent-orders">
+                      {orders.slice(0, 3).map(order => (
+                        <div key={order._id} className="order-item">
+                          <div className="order-info">
+                            <strong>{order.orderNumber || `Order #${order._id.slice(-6)}`}</strong>
+                            <span className={`status ${(order.status || "Pending").toLowerCase()}`}>
+                              {order.status || "Pending"}
+                            </span>
+                          </div>
+                          <div className="order-price">
+                            ৳{order.totalPrice?.toFixed(2) || "0.00"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-data">No orders yet</p>
+                  )}
+                  <button 
+                    className="view-all-btn"
+                    onClick={() => setActiveTab("orders")}
+                  >
+                    View All Orders
+                  </button>
+                </div>
 
-              <div className="section-header">
-                <h3>Shipping Address</h3>
-                <p>Default delivery address for your orders</p>
-              </div>
+                <div className="dashboard-card">
+                  <div className="card-header">
+                    <h3>Wishlist Items</h3>
+                    <span className="card-badge">{totalWishlist}</span>
+                  </div>
+                  {wishlist.length > 0 ? (
+                    <div className="wishlist-preview">
+                      {wishlist.slice(0, 3).map(item => (
+                        <div key={item._id} className="wishlist-item">
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-price">৳{item.price?.toFixed(2) || "0.00"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-data">No items in wishlist</p>
+                  )}
+                  <button 
+                    className="view-all-btn"
+                    onClick={() => setActiveTab("wishlist")}
+                  >
+                    View Wishlist
+                  </button>
+                </div>
 
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Street Address</label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="123 Main Street"
-                  />
+                <div className="dashboard-card">
+                  <div className="card-header">
+                    <h3>Account Details</h3>
+                  </div>
+                  <div className="account-info">
+                    <div className="info-row">
+                      <span>Name:</span>
+                      <span className="info-value">{userData.name}</span>
+                    </div>
+                    <div className="info-row">
+                      <span>Email:</span>
+                      <span className="info-value">{userData.email}</span>
+                    </div>
+                    <div className="info-row">
+                      <span>Phone:</span>
+                      <span className="info-value">{userData.phone || "Not set"}</span>
+                    </div>
+                    <div className="info-row">
+                      <span>Member Since:</span>
+                      <span className="info-value">{new Date(user.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <button 
+                    className="view-all-btn"
+                    onClick={() => setActiveTab("update")}
+                  >
+                    Update Profile
+                  </button>
                 </div>
-                <div className="form-group">
-                  <label>City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="Dhaka"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>State</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="Dhaka Division"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>ZIP Code</label>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="1200"
-                  />
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button 
-                  className="btn btn-primary"
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => navigate("/")}
-                >
-                  Cancel
-                </button>
               </div>
             </div>
           )}
 
           {activeTab === "orders" && (
-            <div className="profile-section">
-              <div className="section-header">
-                <h2>My Orders</h2>
-                <p>Track and manage all your orders</p>
-              </div>
-
-              {orders.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">📭</div>
-                  <h3>No Orders Yet</h3>
-                  <p>You haven't placed any orders yet. Start shopping now!</p>
+            <div className="orders-tab">
+              <div className="orders-header">
+                <h2>My Orders ({orders.length})</h2>
+                <div className="orders-actions">
                   <button 
-                    className="btn btn-primary"
-                    onClick={() => navigate("/shop")}
+                    className="action-btn primary"
+                    onClick={addTestOrder}
                   >
-                    Start Shopping
+                    Add Test Order
+                  </button>
+                  <button 
+                    className="action-btn danger"
+                    onClick={clearOrderHistory}
+                    disabled={orders.length === 0}
+                  >
+                    Clear All Orders
                   </button>
                 </div>
-              ) : (
-                <div className="orders-table">
-                  {orders.slice(0, 5).map(order => (
-                    <div key={order._id} className="order-row">
-                      <div className="order-info">
-                        <h4>Order #{order.orderNumber || order._id.slice(-8)}</h4>
-                        <p className="order-date">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="order-status">
-                        <span className={`status-badge ${order.orderStatus}`}>
-                          {order.orderStatus}
+              </div>
+              
+              {orders.length > 0 ? (
+                <div className="orders-list">
+                  {orders.map(order => (
+                    <div key={order._id} className="order-card">
+                      <div className="order-header">
+                        <div>
+                          <h4>Order #{order.orderNumber || order._id.slice(-6)}</h4>
+                          <p className="order-date">
+                            {new Date(order.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <span className={`status-badge ${(order.status || "pending").toLowerCase().replace(/\s+/g, '-')}`}>
+                          {order.status || "Pending"}
                         </span>
                       </div>
-                      <div className="order-total">
-                        <strong>৳{order.totalPrice?.toFixed(2)}</strong>
+                      
+                      <div className="order-details">
+                        <div className="detail-item">
+                          <span>Total Price:</span>
+                          <strong>৳{order.totalPrice?.toFixed(2) || "0.00"}</strong>
+                        </div>
+                        <div className="detail-item">
+                          <span>Items:</span>
+                          <span>{order.items || 1} item{order.items > 1 ? 's' : ''}</span>
+                        </div>
+                        {order.products && (
+                          <div className="detail-item">
+                            <span>Products:</span>
+                            <span className="products-list">
+                              {order.products.map(p => p.name).join(', ')}
+                            </span>
+                          </div>
+                        )}
                       </div>
+                      
                       <div className="order-actions">
                         <button 
-                          className="btn btn-sm btn-outline"
-                          onClick={() => navigate(`/order/${order._id}`)}
+                          className="view-details-btn"
+                          onClick={() => alert(`Order details for ${order.orderNumber}`)}
                         >
                           View Details
+                        </button>
+                        <button 
+                          className="track-btn"
+                          onClick={() => alert(`Tracking order ${order.orderNumber}`)}
+                        >
+                          Track Order
                         </button>
                       </div>
                     </div>
                   ))}
-                  
-                  {orders.length > 5 && (
-                    <div className="view-all">
-                      <button 
-                        className="btn btn-outline"
-                        onClick={() => navigate("/orders")}
-                      >
-                        View All Orders
-                      </button>
-                    </div>
-                  )}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">📦</div>
+                  <h3>No Orders Yet</h3>
+                  <p>You haven't placed any orders yet.</p>
+                  <div className="empty-actions">
+                    <button 
+                      className="shop-btn"
+                      onClick={() => navigate("/shop")}
+                    >
+                      Start Shopping
+                    </button>
+                    <button 
+                      className="action-btn secondary"
+                      onClick={addTestOrder}
+                    >
+                      Add Test Order
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
           {activeTab === "wishlist" && (
-            <div className="profile-section">
-              <div className="section-header">
-                <div className="section-header-content">
-                  <h2>My Wishlist</h2>
-                  <p>Your saved items for later</p>
-                </div>
-                {wishlist.length > 0 && (
+            <div className="wishlist-tab">
+              <div className="wishlist-header">
+                <h2>My Wishlist ({wishlist.length})</h2>
+                <div className="wishlist-actions">
                   <button 
-                    className="btn btn-danger btn-sm"
-                    onClick={clearWishlist}
+                    className="action-btn secondary"
+                    onClick={() => navigate("/shop")}
                   >
-                    Clear All
+                    Browse Products
                   </button>
-                )}
+                  {wishlist.length > 0 && (
+                    <button 
+                      className="action-btn danger"
+                      onClick={clearWishlist}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
               </div>
-
-              {wishlist.length === 0 ? (
+              
+              {wishlist.length > 0 ? (
+                <div className="wishlist-grid">
+                  {wishlist.map(product => (
+                    <div key={product._id} className="wishlist-card">
+                      <div className="product-image">
+                        <img 
+                          src={product.images?.[0] || product.image || "/placeholder.jpg"} 
+                          alt={product.name}
+                          onError={(e) => {
+                            e.target.src = "/placeholder.jpg";
+                            e.target.onerror = null;
+                          }}
+                        />
+                        <button 
+                          className="remove-wishlist-btn"
+                          onClick={() => removeFromWishlist(product._id)}
+                          title="Remove from wishlist"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      
+                      <div className="product-info">
+                        <h4>{product.name}</h4>
+                        <p className="product-category">{product.category || "General"}</p>
+                        
+                        <div className="product-price">
+                          <span className="current">৳{product.price?.toFixed(2) || "0.00"}</span>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <span className="original">৳{product.originalPrice.toFixed(2)}</span>
+                          )}
+                        </div>
+                        
+                        <div className="product-stock">
+                          <span className={`stock-badge ${(product.stock > 0 ? 'in-stock' : 'out-of-stock')}`}>
+                            {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                          </span>
+                        </div>
+                        
+                        <div className="product-actions">
+                          <button 
+                            className="view-btn"
+                            onClick={() => navigate(`/product/${product._id}`)}
+                          >
+                            View Product
+                          </button>
+                          <button 
+                            className="add-to-cart-btn"
+                            onClick={() => alert(`${product.name} added to cart!`)}
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="empty-state">
                   <div className="empty-icon">❤️</div>
                   <h3>Your Wishlist is Empty</h3>
-                  <p>Save items you love to buy them later</p>
+                  <p>Save items you love to buy them later.</p>
                   <button 
-                    className="btn btn-primary"
+                    className="shop-btn"
                     onClick={() => navigate("/shop")}
                   >
                     Browse Products
                   </button>
                 </div>
-              ) : (
-                <div className="wishlist-grid">
-                  {wishlist.map(product => (
-                    <div key={product._id} className="wishlist-item">
-                      <div className="wishlist-image">
-                        <img 
-                          src={product.images?.[0] || product.image || "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop"} 
-                          alt={product.name}
-                          onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop";
-                            e.target.onerror = null;
-                          }}
-                        />
-                      </div>
-                      <div className="wishlist-info">
-                        <h4>{product.name}</h4>
-                        <p className="wishlist-category">{product.category || "Electronics"}</p>
-                        <div className="wishlist-price">
-                          <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
-                          {product.originalPrice && (
-                            <span className="original-price">৳{product.originalPrice.toFixed(2)}</span>
-                          )}
-                        </div>
-                        <div className="wishlist-stock">
-                          <span className={`stock-badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                            {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="wishlist-actions">
-                        <button 
-                          className="btn btn-primary btn-sm"
-                          onClick={() => navigate(`/product/${product._id}`)}
-                        >
-                          View Details
-                        </button>
-                        <button 
-                          className="btn btn-danger btn-sm"
-                          onClick={() => removeFromWishlist(product._id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               )}
             </div>
           )}
 
-          {activeTab === "security" && (
-            <div className="profile-section">
-              <div className="section-header">
-                <h2>Security Settings</h2>
-                <p>Manage your password and account security</p>
-              </div>
+          {activeTab === "update" && (
+            <div className="update-tab">
+              <h2>Update Profile</h2>
+              
+              <div className="update-form">
+                <div className="form-section">
+                  <h3>Personal Information</h3>
+                  
+                  <div className="form-group">
+                    <label>Full Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="form-input"
+                      required
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      className="form-input"
+                      disabled
+                      readOnly
+                    />
+                    <small className="form-note">Email cannot be changed</small>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="form-input"
+                      placeholder="+8801XXXXXXXXX"
+                    />
+                  </div>
+                </div>
 
-              <div className="security-cards">
-                <div className="security-card">
-                  <div className="card-icon">🔒</div>
-                  <h3>Change Password</h3>
-                  <p>Update your password to keep your account secure</p>
-                  <button className="btn btn-outline">Change Password</button>
+                <div className="form-section">
+                  <h3>Profile Picture</h3>
+                  <div className="avatar-upload-section">
+                    <div className="current-avatar">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="avatar-preview" />
+                      ) : (
+                        <div className="avatar-preview placeholder">
+                          {userData.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="upload-instructions">
+                      <p>Upload a new profile picture</p>
+                      <ul>
+                        <li>Max file size: 2MB</li>
+                        <li>Supported formats: JPG, PNG, GIF</li>
+                        <li>Recommended size: 300x300 pixels</li>
+                      </ul>
+                      <label className="upload-btn">
+                        Choose Image
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                      {selectedFile && (
+                        <p className="file-info">
+                          Selected: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}KB)
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="security-card">
-                  <div className="card-icon">📱</div>
-                  <h3>Two-Factor Authentication</h3>
-                  <p>Add an extra layer of security to your account</p>
-                  <button className="btn btn-outline">Enable 2FA</button>
-                </div>
-                <div className="security-card">
-                  <div className="card-icon">👁️</div>
-                  <h3>Privacy Settings</h3>
-                  <p>Control what information is visible to others</p>
-                  <button className="btn btn-outline">Privacy Settings</button>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {activeTab === "settings" && (
-            <div className="profile-section">
-              <div className="section-header">
-                <h2>Account Settings</h2>
-                <p>Customize your account preferences</p>
-              </div>
+                <div className="form-section">
+                  <h3>Shipping Address</h3>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Street Address</label>
+                      <input
+                        type="text"
+                        name="shippingAddress.street"
+                        value={formData.shippingAddress.street}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        placeholder="House no, Road no, Area"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>City</label>
+                      <input
+                        type="text"
+                        name="shippingAddress.city"
+                        value={formData.shippingAddress.city}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        placeholder="Dhaka"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>State/Division</label>
+                      <input
+                        type="text"
+                        name="shippingAddress.state"
+                        value={formData.shippingAddress.state}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        placeholder="Dhaka Division"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>ZIP Code</label>
+                      <input
+                        type="text"
+                        name="shippingAddress.zipCode"
+                        value={formData.shippingAddress.zipCode}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        placeholder="1200"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Country</label>
+                    <select
+                      name="shippingAddress.country"
+                      value={formData.shippingAddress.country}
+                      onChange={handleInputChange}
+                      className="form-input"
+                    >
+                      <option value="Bangladesh">Bangladesh</option>
+                      <option value="India">India</option>
+                      <option value="USA">United States</option>
+                      <option value="UK">United Kingdom</option>
+                      <option value="Canada">Canada</option>
+                      <option value="Australia">Australia</option>
+                    </select>
+                  </div>
+                </div>
 
-              <div className="settings-list">
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h4>Email Notifications</h4>
-                    <p>Receive updates about orders and promotions</p>
-                  </div>
-                  <label className="switch">
-                    <input type="checkbox" defaultChecked />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h4>SMS Notifications</h4>
-                    <p>Get order updates via SMS</p>
-                  </div>
-                  <label className="switch">
-                    <input type="checkbox" />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h4>Newsletter Subscription</h4>
-                    <p>Receive our weekly newsletter with deals</p>
-                  </div>
-                  <label className="switch">
-                    <input type="checkbox" defaultChecked />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h4>Dark Mode</h4>
-                    <p>Switch to dark theme</p>
-                  </div>
-                  <label className="switch">
-                    <input type="checkbox" />
-                    <span className="slider"></span>
-                  </label>
+                <div className="form-actions">
+                  <button 
+                    className="save-btn"
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <>
+                        <span className="spinner-small"></span>
+                        Saving...
+                      </>
+                    ) : "Save Changes"}
+                  </button>
+                  
+                  <button 
+                    className="cancel-btn"
+                    onClick={() => {
+                      setActiveTab("dashboard");
+                      loadAllData();
+                      setSelectedFile(null);
+                    }}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             </div>

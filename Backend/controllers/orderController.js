@@ -8,7 +8,7 @@ import asyncHandler from "express-async-handler";
 // @access  Private
 export const createOrder = asyncHandler(async (req, res) => {
   try {
-    console.log("=== 🛒 ORDER CREATE REQUEST STARTED ===");
+    console.log("===  ORDER CREATE REQUEST STARTED ===");
     console.log("User ID:", req.user?._id);
     console.log("Payment Method from request:", req.body?.paymentMethod);
     
@@ -17,14 +17,14 @@ export const createOrder = asyncHandler(async (req, res) => {
     // Validate shipping address
     if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || 
         !shippingAddress.state || !shippingAddress.zipCode || !shippingAddress.phone) {
-      console.log("❌ Shipping address validation failed");
+      console.log(" Shipping address validation failed");
       return res.status(400).json({
         success: false,
         message: "Please fill all shipping address fields (street, city, state, zip code, phone)",
       });
     }
 
-    console.log("📦 Looking for user's cart...");
+    console.log(" Looking for user's cart...");
     
     // Get user's cart
     const cart = await Cart.findOne({ user: req.user._id }).populate(
@@ -33,17 +33,17 @@ export const createOrder = asyncHandler(async (req, res) => {
     );
 
     if (!cart) {
-      console.log("❌ Cart not found for user:", req.user._id);
+      console.log(" Cart not found for user:", req.user._id);
       return res.status(400).json({
         success: false,
         message: "Cart not found. Please add items to cart first.",
       });
     }
 
-    console.log(`✅ Cart found with ${cart.items?.length || 0} items`);
+    console.log(` Cart found with ${cart.items?.length || 0} items`);
 
     if (!cart.items || cart.items.length === 0) {
-      console.log("❌ Cart is empty");
+      console.log(" Cart is empty");
       return res.status(400).json({
         success: false,
         message: "Your cart is empty. Please add products to cart.",
@@ -51,10 +51,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     }
 
     // Check stock availability
-    console.log("🔍 Checking stock availability...");
+    console.log(" Checking stock availability...");
     for (const item of cart.items) {
       if (!item.product) {
-        console.log("❌ Product not found in cart item");
+        console.log(" Product not found in cart item");
         return res.status(400).json({
           success: false,
           message: "Some products in cart are no longer available",
@@ -62,7 +62,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
       
       if (item.product.stock < item.quantity) {
-        console.log(`❌ Insufficient stock for ${item.product.name}`);
+        console.log(` Insufficient stock for ${item.product.name}`);
         return res.status(400).json({
           success: false,
           message: `Sorry, "${item.product.name}" has only ${item.product.stock} items left in stock`,
@@ -70,7 +70,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
     }
 
-    console.log("✅ Stock check passed");
+    console.log(" Stock check passed");
 
     // Prepare order items
     const orderItems = cart.items.map(item => ({
@@ -91,7 +91,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     const taxPrice = itemsPrice * 0.05;
     const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-    console.log(`💰 Price Calculation:`);
+    console.log(` Price Calculation:`);
     console.log(`   Items: ৳${itemsPrice}`);
     console.log(`   Shipping: ৳${shippingPrice}`);
     console.log(`   Tax: ৳${taxPrice}`);
@@ -101,7 +101,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     const isPaid = paymentMethod !== "cod"; // COD is not paid yet
     const orderStatus = "confirmed"; // Auto-confirm for demo
     
-    console.log(`✅ Payment: ${paymentMethod}, Paid: ${isPaid}, Status: ${orderStatus}`);
+    console.log(` Payment: ${paymentMethod}, Paid: ${isPaid}, Status: ${orderStatus}`);
 
     // Create order
     const order = new Order({
@@ -123,24 +123,24 @@ export const createOrder = asyncHandler(async (req, res) => {
       paidAt: isPaid ? Date.now() : null,
     });
 
-    console.log("💾 Saving order to database...");
+    console.log(" Saving order to database...");
     const createdOrder = await order.save();
-    console.log("✅ Order saved. ID:", createdOrder._id);
+    console.log(" Order saved. ID:", createdOrder._id);
 
     // Reduce stock
-    console.log("📉 Reducing product stock...");
+    console.log(" Reducing product stock...");
     for (const item of orderItems) {
       await Product.findByIdAndUpdate(item.product, {
         $inc: { stock: -item.quantity }
       });
     }
-    console.log("✅ Stock updated");
+    console.log(" Stock updated");
 
     // Clear cart
-    console.log("🧹 Clearing user's cart...");
+    console.log(" Clearing user's cart...");
     cart.items = [];
     await cart.save();
-    console.log("✅ Cart cleared");
+    console.log(" Cart cleared");
 
     // Success message based on payment method
     let message = "";
@@ -150,7 +150,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       message = "Payment successful! Your order is confirmed.";
     }
 
-    console.log("=== ✅ ORDER CREATION COMPLETED SUCCESSFULLY ===");
+    console.log("===  ORDER CREATION COMPLETED SUCCESSFULLY ===");
     
     res.status(201).json({
       success: true,
@@ -160,7 +160,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error("=== ❌ ORDER CREATION FAILED ===");
+    console.error("===  ORDER CREATION FAILED ===");
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Error stack:", error.stack);

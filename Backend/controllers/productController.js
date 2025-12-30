@@ -8,12 +8,12 @@ import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.j
 // @access  Public
 export const getProducts = asyncHandler(async (req, res) => {
   try {
-    console.log("📦 Fetching all products...");
+    console.log(" Fetching all products...");
     const products = await Product.find({});
 
     // Debug: Check first product's images
     if (products.length > 0) {
-      console.log("✅ First product data:", {
+      console.log(" First product data:", {
         name: products[0].name,
         images: products[0].images,
         imagesType: typeof products[0].images,
@@ -21,10 +21,10 @@ export const getProducts = asyncHandler(async (req, res) => {
       });
     }
 
-    console.log(`✅ Total products: ${products.length}`);
+    console.log(` Total products: ${products.length}`);
     res.json(products);
   } catch (error) {
-    console.error("❌ Get Products Error:", error);
+    console.error(" Get Products Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -39,7 +39,7 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
   try {
     const category = req.params.category;
 
-    console.log(`🔍 [API] Category requested: "${category}"`);
+    console.log(` [API] Category requested: "${category}"`);
 
     // Decode URL encoding
     const decodedCategory = decodeURIComponent(category);
@@ -55,7 +55,7 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
     }
 
     console.log(
-      `✅ [API] Found ${products.length} products for "${decodedCategory}"`
+      ` [API] Found ${products.length} products for "${decodedCategory}"`
     );
 
     res.json(products);
@@ -73,12 +73,12 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
 // @access  Public
 export const getProductById = asyncHandler(async (req, res) => {
   try {
-    console.log(`🔍 Fetching product by ID: ${req.params.id}`);
+    console.log(` Fetching product by ID: ${req.params.id}`);
     
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      console.log("✅ Product found:", {
+      console.log(" Product found:", {
         name: product.name,
         hasImages: !!product.images,
         images: product.images,
@@ -87,11 +87,11 @@ export const getProductById = asyncHandler(async (req, res) => {
       
       res.json(product);
     } else {
-      console.log("❌ Product not found for ID:", req.params.id);
+      console.log(" Product not found for ID:", req.params.id);
       res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
-    console.error("❌ Get Product By ID Error:", error);
+    console.error(" Get Product By ID Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -105,7 +105,7 @@ export const getProductById = asyncHandler(async (req, res) => {
 export const getFeaturedProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({ isFeatured: true });
-    console.log(`⭐ Featured products: ${products.length}`);
+    console.log(` Featured products: ${products.length}`);
     res.json(products);
   } catch (error) {
     console.error("Featured Products Error:", error);
@@ -121,7 +121,7 @@ export const getFeaturedProducts = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const createProduct = asyncHandler(async (req, res) => {
   try {
-    console.log("🆕 Creating new product...");
+    console.log(" Creating new product...");
     
     // Handle images - convert to array format
     let imagesArray = [];
@@ -157,10 +157,10 @@ export const createProduct = asyncHandler(async (req, res) => {
 
     const createdProduct = await product.save();
     
-    console.log("✅ Product created successfully:", createdProduct._id);
+    console.log(" Product created successfully:", createdProduct._id);
     res.status(201).json(createdProduct);
   } catch (error) {
-    console.error("❌ Create Product Error:", error);
+    console.error(" Create Product Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -203,14 +203,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
       const updatedProduct = await product.save();
       
-      console.log("✅ Product updated successfully");
+      console.log(" Product updated successfully");
       res.json(updatedProduct);
     } else {
-      console.log("❌ Product not found for update");
+      console.log(" Product not found for update");
       res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
-    console.error("❌ Update Product Error:", error);
+    console.error(" Update Product Error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message,
@@ -227,7 +227,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
     if (product) {
       await product.deleteOne();
-      console.log("🗑️ Product deleted:", req.params.id);
+      console.log(" Product deleted:", req.params.id);
       res.json({ message: "Product removed" });
     } else {
       res.status(404).json({ message: "Product not found" });
@@ -363,7 +363,7 @@ export const deleteProductImage = asyncHandler(async (req, res) => {
 
 export const testCloudinaryConnection = asyncHandler(async (req, res) => {
   try {
-    console.log('🔄 Testing Cloudinary connection...');
+    console.log(' Testing Cloudinary connection...');
     
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
@@ -387,7 +387,7 @@ export const testCloudinaryConnection = asyncHandler(async (req, res) => {
       apiSecretPresent: !!process.env.CLOUDINARY_API_SECRET,
     };
     
-    console.log('✅ Cloudinary configuration check:', configCheck);
+    console.log(' Cloudinary configuration check:', configCheck);
     
     res.status(200).json({
       success: true,
@@ -397,7 +397,7 @@ export const testCloudinaryConnection = asyncHandler(async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Unexpected error in testCloudinaryConnection:', error);
+    console.error(' Unexpected error in testCloudinaryConnection:', error);
     res.status(500).json({
       success: false,
       message: 'Unexpected error occurred',

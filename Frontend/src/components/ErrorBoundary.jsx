@@ -1,4 +1,4 @@
-// ./Frontend/src/components/ErrorBoundary.jsx - SIMPLE VERSION
+// ./Frontend/src/components/ErrorBoundary.jsx
 import React from "react";
 import "./ErrorBoundary.css";
 
@@ -13,7 +13,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("🚨 Error caught by ErrorBoundary:", error, errorInfo);
+    console.error(" Error caught by ErrorBoundary:", error, errorInfo);
   }
 
   render() {

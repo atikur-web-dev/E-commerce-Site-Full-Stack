@@ -133,7 +133,7 @@ const Cart = () => {
                       ৳{(item.product?.price || item.price || 0).toFixed(2)} each
                     </p>
                     {item.product?.stock && item.product.stock < 10 && (
-                      <p className="stock-warning">⚠️ Only {item.product.stock} left in stock</p>
+                      <p className="stock-warning"> Only {item.product.stock} left in stock</p>
                     )}
                   </div>
                   

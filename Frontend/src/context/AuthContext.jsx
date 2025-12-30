@@ -74,28 +74,33 @@ export const AuthProvider = ({ children }) => {
       setError("");
       setLoading(true);
 
-      console.log("🔐 Login attempt:", credentials.email);
+      console.log(" Login attempt:", credentials.email);
 
-      // Call API - returns direct data (not response.data)
       const response = await authAPI.login(credentials);
 
-      console.log("📥 Login response:", response);
+      console.log(" Login response:", response);
 
       if (response?.token) {
-        // Extract user data from response
         const userData = {
           _id: response._id,
           name: response.name,
           email: response.email,
+          phone: response.phone || "",
           role: response.role || 'user',
-          avatar: response.avatar,
-          shippingAddress: response.shippingAddress,
+          avatar: response.avatar || "",
+          shippingAddress: response.shippingAddress || {
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "Bangladesh"
+          },
           createdAt: response.createdAt
         };
         
-        console.log("✅ Token received, saving...");
+        console.log(" Token received, saving...");
         saveAuthData(response.token, userData);
-        console.log("✅ Login successful!");
+        console.log(" Login successful!");
 
         return {
           success: true,
@@ -103,11 +108,11 @@ export const AuthProvider = ({ children }) => {
           message: "Login successful!",
         };
       } else {
-        console.error("❌ No token in response:", response);
+        console.error(" No token in response:", response);
         throw new Error("Invalid response from server");
       }
     } catch (err) {
-      console.error("❌ Login error details:", err);
+      console.error(" Login error details:", err);
 
       let errorMessage = "Login failed. Please try again.";
 
@@ -137,15 +142,13 @@ export const AuthProvider = ({ children }) => {
       setError("");
       setLoading(true);
 
-      console.log("👤 Registration attempt:", userData.email);
+      console.log(" Registration attempt:", userData.email);
 
-      // Call API - returns direct data
       const response = await authAPI.register(userData);
 
-      console.log("📥 Register response:", response);
+      console.log(" Register response:", response);
 
       if (response?.token) {
-        // Extract user data from response
         const userObj = {
           _id: response._id,
           name: response.name,
@@ -154,9 +157,9 @@ export const AuthProvider = ({ children }) => {
           createdAt: response.createdAt
         };
         
-        console.log("✅ Token received, saving...");
+        console.log(" Token received, saving...");
         saveAuthData(response.token, userObj);
-        console.log("✅ Registration successful!");
+        console.log(" Registration successful!");
 
         return {
           success: true,
@@ -164,11 +167,11 @@ export const AuthProvider = ({ children }) => {
           message: "Registration successful!",
         };
       } else {
-        console.error("❌ No token in response:", response);
+        console.error(" No token in response:", response);
         throw new Error("Invalid response from server");
       }
     } catch (err) {
-      console.error("❌ Registration error details:", err);
+      console.error(" Registration error details:", err);
 
       let errorMessage = "Registration failed. Please try again.";
 
@@ -205,7 +208,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    console.log("👋 Logging out user");
+    console.log(" Logging out user");
     clearAuth();
     setTimeout(() => {
       window.location.href = "/login?logout=success";
@@ -219,38 +222,121 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
+  // Update Profile with Image Upload
   const updateProfile = async (userData) => {
     try {
       setError("");
       setLoading(true);
 
-      const response = await authAPI.updateProfile(userData);
+      console.log("🔧 Updating profile with:", {
+        name: userData.name,
+        hasAvatar: !!userData.avatar,
+        avatarType: userData.avatar ? (userData.avatar.startsWith('data:') ? 'base64' : 'url') : 'none'
+      });
 
-      if (response) {
-        const updatedUser = { ...user, ...response };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+      // Prepare FormData for file upload
+      const formData = new FormData();
+      formData.append('name', userData.name);
+      if (userData.phone) formData.append('phone', userData.phone);
+      
+      // Append shipping address if exists
+      if (userData.shippingAddress) {
+        formData.append('shippingAddress[street]', userData.shippingAddress.street || '');
+        formData.append('shippingAddress[city]', userData.shippingAddress.city || '');
+        formData.append('shippingAddress[state]', userData.shippingAddress.state || '');
+        formData.append('shippingAddress[zipCode]', userData.shippingAddress.zipCode || '');
+        formData.append('shippingAddress[country]', userData.shippingAddress.country || 'Bangladesh');
+      }
+
+      // Handle avatar upload
+      if (userData.avatar && userData.avatar.startsWith('data:image')) {
+        try {
+          // Convert base64 to blob
+          const response = await fetch(userData.avatar);
+          const blob = await response.blob();
+          formData.append('avatar', blob, 'profile-avatar.jpg');
+          console.log(" Avatar blob created:", blob.size, "bytes");
+        } catch (blobError) {
+          console.error(" Error creating blob:", blobError);
+          // Fallback: send as base64 string
+          formData.append('avatar', userData.avatar);
+        }
+      }
+
+      // Get token
+      const token = localStorage.getItem("token");
+      
+      // Send request
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Note: Don't set Content-Type for FormData, browser sets it automatically with boundary
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      console.log(" Profile update response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Profile update failed');
+      }
+
+      if (data.success) {
+        // Update local user state
+        const updatedUser = { 
+          ...user, 
+          name: data.user.name,
+          phone: data.user.phone || "",
+          avatar: data.user.avatar || "",
+          shippingAddress: data.user.shippingAddress || {
+            street: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "Bangladesh"
+          }
+        };
+        
+        // Update localStorage
+        localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
-
-        if (response.token) {
-          saveAuthData(response.token, updatedUser);
+        
+        // Update token if new one provided
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          setToken(data.token);
+          API.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
         }
 
         return {
           success: true,
-          data: response,
-          message: "Profile updated successfully!",
+          data: data.user,
+          message: data.message || "Profile updated successfully!"
         };
+      } else {
+        throw new Error(data.message || 'Profile update failed');
       }
     } catch (err) {
-      let errorMessage = "Profile update failed";
-      if (err.message.includes("Session expired")) {
+      console.error(" Update profile error:", err);
+      
+      let errorMessage = "Profile update failed. Please try again.";
+      
+      if (err.message.includes('Session') || err.message.includes('expired')) {
         errorMessage = "Session expired. Please login again.";
         clearAuth();
+      } else if (err.message.includes('Image') || err.message.includes('upload')) {
+        errorMessage = "Image upload failed. Please try with a smaller image (max 2MB).";
       } else if (err.message) {
         errorMessage = err.message;
       }
+      
       setError(errorMessage);
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: errorMessage 
+      };
     } finally {
       setLoading(false);
     }
@@ -304,7 +390,7 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     getProfile,
     syncUserProfile,
-    updateUser, // ✅ ADDED THIS FUNCTION
+    updateUser,
 
     // Utility functions
     hasToken,
