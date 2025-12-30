@@ -6,7 +6,7 @@ import "./Profile.css";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -92,7 +92,7 @@ const Profile = () => {
       );
       
       if (response.data.success) {
-        updateUser(response.data.user);
+        updateProfile(response.data.user);
         alert("Profile updated successfully!");
       }
     } catch (error) {
@@ -147,7 +147,7 @@ const Profile = () => {
         <div className="profile-sidebar">
           <div className="user-summary">
             <div className="user-avatar-large">
-              {user.name.charAt(0).toUpperCase()}
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <h3>{user.name}</h3>
             <p className="user-email">{user.email}</p>

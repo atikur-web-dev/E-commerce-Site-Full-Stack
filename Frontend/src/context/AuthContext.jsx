@@ -82,7 +82,17 @@ export const AuthProvider = ({ children }) => {
       console.log("📥 Login response:", response);
 
       if (response?.token) {
-        const userData = response.user || response;
+        // Extract user data from response
+        const userData = {
+          _id: response._id,
+          name: response.name,
+          email: response.email,
+          role: response.role || 'user',
+          avatar: response.avatar,
+          shippingAddress: response.shippingAddress,
+          createdAt: response.createdAt
+        };
+        
         console.log("✅ Token received, saving...");
         saveAuthData(response.token, userData);
         console.log("✅ Login successful!");
@@ -135,7 +145,15 @@ export const AuthProvider = ({ children }) => {
       console.log("📥 Register response:", response);
 
       if (response?.token) {
-        const userObj = response.user || response;
+        // Extract user data from response
+        const userObj = {
+          _id: response._id,
+          name: response.name,
+          email: response.email,
+          role: response.role || 'user',
+          createdAt: response.createdAt
+        };
+        
         console.log("✅ Token received, saving...");
         saveAuthData(response.token, userObj);
         console.log("✅ Registration successful!");
@@ -192,6 +210,13 @@ export const AuthProvider = ({ children }) => {
     setTimeout(() => {
       window.location.href = "/login?logout=success";
     }, 100);
+  };
+
+  // Simple user update function
+  const updateUser = (userData) => {
+    const updatedUser = { ...user, ...userData };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   const updateProfile = async (userData) => {
@@ -279,12 +304,13 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     getProfile,
     syncUserProfile,
+    updateUser, // ✅ ADDED THIS FUNCTION
 
     // Utility functions
     hasToken,
     getAuthHeader,
     isAdmin,
-    isAuthenticated: () => !!user && !!token, // ✅ CHANGED TO FUNCTION
+    isAuthenticated: () => !!user && !!token,
 
     // Error handling
     clearError: () => setError(""),

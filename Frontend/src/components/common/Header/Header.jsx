@@ -89,13 +89,13 @@ const Header = () => {
                   onMouseLeave={() => setShowDropdown(false)}
                 >
                   <div className="user-avatar">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div className="user-info">
                     <span className="user-name">
-                      Hi, {user.name.split(" ")[0]}
+                      Hi, {user?.name?.split(" ")[0] || 'User'}
                     </span>
-                    <span className="user-email">{user.email}</span>
+                    <span className="user-email">{user?.email || ''}</span>
                   </div>
                   <span className="dropdown-arrow">▼</span>
                 </div>
@@ -108,11 +108,11 @@ const Header = () => {
                   >
                     <div className="dropdown-header">
                       <div className="dropdown-avatar">
-                        {user.name.charAt(0).toUpperCase()}
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <div className="dropdown-name">{user.name}</div>
-                        <div className="dropdown-email">{user.email}</div>
+                        <div className="dropdown-name">{user?.name || 'User'}</div>
+                        <div className="dropdown-email">{user?.email || ''}</div>
                       </div>
                     </div>
                     <div className="dropdown-divider"></div>
@@ -143,7 +143,7 @@ const Header = () => {
                       <span>Wishlist</span>
                       <span className="dropdown-badge">
                         {JSON.parse(
-                          localStorage.getItem(`wishlist_${user._id}`)
+                          localStorage.getItem(`wishlist_${user?._id}`)
                         )?.length || 0}
                       </span>
                     </Link>
