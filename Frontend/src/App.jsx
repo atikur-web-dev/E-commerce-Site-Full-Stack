@@ -16,7 +16,15 @@ import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Checkout from "./pages/Checkout/CheckoutPage";
 import Orders from "./pages/Orders/Orders";
 import OrderDetail from "./pages/OrderDetail/OrderDetail";
-import Profile from "./pages/Profile/Profile"; // ← এটা import করো
+import Profile from "./pages/Profile/Profile";
+
+// Import Admin Pages
+import AdminDashboard from "./pages/Admin/Dashboard/AdminDashboard";
+import AdminProducts from "./pages/Admin/Products/AdminProducts";
+import AdminOrders from "./pages/Admin/Orders/AdminOrders";
+import AdminUsers from "./pages/Admin/Users/AdminUsers";
+import AdminAnalytics from "./pages/Admin/Analytics/AdminAnalytics";
+import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 
 // Import Components
 import Header from "./components/common/Header/Header";
@@ -42,7 +50,7 @@ function App() {
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/cart" element={<Cart />} />
-                    
+
                     {/* Protected Routes */}
                     <Route
                       path="/checkout"
@@ -52,7 +60,7 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    
+
                     <Route
                       path="/orders"
                       element={
@@ -61,7 +69,7 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    
+
                     <Route
                       path="/order/:id"
                       element={
@@ -70,8 +78,7 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    
-                    {/* Profile Route - নতুন যোগ করো */}
+
                     <Route
                       path="/profile"
                       element={
@@ -80,7 +87,96 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin/dashboard"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/admin/products"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminProducts />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/admin/products/add"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <div style={{ padding: "30px" }}>
+                            <h1>Add New Product Page</h1>
+                            <p>This page is under construction</p>
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
                   </Routes>
+                  <Route
+                    path="/admin/orders"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <AdminOrders />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <AdminUsers />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/admin/orders/:id"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <div style={{ padding: "30px" }}>
+                          <h1>Order Details Page</h1>
+                          <p>This page is under construction</p>
+                        </div>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/admin/users/:id"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <div style={{ padding: "30px" }}>
+                          <h1>User Details Page</h1>
+                          <p>This page is under construction</p>
+                        </div>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/analytics"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <AdminAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/admin/settings"
+                    element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <AdminSettings />
+                      </ProtectedRoute>
+                    }
+                  />
                 </main>
                 <Footer />
               </div>

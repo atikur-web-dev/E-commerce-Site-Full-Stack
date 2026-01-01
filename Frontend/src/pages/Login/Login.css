@@ -412,3 +412,99 @@
   font-size: 20px;
   color: #059669;
 }
+/* User Type Selector */
+.user-type-selector {
+  margin-bottom: 25px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.user-type-option {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.user-type-option:last-child {
+  border-bottom: none;
+}
+
+.user-type-option:hover {
+  background: #f1f5f9;
+}
+
+.user-type-option.active {
+  background: white;
+  border-left: 4px solid #3b82f6;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.user-type-icon {
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.user-type-content {
+  flex: 1;
+}
+
+.user-type-content h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.user-type-content p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.user-type-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-type-option.active .user-type-check {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.user-type-option.active .checkmark {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Admin Note */
+.admin-note {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fef3c7;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  font-size: 13px;
+}
+
+.admin-note p {
+  margin: 5px 0;
+  color: #92400e;
+}
+
+.admin-note .note-text {
+  font-size: 12px;
+  color: #92400e;
+  opacity: 0.8;
+  font-style: italic;
+}

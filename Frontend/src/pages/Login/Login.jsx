@@ -13,6 +13,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState("");
+  const [userType, setUserType] = useState("user"); // 'user' or 'admin'
 
   const { login, error: apiError } = useAuth();
   const navigate = useNavigate();
@@ -86,6 +87,7 @@ const Login = () => {
     const result = await login({
       email: formData.email,
       password: formData.password,
+      userType: userType // Add userType to login data
     });
 
     setIsSubmitting(false);
@@ -96,7 +98,15 @@ const Login = () => {
         localStorage.setItem("rememberMe", "true");
       }
 
-      navigate(from, { replace: true });
+      // Get user from localStorage after login
+      const loggedInUser = JSON.parse(localStorage.getItem("user"));
+      
+      // Redirect based on role
+      if (loggedInUser?.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } else {
       // Show API error in form
       setErrors({
@@ -110,7 +120,38 @@ const Login = () => {
       <div className="login-card">
         <div className="login-header">
           <h1 className="login-title">Welcome Back</h1>
-          <p className="login-subtitle">Sign in to your ShopEasy account</p>
+          <p className="login-subtitle">Sign in to your account</p>
+        </div>
+
+        {/* User Type Selector */}
+        <div className="user-type-selector">
+          <div 
+            className={`user-type-option ${userType === 'user' ? 'active' : ''}`}
+            onClick={() => setUserType('user')}
+          >
+            <div className="user-type-icon">👤</div>
+            <div className="user-type-content">
+              <h4>User Login</h4>
+              <p>Access shopping features</p>
+            </div>
+            <div className="user-type-check">
+              {userType === 'user' && <div className="checkmark">✓</div>}
+            </div>
+          </div>
+          
+          <div 
+            className={`user-type-option ${userType === 'admin' ? 'active' : ''}`}
+            onClick={() => setUserType('admin')}
+          >
+            <div className="user-type-icon">🛡️</div>
+            <div className="user-type-content">
+              <h4>Admin Login</h4>
+              <p>Access admin dashboard</p>
+            </div>
+            <div className="user-type-check">
+              {userType === 'admin' && <div className="checkmark">✓</div>}
+            </div>
+          </div>
         </div>
 
         {/* Registration Success Message */}
@@ -203,10 +244,10 @@ const Login = () => {
             {isSubmitting ? (
               <>
                 <span className="spinner"></span>
-                Signing in...
+                {userType === 'admin' ? 'Signing in as Admin...' : 'Signing in...'}
               </>
             ) : (
-              "Sign In"
+              `Sign in as ${userType === 'admin' ? 'Admin' : 'User'}`
             )}
           </button>
         </form>
@@ -220,6 +261,15 @@ const Login = () => {
             </Link>
           </p>
         </div>
+        
+        {userType === 'admin' && (
+          <div className="admin-note">
+            <p>💡 <strong>Demo Admin Credentials:</strong></p>
+            <p>Email: admin@example.com</p>
+            <p>Password: admin123</p>
+            <p className="note-text">This is for demonstration purposes only.</p>
+          </div>
+        )}
       </div>
     </div>
   );
