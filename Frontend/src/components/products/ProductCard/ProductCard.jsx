@@ -11,6 +11,7 @@ const ProductCard = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
     if (user && product?._id) {
@@ -20,7 +21,8 @@ const ProductCard = ({ product }) => {
     }
   }, [user, product?._id]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
     if (!user) {
       if (window.confirm("Please login to add items to cart. Go to login page?")) {
         navigate("/login");
@@ -31,14 +33,34 @@ const ProductCard = ({ product }) => {
     setLoading(true);
     try {
       await addToCart(product);
-      // Show success feedback
-      document.querySelector(`#cart-btn-${product._id}`).classList.add('added');
-      setTimeout(() => {
-        document.querySelector(`#cart-btn-${product._id}`).classList.remove('added');
-      }, 1000);
+      // Success feedback
+      const btn = document.querySelector(`#cart-btn-${product._id}`);
+      btn.classList.add('success');
+      setTimeout(() => btn.classList.remove('success'), 1000);
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add product to cart");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      if (window.confirm("Please login to proceed to checkout. Go to login page?")) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addToCart(product);
+      navigate("/checkout");
+    } catch (error) {
+      console.error("Error processing buy now:", error);
+      alert("Failed to process order");
     } finally {
       setLoading(false);
     }
@@ -62,9 +84,6 @@ const ProductCard = ({ product }) => {
       const updatedWishlist = savedWishlist.filter(item => item._id !== product._id);
       localStorage.setItem(`wishlist_${user._id}`, JSON.stringify(updatedWishlist));
       setWishlisted(false);
-      // Feedback animation
-      e.target.classList.add('removed');
-      setTimeout(() => e.target.classList.remove('removed'), 300);
     } else {
       const productToSave = {
         _id: product._id,
@@ -75,7 +94,6 @@ const ProductCard = ({ product }) => {
         category: product.category,
         brand: product.brand,
         stock: product.stock,
-        originalPrice: product.originalPrice,
         rating: product.rating,
         description: product.description
       };
@@ -83,15 +101,12 @@ const ProductCard = ({ product }) => {
       const updatedWishlist = [...savedWishlist, productToSave];
       localStorage.setItem(`wishlist_${user._id}`, JSON.stringify(updatedWishlist));
       setWishlisted(true);
-      // Feedback animation
-      e.target.classList.add('added');
-      setTimeout(() => e.target.classList.remove('added'), 300);
     }
   };
 
   const getProductImage = () => {
     if (imageError) {
-      return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop&crop=center";
+      return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&h=350&fit=crop&crop=center";
     }
     if (product?.images && product.images.length > 0) {
       return product.images[0];
@@ -99,7 +114,7 @@ const ProductCard = ({ product }) => {
     if (product?.image) {
       return product.image;
     }
-    return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop&crop=center";
+    return "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&h=350&fit=crop&crop=center";
   };
 
   const getStockStatus = () => {
@@ -119,6 +134,15 @@ const ProductCard = ({ product }) => {
     return 0;
   };
 
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'currency',
+      currency: 'BDT',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
   const discount = calculateDiscount();
   const stockStatus = getStockStatus();
 
@@ -136,17 +160,32 @@ const ProductCard = ({ product }) => {
   }
 
   return (
-    <div className="product-card">
-      {/* Discount Badge */}
+    <div 
+      className={`product-card ${!stockStatus.available ? 'out-of-stock-card' : ''}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {/* Only Discount Badge - No New Badge */}
       {discount > 0 && (
         <div className="discount-badge">
-          -{discount}%
+          <span className="badge-text">{discount}% OFF</span>
         </div>
       )}
 
-      {/* Product Image */}
+      {/* Wishlist Button */}
+      <button 
+        className={`wishlist-btn ${wishlisted ? "active" : ""}`}
+        onClick={handleWishlist}
+        title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      >
+        <svg className="heart-icon" viewBox="0 0 24 24" fill={wishlisted ? "#ef4444" : "none"} stroke={wishlisted ? "#ef4444" : "#374151"}>
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </button>
+
+      {/* Product Image with Hover Effect */}
       <div className="product-image-container">
-        <Link to={`/product/${product._id}`} className="product-image-link">
+        <Link to={`/product/${product._id}`} className="image-link">
           <div className="image-wrapper">
             <img
               src={getProductImage()}
@@ -155,147 +194,153 @@ const ProductCard = ({ product }) => {
               loading="lazy"
               onError={() => setImageError(true)}
             />
+            
+            {/* Hover Overlay */}
+            <div className="image-hover-overlay">
+              <div className="overlay-content">
+                <button className="quick-view-btn">
+                  <svg className="eye-icon" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Quick View
+                </button>
+              </div>
+            </div>
           </div>
         </Link>
-        
-        {/* Wishlist Button - Top Right */}
-        <button 
-          className={`wishlist-btn ${wishlisted ? "active" : ""}`}
-          onClick={handleWishlist}
-          title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill={wishlisted ? "#ef4444" : "none"} 
-            stroke={wishlisted ? "#ef4444" : "#6b7280"} 
-            strokeWidth="2"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </button>
-
-        {/* Stock Status - Top Left */}
-        <div className={`stock-status ${stockStatus.className}`}>
-          {stockStatus.text}
-        </div>
-
-        {/* Quick View Overlay */}
-        <div className="quick-view-overlay">
-          <Link to={`/product/${product._id}`} className="quick-view-btn">
-            Quick View
-          </Link>
-        </div>
       </div>
 
       {/* Product Info */}
-      <div className="product-info">
-        {/* Category */}
-        <div className="product-category">
-          <span className="category-tag">{product.category || "Electronics"}</span>
+      <div className="product-content">
+        {/* Category & Brand */}
+        <div className="product-meta">
+          <span className="product-category">{product.category || "Electronics"}</span>
           {product.brand && (
-            <span className="brand-tag">{product.brand}</span>
+            <>
+              <span className="separator">•</span>
+              <span className="product-brand">{product.brand}</span>
+            </>
           )}
         </div>
 
         {/* Product Name */}
-        <h3 className="product-name">
-          <Link to={`/product/${product._id}`} title={product.name}>
-            {product.name.length > 50 ? product.name.substring(0, 50) + "..." : product.name}
+        <h3 className="product-title">
+          <Link to={`/product/${product._id}`} className="title-link">
+            {product.name}
           </Link>
         </h3>
 
         {/* Rating */}
-        <div className="product-rating">
+        <div className="rating-container">
           <div className="stars">
             {[...Array(5)].map((_, i) => (
-              <span 
-                key={i} 
-                className={`star ${i < Math.floor(product.rating || 0) ? "filled" : ""}`}
+              <svg 
+                key={i}
+                className={`star-icon ${i < Math.floor(product.rating || 0) ? "filled" : ""}`}
+                viewBox="0 0 24 24"
+                fill={i < Math.floor(product.rating || 0) ? "#FBBF24" : "#E5E7EB"}
               >
-                ★
-              </span>
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
             ))}
           </div>
-          <span className="rating-text">
-            ({product.rating?.toFixed(1) || "0.0"}) • {product.numReviews || 0} reviews
-          </span>
+          <span className="rating-score">{product.rating?.toFixed(1) || "0.0"}</span>
+          <span className="review-count">({product.numReviews || 0})</span>
         </div>
 
-        {/* Description */}
-        <p className="product-description">
-          {product.description?.substring(0, 70) || "Premium quality product with excellent features..."}
-        </p>
+        {/* Stock Status */}
+        <div className={`stock-status ${stockStatus.className}`}>
+          <svg className="stock-icon" viewBox="0 0 20 20" fill="currentColor">
+            {stockStatus.available ? (
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+            ) : (
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            )}
+          </svg>
+          <span>{stockStatus.text}</span>
+        </div>
 
         {/* Price */}
-        <div className="product-price">
+        <div className="price-section">
           <div className="price-main">
-            <span className="current-price">৳{product.price?.toFixed(2) || "0.00"}</span>
+            <span className="current-price">{formatPrice(product.price || 0)}</span>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="original-price">
-                ৳{product.originalPrice.toFixed(2)}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
           </div>
-          
+          {discount > 0 && (
+            <div className="savings">
+              Save {formatPrice(product.originalPrice - product.price)}
+            </div>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="product-actions">
+        {/* Top Actions - 50% 50% */}
+        <div className="top-actions">
           <button
-            id={`cart-btn-${product._id}`}
             onClick={handleAddToCart}
             disabled={loading || !stockStatus.available}
             className={`add-to-cart-btn ${!stockStatus.available ? "disabled" : ""}`}
+            id={`cart-btn-${product._id}`}
           >
             {loading ? (
-              <span className="loading-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
+              <span className="button-loader"></span>
             ) : !stockStatus.available ? (
               <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="cart-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg className="cart-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
                 </svg>
                 Out of Stock
               </>
             ) : (
               <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="cart-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                <svg className="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Add to Cart
               </>
             )}
           </button>
-          
-          <Link to={`/product/${product._id}`} className="view-details-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" className="details-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+
+          <Link 
+            to={`/product/${product._id}`}
+            className="view-details-btn"
+          >
+            <svg className="details-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
             View Details
           </Link>
         </div>
 
-        {/* Features */}
-        <div className="product-features">
-          <span className="feature">
-            <svg xmlns="http://www.w3.org/2000/svg" className="feature-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Free Shipping
-          </span>
-          <span className="feature">
-            <svg xmlns="http://www.w3.org/2000/svg" className="feature-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            1 Year Warranty
-          </span>
-        </div>
+        {/* Bottom Buy Now Button - Full Width */}
+        <button
+          onClick={handleBuyNow}
+          disabled={loading || !stockStatus.available}
+          className={`buy-now-btn ${!stockStatus.available ? "disabled" : ""}`}
+        >
+          {loading ? (
+            <span className="button-loader"></span>
+          ) : !stockStatus.available ? (
+            <>
+              <svg className="buy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Out of Stock
+            </>
+          ) : (
+            <>
+              <svg className="buy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+              Buy Now
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

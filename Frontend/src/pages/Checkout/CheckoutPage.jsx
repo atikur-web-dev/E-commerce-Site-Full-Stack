@@ -435,7 +435,7 @@ const Checkout = () => {
                 </div>
                 <div className="option-check">
                   <div className={`checkmark ${paymentMethod === "cod" ? 'checked' : ''}`}>
-                    {paymentMethod === "cod" && '✓'}
+                    {paymentMethod === "cod" && ''}
                   </div>
                 </div>
               </div>
@@ -458,7 +458,7 @@ const Checkout = () => {
                 </div>
                 <div className="option-check">
                   <div className={`checkmark ${paymentMethod === "card" ? 'checked' : ''}`}>
-                    {paymentMethod === "card" && '✓'}
+                    {paymentMethod === "card" && ''}
                   </div>
                 </div>
               </div>
