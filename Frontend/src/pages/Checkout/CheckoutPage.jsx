@@ -148,7 +148,7 @@ const Checkout = () => {
         </div>
         
         <div className="success-header">
-          <h1>🎉 Order Placed Successfully!</h1>
+          <h1> Order Placed Successfully!</h1>
           <p className="success-subtitle">
             {paymentMethod === "cod" 
               ? "Your COD order has been confirmed. You'll pay when the product arrives."
