@@ -212,7 +212,7 @@
 }
 
 .form-input[type="number"] {
-  -moz-appearance: textfield;
+  /* -moz-appearance: textfield; */
 }
 
 .form-input[type="number"]::-webkit-inner-spin-button,
