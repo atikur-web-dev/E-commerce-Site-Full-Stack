@@ -48,10 +48,10 @@ const Header = () => {
           {/* Logo */}
           <div className="logo">
             <Link to="/" className="logo-link">
-              <div className="logo-icon">⚡</div>
+              <div className="logo-icon">T</div>
               <div className="logo-text">
                 <span className="logo-main">TechShop</span>
-                <span className="logo-sub">Electronics Store of Atikur</span>
+                <span className="logo-sub">Premium Electronics</span>
               </div>
             </Link>
           </div>

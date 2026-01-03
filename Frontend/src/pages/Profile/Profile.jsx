@@ -385,12 +385,7 @@ const Profile = () => {
                   <p className="dashboard-subtitle">Here is your account overview</p>
                 </div>
                 <div className="dashboard-actions">
-                  <button 
-                    className="action-btn secondary"
-                    onClick={addTestOrder}
-                  >
-                    Add Test Order
-                  </button>
+                  
                   <button 
                     className="action-btn danger"
                     onClick={clearOrderHistory}

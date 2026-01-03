@@ -87,7 +87,7 @@ const Login = () => {
     const result = await login({
       email: formData.email,
       password: formData.password,
-      userType: userType // Add userType to login data
+      userType: userType, // Add userType to login data
     });
 
     setIsSubmitting(false);
@@ -98,9 +98,10 @@ const Login = () => {
         localStorage.setItem("rememberMe", "true");
       }
 
-      // Get user from localStorage after login
-      const loggedInUser = JSON.parse(localStorage.getItem("user"));
-      
+      //  FIX: Get user from result.data, NOT localStorage
+      const loggedInUser =
+        result.data || JSON.parse(localStorage.getItem("user"));
+
       // Redirect based on role
       if (loggedInUser?.role === "admin") {
         navigate("/admin/dashboard", { replace: true });
@@ -125,9 +126,11 @@ const Login = () => {
 
         {/* User Type Selector */}
         <div className="user-type-selector">
-          <div 
-            className={`user-type-option ${userType === 'user' ? 'active' : ''}`}
-            onClick={() => setUserType('user')}
+          <div
+            className={`user-type-option ${
+              userType === "user" ? "active" : ""
+            }`}
+            onClick={() => setUserType("user")}
           >
             <div className="user-type-icon">👤</div>
             <div className="user-type-content">
@@ -135,13 +138,15 @@ const Login = () => {
               <p>Access shopping features</p>
             </div>
             <div className="user-type-check">
-              {userType === 'user' && <div className="checkmark">✓</div>}
+              {userType === "user" && <div className="checkmark">✓</div>}
             </div>
           </div>
-          
-          <div 
-            className={`user-type-option ${userType === 'admin' ? 'active' : ''}`}
-            onClick={() => setUserType('admin')}
+
+          <div
+            className={`user-type-option ${
+              userType === "admin" ? "active" : ""
+            }`}
+            onClick={() => setUserType("admin")}
           >
             <div className="user-type-icon">🛡️</div>
             <div className="user-type-content">
@@ -149,7 +154,7 @@ const Login = () => {
               <p>Access admin dashboard</p>
             </div>
             <div className="user-type-check">
-              {userType === 'admin' && <div className="checkmark">✓</div>}
+              {userType === "admin" && <div className="checkmark">✓</div>}
             </div>
           </div>
         </div>
@@ -244,10 +249,12 @@ const Login = () => {
             {isSubmitting ? (
               <>
                 <span className="spinner"></span>
-                {userType === 'admin' ? 'Signing in as Admin...' : 'Signing in...'}
+                {userType === "admin"
+                  ? "Signing in as Admin..."
+                  : "Signing in..."}
               </>
             ) : (
-              `Sign in as ${userType === 'admin' ? 'Admin' : 'User'}`
+              `Sign in as ${userType === "admin" ? "Admin" : "User"}`
             )}
           </button>
         </form>
@@ -261,13 +268,17 @@ const Login = () => {
             </Link>
           </p>
         </div>
-        
-        {userType === 'admin' && (
+
+        {userType === "admin" && (
           <div className="admin-note">
-            <p>💡 <strong>Demo Admin Credentials:</strong></p>
+            <p>
+              💡 <strong>Demo Admin Credentials:</strong>
+            </p>
             <p>Email: admin@example.com</p>
             <p>Password: admin123</p>
-            <p className="note-text">This is for demonstration purposes only.</p>
+            <p className="note-text">
+              This is for demonstration purposes only.
+            </p>
           </div>
         )}
       </div>

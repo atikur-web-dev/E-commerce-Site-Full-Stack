@@ -130,7 +130,7 @@ const Home = () => {
               className="search-input"
             />
             <button type="submit" className="search-btn">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon"></span>
               Search
             </button>
           </form>

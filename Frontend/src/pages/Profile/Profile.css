@@ -206,52 +206,84 @@
   gap: 10px;
 }
 
-.action-btn {
-  padding: 8px 16px;
+/* FIX THE DANGER BUTTON STYLES */
+.dashboard-actions .action-btn.danger,
+.orders-actions .action-btn.danger {
+  background: #dc2626 !important;
+  width: 150px;
+  color: white !important;
   border: none;
+  padding: 10px 20px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  min-width: 120px;
+  text-align: center;
+  display: inline-block;
 }
 
-.action-btn.primary {
-  background: #4f46e5;
-  color: white;
+.dashboard-actions .action-btn.danger:hover,
+.orders-actions .action-btn.danger:hover {
+  background: #b91c1c !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
-.action-btn.primary:hover {
-  background: #4338ca;
-  transform: translateY(-1px);
-}
-
-.action-btn.secondary {
-  background: #6b7280;
-  color: white;
-}
-
-.action-btn.secondary:hover {
-  background: #4b5563;
-  transform: translateY(-1px);
-}
-
-.action-btn.danger {
-  background: #dc2626;
-  color: white;
-}
-
-.action-btn.danger:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
-}
-
-.action-btn:disabled {
-  background: #9ca3af;
+.dashboard-actions .action-btn.danger:disabled,
+.orders-actions .action-btn.danger:disabled {
+  background: #9ca3af !important;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
+/* Also fix the dashboard header layout */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.dashboard-header > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Fix orders header too */
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.orders-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Remove any secondary/primary buttons that might still be there */
+.dashboard-actions .action-btn.secondary,
+.dashboard-actions .action-btn.primary,
+.orders-actions .action-btn.secondary,
+.orders-actions .action-btn.primary {
+  display: none !important;
+}
 /* Card Header */
 .card-header {
   display: flex;
