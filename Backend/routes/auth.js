@@ -1,3 +1,4 @@
+// Backend/routes/auth.js
 import express from 'express';
 import { 
   registerUser, 

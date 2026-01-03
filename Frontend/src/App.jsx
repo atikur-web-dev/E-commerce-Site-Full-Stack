@@ -1,3 +1,4 @@
+// Frontend/src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
@@ -25,6 +26,9 @@ import AdminOrders from "./pages/Admin/Orders/AdminOrders";
 import AdminUsers from "./pages/Admin/Users/AdminUsers";
 import AdminAnalytics from "./pages/Admin/Analytics/AdminAnalytics";
 import AdminSettings from "./pages/Admin/Settings/AdminSettings";
+import ProductAddEdit from "./pages/Admin/ProductAddEdit/ProductAddEdit";
+import UserDetails from "./pages/Admin/UserDetails/UserDetails";
+import OrderDetails from "./pages/Admin/OrderDetails/OrderDetails";
 
 // Import Components
 import Header from "./components/common/Header/Header";
@@ -44,6 +48,7 @@ function App() {
                 <Header />
                 <main className="main-content">
                   <Routes>
+                    {/* Public Routes */}
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
@@ -60,7 +65,6 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-
                     <Route
                       path="/orders"
                       element={
@@ -69,7 +73,6 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-
                     <Route
                       path="/order/:id"
                       element={
@@ -78,7 +81,6 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-
                     <Route
                       path="/profile"
                       element={
@@ -97,7 +99,6 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-
                     <Route
                       path="/admin/products"
                       element={
@@ -106,77 +107,82 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-
                     <Route
                       path="/admin/products/add"
                       element={
                         <ProtectedRoute requireAdmin={true}>
-                          <div style={{ padding: "30px" }}>
-                            <h1>Add New Product Page</h1>
-                            <p>This page is under construction</p>
-                          </div>
+                          <ProductAddEdit />
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/admin/products/edit/:id"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <ProductAddEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/orders"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminOrders />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/orders/:id"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <OrderDetails />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/users"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminUsers />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/users/:id"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <UserDetails />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/analytics"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminAnalytics />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/settings"
+                      element={
+                        <ProtectedRoute requireAdmin={true}>
+                          <AdminSettings />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* 404 Route */}
+                    <Route
+                      path="*"
+                      element={
+                        <div style={{ padding: "50px", textAlign: "center" }}>
+                          <h1>404 - Page Not Found</h1>
+                          <p>The page you're looking for doesn't exist.</p>
+                        </div>
+                      }
+                    />
                   </Routes>
-                  <Route
-                    path="/admin/orders"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <AdminOrders />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/admin/users"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <AdminUsers />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/admin/orders/:id"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <div style={{ padding: "30px" }}>
-                          <h1>Order Details Page</h1>
-                          <p>This page is under construction</p>
-                        </div>
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/admin/users/:id"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <div style={{ padding: "30px" }}>
-                          <h1>User Details Page</h1>
-                          <p>This page is under construction</p>
-                        </div>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/analytics"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <AdminAnalytics />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/admin/settings"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <AdminSettings />
-                      </ProtectedRoute>
-                    }
-                  />
                 </main>
                 <Footer />
               </div>
