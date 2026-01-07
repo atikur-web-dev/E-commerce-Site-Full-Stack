@@ -114,12 +114,12 @@ const AdminSettings = () => {
   };
 
   const tabs = [
-    { id: "general", label: "⚙️ General", icon: "⚙️" },
-    { id: "notifications", label: "🔔 Notifications", icon: "🔔" },
-    { id: "shipping", label: "🚚 Shipping", icon: "🚚" },
-    { id: "payment", label: "💳 Payment", icon: "💳" },
-    { id: "security", label: "🔒 Security", icon: "🔒" },
-    { id: "advanced", label: "⚡ Advanced", icon: "⚡" }
+    { id: "general", label: " General", icon: "⚙️" },
+    { id: "notifications", label: " Notifications", icon: "🔔" },
+    { id: "shipping", label: " Shipping", icon: "🚚" },
+    { id: "payment", label: " Payment", icon: "💳" },
+    { id: "security", label: " Security", icon: "🔒" },
+    { id: "advanced", label: " Advanced", icon: "⚡" }
   ];
 
   if (loading) {

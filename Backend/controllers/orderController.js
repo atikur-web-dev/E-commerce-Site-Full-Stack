@@ -455,3 +455,15 @@ export const clearOrderHistory = asyncHandler(async (req, res) => {
     });
   }
 });
+export const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    const orders = await Order.find({})
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    
+    res.json(orders);
+  } catch (error) {
+    console.error("Get all orders error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});

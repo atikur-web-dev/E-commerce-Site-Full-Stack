@@ -14,7 +14,7 @@ import { protect, admin } from '../middleware/auth.js';
 const router = express.Router();
 
 // Public routes - none
-
+// router.get("/", protect, admin, getAllOrders);
 // Protected routes
 router.route('/')
   .post(protect, createOrder) // Create new order

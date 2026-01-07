@@ -1,4 +1,4 @@
-// Frontend/src/pages/Admin/Settings/AdminSettings.jsx
+// Frontend/src/pages/Admin/Users/AdminUsers.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -20,81 +20,209 @@ const AdminUsers = () => {
       navigate("/login");
       return;
     }
-    
-    // Fetch users (for now, using demo data)
-    setTimeout(() => {
-      setUsers(generateDemoUsers());
-      setLoading(false);
-    }, 1000);
+
+    // REAL API CALL for users
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Fetching real users...");
+
+        const response = await fetch("http://localhost:5000/api/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Real users from MongoDB:", data);
+
+        // Transform MongoDB data to frontend format
+        const formattedUsers = data.map((user) => ({
+          _id: user._id,
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.isActive ? "active" : "inactive",
+          joinedDate: user.createdAt,
+          lastActive: user.lastLogin || user.createdAt,
+          avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][
+            Math.floor(Math.random() * 5)
+          ],
+          // Note: orders and totalSpent will need separate API calls
+          orders: 0,
+          totalSpent: 0,
+        }));
+
+        setUsers(formattedUsers);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, [user, navigate]);
 
   const generateDemoUsers = () => {
     const roles = ["user", "user", "user", "admin"]; // More users, fewer admins
     const statuses = ["active", "active", "active", "inactive", "suspended"];
     const names = [
-      "John Doe", "Jane Smith", "Bob Johnson", "Alice Brown", 
-      "Charlie Wilson", "David Lee", "Emma Garcia", "Frank Miller",
-      "Grace Taylor", "Henry White", "Ivy Clark", "Jack Evans"
+      "John Doe",
+      "Jane Smith",
+      "Bob Johnson",
+      "Alice Brown",
+      "Charlie Wilson",
+      "David Lee",
+      "Emma Garcia",
+      "Frank Miller",
+      "Grace Taylor",
+      "Henry White",
+      "Ivy Clark",
+      "Jack Evans",
     ];
-    
+
     return Array.from({ length: 20 }, (_, i) => ({
       id: `user_${i + 1}`,
       name: names[i % names.length],
-      email: `${names[i % names.length].toLowerCase().replace(' ', '.')}${i + 1}@example.com`,
+      email: `${names[i % names.length].toLowerCase().replace(" ", ".")}${
+        i + 1
+      }@example.com`,
       role: roles[i % roles.length],
       status: statuses[i % statuses.length],
-      joinedDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+      joinedDate: new Date(
+        Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
+      ).toISOString(),
       orders: Math.floor(Math.random() * 50),
       totalSpent: Math.floor(Math.random() * 50000) + 1000,
-      lastActive: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][i % 5]
+      lastActive: new Date(
+        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
+      ).toISOString(),
+      avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][
+        i % 5
+      ],
     }));
   };
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    
+    const matchesStatus =
+      statusFilter === "all" || user.status === statusFilter;
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedUsers(filteredUsers.map(u => u.id));
+      setSelectedUsers(filteredUsers.map((u) => u.id));
     } else {
       setSelectedUsers([]);
     }
   };
 
   const handleSelectUser = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
         : [...prev, userId]
     );
   };
 
-  const updateUserStatus = (userId, newStatus) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, status: newStatus } : user
-    ));
-    alert(`User status updated to ${newStatus}`);
+  const updateUserStatus = async (userId, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      const isActive = newStatus === "active";
+
+      const response = await fetch(
+        `http://localhost:5000/api/users/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ isActive }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      // Update local state
+      setUsers(
+        users.map((user) =>
+          user._id === userId
+            ? {
+                ...user,
+                status: newStatus,
+              }
+            : user
+        )
+      );
+
+      alert(`User status updated to ${newStatus}`);
+    } catch (err) {
+      console.error("Error updating status:", err);
+      alert("Failed to update user status");
+    }
   };
 
-  const updateUserRole = (userId, newRole) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, role: newRole } : user
-    ));
-    alert(`User role updated to ${newRole}`);
-  };
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const response = await fetch(
+        `http://localhost:5000/api/users/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role: newRole }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update user role");
+      }
+
+      // Update local state
+      setUsers(
+        users.map((user) =>
+          user._id === userId
+            ? {
+                ...user,
+                role: newRole,
+              }
+            : user
+        )
+      );
+
+      alert(`User role updated to ${newRole}`);
+    } catch (err) {
+      console.error("Error updating role:", err);
+      alert("Failed to update user role");
+    }
+  };
   const deleteUser = (userId) => {
-    if (window.confirm(`Are you sure you want to delete this user? This action cannot be undone.`)) {
-      setUsers(users.filter(user => user.id !== userId));
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    if (
+      window.confirm(
+        `Are you sure you want to delete this user? This action cannot be undone.`
+      )
+    ) {
+      setUsers(users.filter((user) => user.id !== userId));
+      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
       alert("User deleted successfully!");
     }
   };
@@ -106,15 +234,21 @@ const AdminUsers = () => {
     }
 
     if (action === "delete") {
-      if (window.confirm(`Are you sure you want to delete ${selectedUsers.length} users?`)) {
-        setUsers(users.filter(user => !selectedUsers.includes(user.id)));
+      if (
+        window.confirm(
+          `Are you sure you want to delete ${selectedUsers.length} users?`
+        )
+      ) {
+        setUsers(users.filter((user) => !selectedUsers.includes(user.id)));
         setSelectedUsers([]);
         alert("Users deleted successfully!");
       }
     } else {
-      setUsers(users.map(user => 
-        selectedUsers.includes(user.id) ? { ...user, status: action } : user
-      ));
+      setUsers(
+        users.map((user) =>
+          selectedUsers.includes(user.id) ? { ...user, status: action } : user
+        )
+      );
       setSelectedUsers([]);
       alert(`Users status updated to ${action}!`);
     }
@@ -122,46 +256,56 @@ const AdminUsers = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
+    return new Intl.NumberFormat("en-BD", {
+      style: "currency",
+      currency: "BDT",
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'active': return '#10b981';
-      case 'inactive': return '#6b7280';
-      case 'suspended': return '#ef4444';
-      default: return '#6b7280';
+    switch (status) {
+      case "active":
+        return "#10b981";
+      case "inactive":
+        return "#6b7280";
+      case "suspended":
+        return "#ef4444";
+      default:
+        return "#6b7280";
     }
   };
 
   const getRoleColor = (role) => {
-    switch(role) {
-      case 'admin': return '#8b5cf6';
-      case 'user': return '#3b82f6';
-      default: return '#6b7280';
+    switch (role) {
+      case "admin":
+        return "#8b5cf6";
+      case "user":
+        return "#3b82f6";
+      default:
+        return "#6b7280";
     }
   };
 
   // Statistics calculation
   const stats = {
     total: users.length,
-    active: users.filter(u => u.status === 'active').length,
-    admins: users.filter(u => u.role === 'admin').length,
+    active: users.filter((u) => u.status === "active").length,
+    admins: users.filter((u) => u.role === "admin").length,
     totalOrders: users.reduce((sum, u) => sum + u.orders, 0),
     totalRevenue: users.reduce((sum, u) => sum + u.totalSpent, 0),
-    averageSpent: users.length > 0 ? users.reduce((sum, u) => sum + u.totalSpent, 0) / users.length : 0
+    averageSpent:
+      users.length > 0
+        ? users.reduce((sum, u) => sum + u.totalSpent, 0) / users.length
+        : 0,
   };
 
   if (loading) {
@@ -182,16 +326,16 @@ const AdminUsers = () => {
         </div>
         <div className="header-actions">
           <div className="view-toggle">
-            <button 
-              className={`toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
+            <button
+              className={`toggle-btn ${viewMode === "table" ? "active" : ""}`}
+              onClick={() => setViewMode("table")}
               title="Table View"
             >
               📊
             </button>
-            <button 
-              className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-              onClick={() => setViewMode('grid')}
+            <button
+              className={`toggle-btn ${viewMode === "grid" ? "active" : ""}`}
+              onClick={() => setViewMode("grid")}
               title="Grid View"
             >
               🏠
@@ -211,7 +355,9 @@ const AdminUsers = () => {
           <div className="stat-content">
             <h3>{stats.total}</h3>
             <p>Total Users</p>
-            <span className="stat-change">+{Math.floor(stats.total * 0.12)} this month</span>
+            <span className="stat-change">
+              +{Math.floor(stats.total * 0.12)} this month
+            </span>
           </div>
         </div>
         <div className="stat-card">
@@ -219,7 +365,9 @@ const AdminUsers = () => {
           <div className="stat-content">
             <h3>{stats.active}</h3>
             <p>Active Users</p>
-            <span className="stat-change success">{Math.round((stats.active / stats.total) * 100)}% active</span>
+            <span className="stat-change success">
+              {Math.round((stats.active / stats.total) * 100)}% active
+            </span>
           </div>
         </div>
         <div className="stat-card">
@@ -227,7 +375,9 @@ const AdminUsers = () => {
           <div className="stat-content">
             <h3>{stats.admins}</h3>
             <p>Administrators</p>
-            <span className="stat-change">{Math.round((stats.admins / stats.total) * 100)}% of total</span>
+            <span className="stat-change">
+              {Math.round((stats.admins / stats.total) * 100)}% of total
+            </span>
           </div>
         </div>
         <div className="stat-card">
@@ -235,7 +385,9 @@ const AdminUsers = () => {
           <div className="stat-content">
             <h3>{formatCurrency(stats.totalRevenue)}</h3>
             <p>Total Revenue</p>
-            <span className="stat-change success">{formatCurrency(stats.averageSpent)} avg per user</span>
+            <span className="stat-change success">
+              {formatCurrency(stats.averageSpent)} avg per user
+            </span>
           </div>
         </div>
       </div>
@@ -304,7 +456,9 @@ const AdminUsers = () => {
               className="bulk-select"
               defaultValue=""
             >
-              <option value="" disabled>Bulk Actions</option>
+              <option value="" disabled>
+                Bulk Actions
+              </option>
               <option value="active">Mark as Active</option>
               <option value="inactive">Mark as Inactive</option>
               <option value="suspended">Suspend Users</option>
@@ -321,7 +475,7 @@ const AdminUsers = () => {
       )}
 
       {/* Users Table View */}
-      {viewMode === 'table' ? (
+      {viewMode === "table" ? (
         <div className="users-table-container">
           <div className="table-responsive">
             <table className="users-table">
@@ -331,7 +485,10 @@ const AdminUsers = () => {
                     <input
                       type="checkbox"
                       onChange={handleSelectAll}
-                      checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                      checked={
+                        selectedUsers.length === filteredUsers.length &&
+                        filteredUsers.length > 0
+                      }
                     />
                   </th>
                   <th>User</th>
@@ -350,12 +507,17 @@ const AdminUsers = () => {
                     <td colSpan="9" className="empty-table">
                       <div className="empty-icon">👤</div>
                       <p>No users found</p>
-                      <p className="empty-subtext">Try adjusting your filters</p>
+                      <p className="empty-subtext">
+                        Try adjusting your filters
+                      </p>
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className={`user-row status-${user.status}`}>
+                    <tr
+                      key={user.id}
+                      className={`user-row status-${user.status}`}
+                    >
                       <td>
                         <input
                           type="checkbox"
@@ -365,7 +527,7 @@ const AdminUsers = () => {
                       </td>
                       <td>
                         <div className="user-cell">
-                          <div 
+                          <div
                             className="user-avatar"
                             style={{ backgroundColor: user.avatarColor }}
                           >
@@ -379,7 +541,7 @@ const AdminUsers = () => {
                         </div>
                       </td>
                       <td>
-                        <span 
+                        <span
                           className="role-badge"
                           style={{ backgroundColor: getRoleColor(user.role) }}
                         >
@@ -387,9 +549,11 @@ const AdminUsers = () => {
                         </span>
                       </td>
                       <td>
-                        <span 
+                        <span
                           className="status-badge"
-                          style={{ backgroundColor: getStatusColor(user.status) }}
+                          style={{
+                            backgroundColor: getStatusColor(user.status),
+                          }}
                         >
                           {user.status.toUpperCase()}
                         </span>
@@ -412,7 +576,12 @@ const AdminUsers = () => {
                         <div className="date-cell">
                           {formatDate(user.lastActive)}
                           <small className="time-ago">
-                            ({Math.floor((new Date() - new Date(user.lastActive)) / (1000 * 60 * 60 * 24))} days ago)
+                            (
+                            {Math.floor(
+                              (new Date() - new Date(user.lastActive)) /
+                                (1000 * 60 * 60 * 24)
+                            )}{" "}
+                            days ago)
                           </small>
                         </div>
                       </td>
@@ -430,18 +599,42 @@ const AdminUsers = () => {
                               🔄
                             </button>
                             <div className="status-menu">
-                              <button onClick={() => updateUserStatus(user.id, 'active')}>Active</button>
-                              <button onClick={() => updateUserStatus(user.id, 'inactive')}>Inactive</button>
-                              <button onClick={() => updateUserStatus(user.id, 'suspended')}>Suspend</button>
+                              <button
+                                onClick={() =>
+                                  updateUserStatus(user.id, "active")
+                                }
+                              >
+                                Active
+                              </button>
+                              <button
+                                onClick={() =>
+                                  updateUserStatus(user.id, "inactive")
+                                }
+                              >
+                                Inactive
+                              </button>
+                              <button
+                                onClick={() =>
+                                  updateUserStatus(user.id, "suspended")
+                                }
+                              >
+                                Suspend
+                              </button>
                             </div>
                           </div>
                           <div className="role-dropdown">
-                            <button className="action-btn role-btn">
-                              🛡️
-                            </button>
+                            <button className="action-btn role-btn">🛡️</button>
                             <div className="role-menu">
-                              <button onClick={() => updateUserRole(user.id, 'admin')}>Make Admin</button>
-                              <button onClick={() => updateUserRole(user.id, 'user')}>Make User</button>
+                              <button
+                                onClick={() => updateUserRole(user.id, "admin")}
+                              >
+                                Make Admin
+                              </button>
+                              <button
+                                onClick={() => updateUserRole(user.id, "user")}
+                              >
+                                Make User
+                              </button>
                             </div>
                           </div>
                           <button
@@ -473,20 +666,20 @@ const AdminUsers = () => {
             filteredUsers.map((user) => (
               <div key={user.id} className="user-card">
                 <div className="card-header">
-                  <div 
+                  <div
                     className="user-avatar-large"
                     style={{ backgroundColor: user.avatarColor }}
                   >
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="user-badges">
-                    <span 
+                    <span
                       className="role-badge"
                       style={{ backgroundColor: getRoleColor(user.role) }}
                     >
                       {user.role.toUpperCase()}
                     </span>
-                    <span 
+                    <span
                       className="status-badge"
                       style={{ backgroundColor: getStatusColor(user.status) }}
                     >
@@ -494,29 +687,31 @@ const AdminUsers = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="card-body">
                   <h3>{user.name}</h3>
                   <p className="user-email">{user.email}</p>
                   <p className="user-id">ID: {user.id}</p>
-                  
+
                   <div className="user-stats">
                     <div className="stat">
                       <div className="stat-value">{user.orders}</div>
                       <div className="stat-label">Orders</div>
                     </div>
                     <div className="stat">
-                      <div className="stat-value">{formatCurrency(user.totalSpent)}</div>
+                      <div className="stat-value">
+                        {formatCurrency(user.totalSpent)}
+                      </div>
                       <div className="stat-label">Spent</div>
                     </div>
                   </div>
-                  
+
                   <div className="user-dates">
                     <p>Joined: {formatDate(user.joinedDate)}</p>
                     <p>Last Active: {formatDate(user.lastActive)}</p>
                   </div>
                 </div>
-                
+
                 <div className="card-footer">
                   <button
                     className="action-btn view-btn"
@@ -546,31 +741,48 @@ const AdminUsers = () => {
           <div className="distribution">
             <div className="distribution-item">
               <div className="distribution-bar">
-                <div 
+                <div
                   className="bar-fill user-fill"
-                  style={{ width: `${(users.filter(u => u.role === 'user').length / users.length) * 100}%` }}
+                  style={{
+                    width: `${
+                      (users.filter((u) => u.role === "user").length /
+                        users.length) *
+                      100
+                    }%`,
+                  }}
                 ></div>
               </div>
               <div className="distribution-label">
                 <span className="dot user-dot"></span>
-                <span>Regular Users ({users.filter(u => u.role === 'user').length})</span>
+                <span>
+                  Regular Users ({users.filter((u) => u.role === "user").length}
+                  )
+                </span>
               </div>
             </div>
             <div className="distribution-item">
               <div className="distribution-bar">
-                <div 
+                <div
                   className="bar-fill admin-fill"
-                  style={{ width: `${(users.filter(u => u.role === 'admin').length / users.length) * 100}%` }}
+                  style={{
+                    width: `${
+                      (users.filter((u) => u.role === "admin").length /
+                        users.length) *
+                      100
+                    }%`,
+                  }}
                 ></div>
               </div>
               <div className="distribution-label">
                 <span className="dot admin-dot"></span>
-                <span>Admins ({users.filter(u => u.role === 'admin').length})</span>
+                <span>
+                  Admins ({users.filter((u) => u.role === "admin").length})
+                </span>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div className="stats-card">
           <h3>Activity Status</h3>
           <div className="activity-stats">
@@ -579,11 +791,15 @@ const AdminUsers = () => {
               <div className="activity-label">Active Users</div>
             </div>
             <div className="activity-item">
-              <div className="activity-value">{users.filter(u => u.status === 'inactive').length}</div>
+              <div className="activity-value">
+                {users.filter((u) => u.status === "inactive").length}
+              </div>
               <div className="activity-label">Inactive</div>
             </div>
             <div className="activity-item">
-              <div className="activity-value">{users.filter(u => u.status === 'suspended').length}</div>
+              <div className="activity-value">
+                {users.filter((u) => u.status === "suspended").length}
+              </div>
               <div className="activity-label">Suspended</div>
             </div>
           </div>
@@ -593,7 +809,8 @@ const AdminUsers = () => {
       {/* Pagination */}
       <div className="pagination">
         <div className="pagination-info">
-          Showing 1-{Math.min(filteredUsers.length, 10)} of {filteredUsers.length} users
+          Showing 1-{Math.min(filteredUsers.length, 10)} of{" "}
+          {filteredUsers.length} users
         </div>
         <div className="pagination-controls">
           <button className="pagination-btn" disabled>
@@ -606,9 +823,7 @@ const AdminUsers = () => {
             <span className="pagination-ellipsis">...</span>
             <button className="pagination-number">5</button>
           </div>
-          <button className="pagination-btn">
-            Next →
-          </button>
+          <button className="pagination-btn">Next →</button>
         </div>
       </div>
     </div>

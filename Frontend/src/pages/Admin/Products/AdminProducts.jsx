@@ -1,4 +1,4 @@
-// 
+// Frontend/src/pages/Admin/Products/AdminProducts.jsx - COMPLETE FIXED
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -20,16 +20,56 @@ const AdminProducts = () => {
       navigate("/login");
       return;
     }
-    
-    // Fetch products (for now, using demo data)
-    setTimeout(() => {
-      setProducts(generateDemoProducts());
-      setLoading(false);
-    }, 1000);
+
+    // REAL API CALL
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Fetching products...");
+        
+        const response = await fetch("http://localhost:5000/api/products", {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Products from API:", data);
+        
+        // Transform backend data to frontend format
+        const formattedProducts = data.map(product => ({
+          _id: product._id,
+          id: product._id,
+          name: product.name,
+          category: product.category,
+          price: product.price,
+          stock: product.stock,
+          status: "published",
+          sales: product.numReviews || 0,
+          createdAt: product.createdAt,
+          image: product.images && product.images[0] ? product.images[0] : "/default-product.jpg"
+        }));
+        
+        setProducts(formattedProducts);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        // Fallback to demo data if API fails
+        setProducts(generateDemoProducts());
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, [user, navigate]);
 
   const generateDemoProducts = () => {
     return Array.from({ length: 20 }, (_, i) => ({
+      _id: `prod_${i + 1}`,
       id: `prod_${i + 1}`,
       name: `Product ${i + 1}`,
       category: ["Smartphones", "Laptops", "Tablets", "Gaming", "Accessories"][i % 5],
@@ -59,21 +99,21 @@ const AdminProducts = () => {
 
     if (bulkAction === "delete") {
       if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
-        setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+        setProducts(products.filter(p => !selectedProducts.includes(p._id)));
         setSelectedProducts([]);
         setBulkAction("");
         alert("Products deleted successfully!");
       }
     } else if (bulkAction === "publish") {
       setProducts(products.map(p => 
-        selectedProducts.includes(p.id) ? { ...p, status: "published" } : p
+        selectedProducts.includes(p._id) ? { ...p, status: "published" } : p
       ));
       setSelectedProducts([]);
       setBulkAction("");
       alert("Products published successfully!");
     } else if (bulkAction === "archive") {
       setProducts(products.map(p => 
-        selectedProducts.includes(p.id) ? { ...p, status: "archived" } : p
+        selectedProducts.includes(p._id) ? { ...p, status: "archived" } : p
       ));
       setSelectedProducts([]);
       setBulkAction("");
@@ -83,7 +123,7 @@ const AdminProducts = () => {
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts(filteredProducts.map(p => p._id));
     } else {
       setSelectedProducts([]);
     }
@@ -97,10 +137,27 @@ const AdminProducts = () => {
     );
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter(p => p.id !== productId));
-      alert("Product deleted successfully!");
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+          method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          setProducts(products.filter(p => p._id !== productId));
+          alert("Product deleted successfully!");
+        } else {
+          throw new Error("Failed to delete product");
+        }
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Failed to delete product. Please try again.");
+      }
     }
   };
 
@@ -277,12 +334,15 @@ const AdminProducts = () => {
                 </tr>
               ) : (
                 filteredProducts.map((product) => (
-                  <tr key={product.id} className={product.stock < 10 ? 'low-stock' : ''}>
+                  <tr
+                    key={product._id}
+                    className={product.stock < 10 ? "low-stock" : ""}
+                  >
                     <td>
                       <input
                         type="checkbox"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => handleSelectProduct(product.id)}
+                        checked={selectedProducts.includes(product._id)}
+                        onChange={() => handleSelectProduct(product._id)}
                       />
                     </td>
                     <td>
@@ -292,7 +352,7 @@ const AdminProducts = () => {
                         </div>
                         <div className="product-details">
                           <strong>{product.name}</strong>
-                          <small>ID: {product.id}</small>
+                          <small>ID: {product._id.substring(0, 8)}...</small>
                         </div>
                       </div>
                     </td>
@@ -308,8 +368,16 @@ const AdminProducts = () => {
                           <div
                             className="stock-fill"
                             style={{
-                              width: `${Math.min((product.stock / 100) * 100, 100)}%`,
-                              backgroundColor: product.stock < 10 ? '#ef4444' : product.stock < 30 ? '#f59e0b' : '#10b981'
+                              width: `${Math.min(
+                                (product.stock / 100) * 100,
+                                100
+                              )}%`,
+                              backgroundColor:
+                                product.stock < 10
+                                  ? "#ef4444"
+                                  : product.stock < 30
+                                  ? "#f59e0b"
+                                  : "#10b981",
                             }}
                           ></div>
                         </div>
@@ -330,21 +398,23 @@ const AdminProducts = () => {
                       <div className="action-buttons">
                         <button
                           className="action-btn edit-btn"
-                          onClick={() => navigate(`/admin/products/edit/${product.id}`)}
+                          onClick={() =>
+                            navigate(`/admin/products/edit/${product._id}`)
+                          }
                           title="Edit Product"
                         >
                           ✏️
                         </button>
                         <button
                           className="action-btn view-btn"
-                          onClick={() => navigate(`/product/${product.id}`)}
+                          onClick={() => navigate(`/product/${product._id}`)}
                           title="View Product"
                         >
                           👁️
                         </button>
                         <button
                           className="action-btn delete-btn"
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProduct(product._id)}
                           title="Delete Product"
                         >
                           🗑️
@@ -371,9 +441,7 @@ const AdminProducts = () => {
           <span className="pagination-ellipsis">...</span>
           <button className="pagination-number">10</button>
         </div>
-        <button className="pagination-btn">
-          Next →
-        </button>
+        <button className="pagination-btn">Next →</button>
       </div>
     </div>
   );

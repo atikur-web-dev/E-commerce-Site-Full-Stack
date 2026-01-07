@@ -15,6 +15,7 @@ import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
 import orderRoutes from "./routes/order.js";
 import analyticsRoutes from "./routes/analytics.js";
+import userRoutes from "./routes/user.js"; 
 
 // Cloudinary imports
 import { uploadSingle } from "./middleware/upload.js";
@@ -72,6 +73,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use("/api/users", userRoutes);
 
 // Handle preflight requests
 app.options("*", cors(corsOptions));

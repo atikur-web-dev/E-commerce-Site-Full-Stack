@@ -314,6 +314,77 @@ export const orderAPI = {
     }
   },
 };
+// ==================== ADMIN PRODUCT SERVICES ====================
+export const adminAPI = {
+  // Create product (Admin only)
+  createProduct: async (productData) => {
+    try {
+      const response = await API.post("/products", productData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
 
+  // Update product (Admin only)
+  updateProduct: async (id, productData) => {
+    try {
+      const response = await API.put(`/products/${id}`, productData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete product (Admin only)
+  deleteProduct: async (id) => {
+    try {
+      const response = await API.delete(`/products/${id}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all users (Admin only)
+  getAllUsers: async () => {
+    try {
+      const response = await API.get("/users"); // or /admin/users
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all orders (Admin only)
+  getAllOrders: async () => {
+    try {
+      const response = await API.get("/orders");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
+
+// ==================== UPLOAD SERVICES ====================
+export const uploadAPI = {
+  // Upload image to Cloudinary
+  uploadImage: async (imageFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      
+      const response = await API.post("/cloudinary/upload", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
 // ==================== EXPORT DEFAULT ====================
 export default API;

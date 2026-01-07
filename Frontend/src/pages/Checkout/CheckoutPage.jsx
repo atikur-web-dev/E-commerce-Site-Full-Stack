@@ -363,7 +363,7 @@ const Checkout = () => {
               <div className="form-group">
                 <label>Country</label>
                 <div className="country-input">
-                  <span className="country-flag">🇧🇩</span>
+                  <span className="country-flag"></span>
                   <input
                     type="text"
                     name="country"
