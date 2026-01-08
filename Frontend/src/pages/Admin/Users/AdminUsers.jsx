@@ -1,4 +1,4 @@
-// Frontend/src/pages/Admin/Users/AdminUsers.jsx
+// Frontend/src/pages/Admin/Users/AdminUsers.jsx - COMPLETE FIXED VERSION
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -6,124 +6,158 @@ import "./AdminUsers.css";
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [viewMode, setViewMode] = useState("table"); // 'table' or 'grid'
+  const [viewMode, setViewMode] = useState("table");
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    admins: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    averageSpent: 0,
+  });
 
   useEffect(() => {
-    if (user?.role !== "admin") {
+    if (currentUser?.role !== "admin") {
       navigate("/login");
       return;
     }
 
-    // REAL API CALL for users
-    const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        console.log("Fetching real users...");
+    fetchRealUsers();
+  }, [currentUser, navigate]);
 
-        const response = await fetch("http://localhost:5000/api/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  // Fetch real users from MongoDB
+  const fetchRealUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem("token");
+      console.log("Fetching real users from API...");
+      
+      // Fetch users
+      const usersResponse = await fetch("http://localhost:5000/api/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Real users from MongoDB:", data);
-
-        // Transform MongoDB data to frontend format
-        const formattedUsers = data.map((user) => ({
-          _id: user._id,
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          status: user.isActive ? "active" : "inactive",
-          joinedDate: user.createdAt,
-          lastActive: user.lastLogin || user.createdAt,
-          avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][
-            Math.floor(Math.random() * 5)
-          ],
-          // Note: orders and totalSpent will need separate API calls
-          orders: 0,
-          totalSpent: 0,
-        }));
-
-        setUsers(formattedUsers);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setLoading(false);
+      if (!usersResponse.ok) {
+        throw new Error(`HTTP ${usersResponse.status}: Failed to fetch users`);
       }
-    };
 
-    fetchUsers();
-  }, [user, navigate]);
+      const usersData = await usersResponse.json();
+      console.log("Real users from MongoDB:", usersData);
 
+      if (usersData.success && usersData.data) {
+        setUsers(usersData.data);
+        
+        // Calculate statistics
+        const totalUsers = usersData.data.length;
+        const activeUsers = usersData.data.filter(u => u.status === "active").length;
+        const adminUsers = usersData.data.filter(u => u.role === "admin").length;
+        const totalOrders = usersData.data.reduce((sum, u) => sum + (u.orders || 0), 0);
+        const totalRevenue = usersData.data.reduce((sum, u) => sum + (u.totalSpent || 0), 0);
+        const averageSpent = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+        
+        setStats({
+          total: totalUsers,
+          active: activeUsers,
+          admins: adminUsers,
+          totalOrders,
+          totalRevenue,
+          averageSpent,
+        });
+      } else {
+        setError(usersData.message || "Failed to fetch users");
+        // Fallback to demo data
+        setUsers(generateDemoUsers());
+        calculateDemoStats();
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError(error.message || "Failed to load users from server");
+      
+      // Fallback to demo data if API fails
+      console.log("Using demo data as fallback");
+      const demoUsers = generateDemoUsers();
+      setUsers(demoUsers);
+      calculateDemoStats(demoUsers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo data generator (fallback)
   const generateDemoUsers = () => {
-    const roles = ["user", "user", "user", "admin"]; // More users, fewer admins
-    const statuses = ["active", "active", "active", "inactive", "suspended"];
+    const roles = ["user", "user", "user", "admin"];
+    const statuses = ["active", "active", "active", "inactive"];
     const names = [
-      "John Doe",
-      "Jane Smith",
-      "Bob Johnson",
-      "Alice Brown",
-      "Charlie Wilson",
-      "David Lee",
-      "Emma Garcia",
-      "Frank Miller",
-      "Grace Taylor",
-      "Henry White",
-      "Ivy Clark",
-      "Jack Evans",
+      "John Doe", "Jane Smith", "Bob Johnson", "Alice Brown", 
+      "Charlie Wilson", "David Lee", "Emma Garcia", "Frank Miller",
+      "Grace Taylor", "Henry White", "Ivy Clark", "Jack Evans"
     ];
-
+    
     return Array.from({ length: 20 }, (_, i) => ({
+      _id: `user_${i + 1}`,
       id: `user_${i + 1}`,
       name: names[i % names.length],
-      email: `${names[i % names.length].toLowerCase().replace(" ", ".")}${
-        i + 1
-      }@example.com`,
+      email: `${names[i % names.length].toLowerCase().replace(" ", ".")}${i + 1}@example.com`,
       role: roles[i % roles.length],
       status: statuses[i % statuses.length],
-      joinedDate: new Date(
-        Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
-      ).toISOString(),
+      phone: `01${Math.floor(Math.random() * 90000000) + 10000000}`,
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+      lastLogin: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       orders: Math.floor(Math.random() * 50),
       totalSpent: Math.floor(Math.random() * 50000) + 1000,
-      lastActive: new Date(
-        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][
-        i % 5
-      ],
+      avatarColor: ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"][i % 5],
+      isActive: statuses[i % statuses.length] === "active"
     }));
   };
 
+  const calculateDemoStats = (demoUsers) => {
+    if (!demoUsers) demoUsers = users;
+    
+    const totalUsers = demoUsers.length;
+    const activeUsers = demoUsers.filter(u => u.status === "active").length;
+    const adminUsers = demoUsers.filter(u => u.role === "admin").length;
+    const totalOrders = demoUsers.reduce((sum, u) => sum + (u.orders || 0), 0);
+    const totalRevenue = demoUsers.reduce((sum, u) => sum + (u.totalSpent || 0), 0);
+    const averageSpent = totalUsers > 0 ? totalRevenue / totalUsers : 0;
+    
+    setStats({
+      total: totalUsers,
+      active: activeUsers,
+      admins: adminUsers,
+      totalOrders,
+      totalRevenue,
+      averageSpent,
+    });
+  };
+
+  // Filter users based on search and filters
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase());
+      (user._id && user._id.toLowerCase().includes(searchTerm.toLowerCase()));
+    
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === "all" || user.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
 
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedUsers(filteredUsers.map((u) => u.id));
+      setSelectedUsers(filteredUsers.map((u) => u._id));
     } else {
       setSelectedUsers([]);
     }
@@ -137,124 +171,176 @@ const AdminUsers = () => {
     );
   };
 
+  // Update user status with real API call
   const updateUserStatus = async (userId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
       const isActive = newStatus === "active";
 
-      const response = await fetch(
-        `http://localhost:5000/api/users/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ isActive }),
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ isActive }),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to update user");
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update local state
+        setUsers(
+          users.map((user) =>
+            user._id === userId
+              ? {
+                  ...user,
+                  status: newStatus,
+                  isActive: isActive
+                }
+              : user
+          )
+        );
+        
+        // Update stats
+        const activeCount = users.map(u => 
+          u._id === userId ? (newStatus === "active" ? 1 : 0) : (u.status === "active" ? 1 : 0)
+        ).reduce((a, b) => a + b, 0);
+        
+        setStats(prev => ({ ...prev, active: activeCount }));
+
+        alert(`User status updated to ${newStatus}`);
+      } else {
+        throw new Error(data.message || "Failed to update user status");
       }
-
-      // Update local state
-      setUsers(
-        users.map((user) =>
-          user._id === userId
-            ? {
-                ...user,
-                status: newStatus,
-              }
-            : user
-        )
-      );
-
-      alert(`User status updated to ${newStatus}`);
     } catch (err) {
       console.error("Error updating status:", err);
-      alert("Failed to update user status");
+      alert(`Failed to update user status: ${err.message}`);
     }
   };
 
+  // Update user role with real API call
   const updateUserRole = async (userId, newRole) => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        `http://localhost:5000/api/users/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to update user role");
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update local state
+        setUsers(
+          users.map((user) =>
+            user._id === userId
+              ? {
+                  ...user,
+                  role: newRole,
+                }
+              : user
+          )
+        );
+        
+        // Update stats
+        const adminCount = users.map(u => 
+          u._id === userId ? (newRole === "admin" ? 1 : 0) : (u.role === "admin" ? 1 : 0)
+        ).reduce((a, b) => a + b, 0);
+        
+        setStats(prev => ({ ...prev, admins: adminCount }));
+
+        alert(`User role updated to ${newRole}`);
+      } else {
+        throw new Error(data.message || "Failed to update user role");
       }
-
-      // Update local state
-      setUsers(
-        users.map((user) =>
-          user._id === userId
-            ? {
-                ...user,
-                role: newRole,
-              }
-            : user
-        )
-      );
-
-      alert(`User role updated to ${newRole}`);
     } catch (err) {
       console.error("Error updating role:", err);
-      alert("Failed to update user role");
-    }
-  };
-  const deleteUser = (userId) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete this user? This action cannot be undone.`
-      )
-    ) {
-      setUsers(users.filter((user) => user.id !== userId));
-      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
-      alert("User deleted successfully!");
+      alert(`Failed to update user role: ${err.message}`);
     }
   };
 
-  const handleBulkAction = (action) => {
+  // Delete user with real API call
+  const deleteUser = async (userId) => {
+    try {
+      // Check if trying to delete self
+      const userToDelete = users.find(u => u._id === userId);
+      if (userToDelete?.email === currentUser?.email) {
+        alert("You cannot delete your own account!");
+        return;
+      }
+
+      if (!window.confirm(`Are you sure you want to delete user ${userToDelete?.name}? This action cannot be undone.`)) {
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update local state
+        setUsers(users.filter((user) => user._id !== userId));
+        setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          total: prev.total - 1,
+          active: userToDelete.status === "active" ? prev.active - 1 : prev.active,
+          admins: userToDelete.role === "admin" ? prev.admins - 1 : prev.admins
+        }));
+        
+        alert("User deleted successfully!");
+      } else {
+        throw new Error(data.message || "Failed to delete user");
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      alert(`Failed to delete user: ${err.message}`);
+    }
+  };
+
+  const handleBulkAction = async (action) => {
     if (selectedUsers.length === 0) {
       alert("Please select users first");
       return;
     }
 
     if (action === "delete") {
-      if (
-        window.confirm(
-          `Are you sure you want to delete ${selectedUsers.length} users?`
-        )
-      ) {
-        setUsers(users.filter((user) => !selectedUsers.includes(user.id)));
-        setSelectedUsers([]);
-        alert("Users deleted successfully!");
+      if (!window.confirm(`Are you sure you want to delete ${selectedUsers.length} users?`)) {
+        return;
       }
-    } else {
-      setUsers(
-        users.map((user) =>
-          selectedUsers.includes(user.id) ? { ...user, status: action } : user
-        )
-      );
+      
+      // Delete users one by one
+      const deletePromises = selectedUsers.map(userId => deleteUser(userId));
+      await Promise.all(deletePromises);
       setSelectedUsers([]);
-      alert(`Users status updated to ${action}!`);
+      
+    } else {
+      // Update status for selected users
+      const updatePromises = selectedUsers.map(userId => 
+        updateUserStatus(userId, action)
+      );
+      await Promise.all(updatePromises);
+      setSelectedUsers([]);
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Never";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -295,24 +381,11 @@ const AdminUsers = () => {
     }
   };
 
-  // Statistics calculation
-  const stats = {
-    total: users.length,
-    active: users.filter((u) => u.status === "active").length,
-    admins: users.filter((u) => u.role === "admin").length,
-    totalOrders: users.reduce((sum, u) => sum + u.orders, 0),
-    totalRevenue: users.reduce((sum, u) => sum + u.totalSpent, 0),
-    averageSpent:
-      users.length > 0
-        ? users.reduce((sum, u) => sum + u.totalSpent, 0) / users.length
-        : 0,
-  };
-
   if (loading) {
     return (
       <div className="admin-users-loading">
         <div className="spinner"></div>
-        <p>Loading users...</p>
+        <p>Loading users from database...</p>
       </div>
     );
   }
@@ -323,6 +396,11 @@ const AdminUsers = () => {
         <div>
           <h1>Customer Management</h1>
           <p>Manage and view all registered users</p>
+          {error && users.length > 0 && (
+            <div className="warning-banner">
+              <span>⚠️</span> Using demo data: {error}
+            </div>
+          )}
         </div>
         <div className="header-actions">
           <div className="view-toggle">
@@ -341,7 +419,11 @@ const AdminUsers = () => {
               🏠
             </button>
           </div>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={fetchRealUsers}>
+            <span className="btn-icon">🔄</span>
+            Refresh
+          </button>
+          <button className="btn btn-secondary">
             <span className="btn-icon">📥</span>
             Export Users
           </button>
@@ -366,7 +448,7 @@ const AdminUsers = () => {
             <h3>{stats.active}</h3>
             <p>Active Users</p>
             <span className="stat-change success">
-              {Math.round((stats.active / stats.total) * 100)}% active
+              {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}% active
             </span>
           </div>
         </div>
@@ -376,7 +458,7 @@ const AdminUsers = () => {
             <h3>{stats.admins}</h3>
             <p>Administrators</p>
             <span className="stat-change">
-              {Math.round((stats.admins / stats.total) * 100)}% of total
+              {stats.total > 0 ? Math.round((stats.admins / stats.total) * 100) : 0}% of total
             </span>
           </div>
         </div>
@@ -428,7 +510,6 @@ const AdminUsers = () => {
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
           </select>
         </div>
 
@@ -461,7 +542,6 @@ const AdminUsers = () => {
               </option>
               <option value="active">Mark as Active</option>
               <option value="inactive">Mark as Inactive</option>
-              <option value="suspended">Suspend Users</option>
               <option value="delete">Delete Selected</option>
             </select>
             <button
@@ -515,28 +595,29 @@ const AdminUsers = () => {
                 ) : (
                   filteredUsers.map((user) => (
                     <tr
-                      key={user.id}
+                      key={user._id}
                       className={`user-row status-${user.status}`}
                     >
                       <td>
                         <input
                           type="checkbox"
-                          checked={selectedUsers.includes(user.id)}
-                          onChange={() => handleSelectUser(user.id)}
+                          checked={selectedUsers.includes(user._id)}
+                          onChange={() => handleSelectUser(user._id)}
                         />
                       </td>
                       <td>
                         <div className="user-cell">
                           <div
                             className="user-avatar"
-                            style={{ backgroundColor: user.avatarColor }}
+                            style={{ backgroundColor: user.avatarColor || "#3b82f6" }}
                           >
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="user-details">
                             <strong>{user.name}</strong>
                             <small>{user.email}</small>
-                            <small className="user-id">ID: {user.id}</small>
+                            <small className="user-id">ID: {user._id.substring(0, 8)}...</small>
+                            {user.phone && <small>Phone: {user.phone}</small>}
                           </div>
                         </div>
                       </td>
@@ -560,36 +641,38 @@ const AdminUsers = () => {
                       </td>
                       <td>
                         <div className="orders-cell">
-                          <strong>{user.orders}</strong>
+                          <strong>{user.orders || 0}</strong>
                           <small>orders</small>
                         </div>
                       </td>
                       <td className="spent-cell">
-                        <strong>{formatCurrency(user.totalSpent)}</strong>
+                        <strong>{formatCurrency(user.totalSpent || 0)}</strong>
                       </td>
                       <td>
                         <div className="date-cell">
-                          {formatDate(user.joinedDate)}
+                          {formatDate(user.createdAt)}
                         </div>
                       </td>
                       <td>
                         <div className="date-cell">
-                          {formatDate(user.lastActive)}
-                          <small className="time-ago">
-                            (
-                            {Math.floor(
-                              (new Date() - new Date(user.lastActive)) /
-                                (1000 * 60 * 60 * 24)
-                            )}{" "}
-                            days ago)
-                          </small>
+                          {formatDate(user.lastLogin)}
+                          {user.lastLogin && (
+                            <small className="time-ago">
+                              (
+                              {Math.floor(
+                                (new Date() - new Date(user.lastLogin)) /
+                                  (1000 * 60 * 60 * 24)
+                              )}{" "}
+                              days ago)
+                            </small>
+                          )}
                         </div>
                       </td>
                       <td>
                         <div className="user-actions">
                           <button
                             className="action-btn view-btn"
-                            onClick={() => navigate(`/admin/users/${user.id}`)}
+                            onClick={() => navigate(`/admin/users/${user._id}`)}
                             title="View Profile"
                           >
                             👁️
@@ -601,24 +684,19 @@ const AdminUsers = () => {
                             <div className="status-menu">
                               <button
                                 onClick={() =>
-                                  updateUserStatus(user.id, "active")
+                                  updateUserStatus(user._id, "active")
                                 }
+                                disabled={user.status === "active"}
                               >
                                 Active
                               </button>
                               <button
                                 onClick={() =>
-                                  updateUserStatus(user.id, "inactive")
+                                  updateUserStatus(user._id, "inactive")
                                 }
+                                disabled={user.status === "inactive"}
                               >
                                 Inactive
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateUserStatus(user.id, "suspended")
-                                }
-                              >
-                                Suspend
                               </button>
                             </div>
                           </div>
@@ -626,12 +704,14 @@ const AdminUsers = () => {
                             <button className="action-btn role-btn">🛡️</button>
                             <div className="role-menu">
                               <button
-                                onClick={() => updateUserRole(user.id, "admin")}
+                                onClick={() => updateUserRole(user._id, "admin")}
+                                disabled={user.role === "admin" || user.email === currentUser?.email}
                               >
                                 Make Admin
                               </button>
                               <button
-                                onClick={() => updateUserRole(user.id, "user")}
+                                onClick={() => updateUserRole(user._id, "user")}
+                                disabled={user.role === "user" || user.email === currentUser?.email}
                               >
                                 Make User
                               </button>
@@ -639,8 +719,9 @@ const AdminUsers = () => {
                           </div>
                           <button
                             className="action-btn delete-btn"
-                            onClick={() => deleteUser(user.id)}
+                            onClick={() => deleteUser(user._id)}
                             title="Delete User"
+                            disabled={user.email === currentUser?.email}
                           >
                             🗑️
                           </button>
@@ -664,11 +745,11 @@ const AdminUsers = () => {
             </div>
           ) : (
             filteredUsers.map((user) => (
-              <div key={user.id} className="user-card">
+              <div key={user._id} className="user-card">
                 <div className="card-header">
                   <div
                     className="user-avatar-large"
-                    style={{ backgroundColor: user.avatarColor }}
+                    style={{ backgroundColor: user.avatarColor || "#3b82f6" }}
                   >
                     {user.name.charAt(0).toUpperCase()}
                   </div>
@@ -691,38 +772,39 @@ const AdminUsers = () => {
                 <div className="card-body">
                   <h3>{user.name}</h3>
                   <p className="user-email">{user.email}</p>
-                  <p className="user-id">ID: {user.id}</p>
+                  {user.phone && <p className="user-phone">📱 {user.phone}</p>}
+                  <p className="user-id">ID: {user._id.substring(0, 12)}...</p>
 
                   <div className="user-stats">
                     <div className="stat">
-                      <div className="stat-value">{user.orders}</div>
+                      <div className="stat-value">{user.orders || 0}</div>
                       <div className="stat-label">Orders</div>
                     </div>
                     <div className="stat">
                       <div className="stat-value">
-                        {formatCurrency(user.totalSpent)}
+                        {formatCurrency(user.totalSpent || 0)}
                       </div>
                       <div className="stat-label">Spent</div>
                     </div>
                   </div>
 
                   <div className="user-dates">
-                    <p>Joined: {formatDate(user.joinedDate)}</p>
-                    <p>Last Active: {formatDate(user.lastActive)}</p>
+                    <p>Joined: {formatDate(user.createdAt)}</p>
+                    <p>Last Active: {formatDate(user.lastLogin)}</p>
                   </div>
                 </div>
 
                 <div className="card-footer">
                   <button
                     className="action-btn view-btn"
-                    onClick={() => navigate(`/admin/users/${user.id}`)}
+                    onClick={() => navigate(`/admin/users/${user._id}`)}
                     title="View Profile"
                   >
                     👁️ View
                   </button>
                   <button
                     className="action-btn edit-btn"
-                    onClick={() => alert(`Edit ${user.name}`)}
+                    onClick={() => navigate(`/admin/users/${user._id}/edit`)}
                     title="Edit User"
                   >
                     ✏️ Edit
@@ -745,9 +827,7 @@ const AdminUsers = () => {
                   className="bar-fill user-fill"
                   style={{
                     width: `${
-                      (users.filter((u) => u.role === "user").length /
-                        users.length) *
-                      100
+                      stats.total > 0 ? ((stats.total - stats.admins) / stats.total) * 100 : 0
                     }%`,
                   }}
                 ></div>
@@ -755,8 +835,7 @@ const AdminUsers = () => {
               <div className="distribution-label">
                 <span className="dot user-dot"></span>
                 <span>
-                  Regular Users ({users.filter((u) => u.role === "user").length}
-                  )
+                  Regular Users ({stats.total - stats.admins})
                 </span>
               </div>
             </div>
@@ -766,9 +845,7 @@ const AdminUsers = () => {
                   className="bar-fill admin-fill"
                   style={{
                     width: `${
-                      (users.filter((u) => u.role === "admin").length /
-                        users.length) *
-                      100
+                      stats.total > 0 ? (stats.admins / stats.total) * 100 : 0
                     }%`,
                   }}
                 ></div>
@@ -776,7 +853,7 @@ const AdminUsers = () => {
               <div className="distribution-label">
                 <span className="dot admin-dot"></span>
                 <span>
-                  Admins ({users.filter((u) => u.role === "admin").length})
+                  Admins ({stats.admins})
                 </span>
               </div>
             </div>
@@ -792,15 +869,15 @@ const AdminUsers = () => {
             </div>
             <div className="activity-item">
               <div className="activity-value">
-                {users.filter((u) => u.status === "inactive").length}
+                {stats.total - stats.active}
               </div>
               <div className="activity-label">Inactive</div>
             </div>
             <div className="activity-item">
               <div className="activity-value">
-                {users.filter((u) => u.status === "suspended").length}
+                {stats.totalOrders}
               </div>
-              <div className="activity-label">Suspended</div>
+              <div className="activity-label">Total Orders</div>
             </div>
           </div>
         </div>
@@ -809,8 +886,12 @@ const AdminUsers = () => {
       {/* Pagination */}
       <div className="pagination">
         <div className="pagination-info">
-          Showing 1-{Math.min(filteredUsers.length, 10)} of{" "}
-          {filteredUsers.length} users
+          Showing 1-{Math.min(filteredUsers.length, 10)} of {filteredUsers.length} users
+          {users.length > 0 && (
+            <span className="data-source">
+              {error ? ' (Demo Data)' : ' (Live from MongoDB)'}
+            </span>
+          )}
         </div>
         <div className="pagination-controls">
           <button className="pagination-btn" disabled>
@@ -823,7 +904,9 @@ const AdminUsers = () => {
             <span className="pagination-ellipsis">...</span>
             <button className="pagination-number">5</button>
           </div>
-          <button className="pagination-btn">Next →</button>
+          <button className="pagination-btn">
+            Next →
+          </button>
         </div>
       </div>
     </div>

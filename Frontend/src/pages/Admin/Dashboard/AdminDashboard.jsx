@@ -1,6 +1,6 @@
-// Frontend/src/pages/Admin/Dashboard/AdminDashboard.jsx
+// Frontend/src/pages/Admin/Dashboard/AdminDashboard.jsx - REAL ORDERS VERSION
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, Outlet } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import "./AdminDashboard.css";
 
@@ -8,6 +8,14 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -27,8 +35,102 @@ const AdminDashboard = () => {
     }
     
     setUser(userData);
-    setLoading(false);
+    fetchDashboardData();
   }, [navigate]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Fetch orders for recent orders
+      const ordersResponse = await fetch("http://localhost:5000/api/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Fetch users for customer count
+      const usersResponse = await fetch("http://localhost:5000/api/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Fetch products for product count
+      const productsResponse = await fetch("http://localhost:5000/api/products", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const [ordersData, usersData, productsData] = await Promise.all([
+        ordersResponse.json(),
+        usersResponse.json(),
+        productsResponse.json(),
+      ]);
+
+      // Calculate stats
+      if (ordersData.success) {
+        const totalRevenue = ordersData.data.reduce((sum, order) => sum + order.totalPrice, 0);
+        const totalOrders = ordersData.data.length;
+        
+        // Get recent orders (last 5)
+        const recent = ordersData.data
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 5)
+          .map(order => ({
+            id: order._id,
+            orderId: `ORD-${order._id.toString().slice(-8).toUpperCase()}`,
+            customer: order.user?.name || "Unknown",
+            date: new Date(order.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            }),
+            amount: order.totalPrice,
+            status: order.orderStatus,
+          }));
+        
+        setRecentOrders(recent);
+        setStats(prev => ({
+          ...prev,
+          totalRevenue,
+          totalOrders,
+        }));
+      }
+
+      if (usersData.success) {
+        setStats(prev => ({
+          ...prev,
+          totalCustomers: usersData.count || 0,
+        }));
+      }
+
+      if (productsData.success) {
+        setStats(prev => ({
+          ...prev,
+          totalProducts: productsData.length || 0,
+        }));
+      }
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      // Use demo data as fallback
+      setRecentOrders(generateDemoOrders());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateDemoOrders = () => {
+    return [
+      { id: "1", orderId: "#ORD-001", customer: "John Doe", date: "Jan 1, 2026", amount: 1299, status: "Delivered" },
+      { id: "2", orderId: "#ORD-002", customer: "Jane Smith", date: "Dec 31, 2025", amount: 899, status: "Processing" },
+      { id: "3", orderId: "#ORD-003", customer: "Bob Johnson", date: "Dec 30, 2025", amount: 2499, status: "Pending" },
+      { id: "4", orderId: "#ORD-004", customer: "Alice Brown", date: "Dec 29, 2025", amount: 549, status: "Delivered" },
+      { id: "5", orderId: "#ORD-005", customer: "Charlie Wilson", date: "Dec 28, 2025", amount: 1199, status: "Shipped" },
+    ];
+  };
 
   const handleLogout = () => {
     logout();
@@ -45,23 +147,17 @@ const AdminDashboard = () => {
       title: "Products",
       icon: "🛍️",
       path: "/admin/products",
-      submenu: [
-        { title: "All Products", path: "/admin/products" },
-        { title: "Add New", path: "/admin/products/add" },
-        { title: "Categories", path: "/admin/products/categories" },
-      ],
     },
     {
       title: "Orders",
       icon: "📦",
       path: "/admin/orders",
-      badge: "5",
     },
     {
-    title: "Customers",
-    icon: "👥",
-    path: "/admin/users", 
-  },
+      title: "Customers",
+      icon: "👥",
+      path: "/admin/users", 
+    },
     {
       title: "Analytics",
       icon: "📈",
@@ -77,41 +173,41 @@ const AdminDashboard = () => {
   const statsData = [
     {
       title: "Total Revenue",
-      value: "৳25,840",
+      value: `৳${stats.totalRevenue.toLocaleString()}`,
       change: "+12.5%",
       icon: "💰",
       color: "#10b981",
     },
     {
       title: "Total Orders",
-      value: "1,248",
+      value: stats.totalOrders.toLocaleString(),
       change: "+8.2%",
       icon: "📦",
       color: "#3b82f6",
     },
     {
       title: "Products",
-      value: "567",
+      value: stats.totalProducts.toLocaleString(),
       change: "+5.1%",
       icon: "🛍️",
       color: "#8b5cf6",
     },
     {
       title: "Customers",
-      value: "3,245",
+      value: stats.totalCustomers.toLocaleString(),
       change: "+15.3%",
       icon: "👥",
       color: "#f59e0b",
     },
   ];
 
-  const recentOrders = [
-    { id: "#ORD-001", customer: "John Doe", date: "Jan 1, 2026", amount: "৳1,299", status: "Delivered" },
-    { id: "#ORD-002", customer: "Jane Smith", date: "Dec 31, 2025", amount: "৳899", status: "Processing" },
-    { id: "#ORD-003", customer: "Bob Johnson", date: "Dec 30, 2025", amount: "৳2,499", status: "Pending" },
-    { id: "#ORD-004", customer: "Alice Brown", date: "Dec 29, 2025", amount: "৳549", status: "Delivered" },
-    { id: "#ORD-005", customer: "Charlie Wilson", date: "Dec 28, 2025", amount: "৳1,199", status: "Shipped" },
-  ];
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'currency',
+      currency: 'BDT',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   if (loading) {
     return (
@@ -166,9 +262,6 @@ const AdminDashboard = () => {
                 {sidebarOpen && (
                   <>
                     <span className="nav-title">{item.title}</span>
-                    {item.badge && (
-                      <span className="nav-badge">{item.badge}</span>
-                    )}
                   </>
                 )}
               </Link>
@@ -192,20 +285,15 @@ const AdminDashboard = () => {
       <main className="admin-main">
         <header className="admin-header">
           <div className="header-left">
-            <h1>Admin Dashboard</h1>
+            <h1>Dashboard Overview</h1>
             <p className="welcome-text">
               Welcome back, <strong>{user?.name}</strong>
             </p>
           </div>
           <div className="header-right">
-            <button className="header-btn notification-btn">
-              <span className="btn-icon">🔔</span>
-              <span className="notification-badge">3</span>
-            </button>
-            <button className="header-btn profile-btn">
-              <span className="avatar-small">
-                {user?.name?.charAt(0).toUpperCase()}
-              </span>
+            <button className="btn btn-primary" onClick={fetchDashboardData}>
+              <span className="btn-icon">↻</span>
+              Refresh Data
             </button>
           </div>
         </header>
@@ -254,21 +342,24 @@ const AdminDashboard = () => {
                     <tr key={order.id}>
                       <td>
                         <Link to={`/admin/orders/${order.id}`} className="order-id">
-                          {order.id}
+                          {order.orderId}
                         </Link>
                       </td>
                       <td>{order.customer}</td>
                       <td>{order.date}</td>
-                      <td className="amount">{order.amount}</td>
+                      <td className="amount">{formatCurrency(order.amount)}</td>
                       <td>
                         <span className={`status-badge status-${order.status.toLowerCase()}`}>
                           {order.status}
                         </span>
                       </td>
                       <td>
-                        <button className="action-btn view-btn">
+                        <Link 
+                          to={`/admin/orders/${order.id}`}
+                          className="action-btn view-btn"
+                        >
                           View
-                        </button>
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -307,48 +398,9 @@ const AdminDashboard = () => {
               <div className="action-icon customers">👥</div>
               <h4>Customer Insights</h4>
               <p>View and manage customer data</p>
-              <Link to="/admin/customers" className="action-link">
+              <Link to="/admin/users" className="action-link">
                 View Customers →
               </Link>
-            </div>
-          </div>
-
-          {/* Product Performance */}
-          <div className="product-performance">
-            <div className="card-header">
-              <h3>Top Selling Products</h3>
-            </div>
-            <div className="performance-list">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="performance-item">
-                  <div className="product-info">
-                    <div className="product-image">
-                      <img
-                        src={`https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop&auto=format&q=60`}
-                        alt={`Product ${item}`}
-                      />
-                    </div>
-                    <div>
-                      <h4>Product Name {item}</h4>
-                      <p className="product-category">Electronics</p>
-                    </div>
-                  </div>
-                  <div className="product-stats">
-                    <div className="stat">
-                      <span className="stat-label">Sold:</span>
-                      <span className="stat-value">1,245</span>
-                    </div>
-                    <div className="stat">
-                      <span className="stat-label">Revenue:</span>
-                      <span className="stat-value">৳24,900</span>
-                    </div>
-                    <div className="stat">
-                      <span className="stat-label">Stock:</span>
-                      <span className="stat-value">156</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

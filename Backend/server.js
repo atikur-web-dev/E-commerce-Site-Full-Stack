@@ -1,3 +1,4 @@
+// Backend/server.js - COMPLETE FIXED VERSION
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -15,14 +16,15 @@ import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
 import orderRoutes from "./routes/order.js";
 import analyticsRoutes from "./routes/analytics.js";
-import userRoutes from "./routes/user.js"; 
+import userRoutes from "./routes/user.js";
+import adminRoutes from "./routes/admin.js";
 
 // Cloudinary imports
 import { uploadSingle } from "./middleware/upload.js";
 import { uploadToCloudinary } from "./config/cloudinary.js";
 import { protect, admin } from "./middleware/auth.js";
 
-import paymentRoutes from './routes/payment.js';
+import paymentRoutes from "./routes/payment.js";
 
 // Load environment variables
 dotenv.config();
@@ -73,7 +75,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use("/api/users", userRoutes);
 
 // Handle preflight requests
 app.options("*", cors(corsOptions));
@@ -161,6 +162,9 @@ const connectDB = async () => {
 // Authentication Routes
 app.use("/api/auth", authRoutes);
 
+// User Management Routes
+app.use("/api/users", userRoutes); // This should come before admin
+
 // Product Routes
 app.use("/api/products", productRoutes);
 
@@ -172,6 +176,9 @@ app.use("/api/orders", orderRoutes);
 
 // Analytics Routes
 app.use("/api/analytics", analyticsRoutes);
+
+// Admin Routes
+app.use("/api/admin", adminRoutes); // ADD THIS LINE FOR ADMIN ROUTES
 
 app.use("/api/payment", paymentRoutes);
 
@@ -193,68 +200,75 @@ app.get("/api/cloudinary/test", protect, admin, (req, res) => {
 });
 
 // Upload single image to Cloudinary
-app.post("/api/cloudinary/upload", protect, admin, uploadSingle, async (req, res) => {
-  try {
-    console.log("📤 Cloudinary direct upload request received");
-    
-    if (!req.file) {
-      return res.status(400).json({
+app.post(
+  "/api/cloudinary/upload",
+  protect,
+  admin,
+  uploadSingle,
+  async (req, res) => {
+    try {
+      console.log("📤 Cloudinary direct upload request received");
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No image file provided. Please select an image.",
+        });
+      }
+
+      console.log("📁 File details:", {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
+
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary(req.file.buffer, {
+        folder: "shopeasy/products",
+        public_id: `product_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`,
+        transformation: [
+          { width: 800, height: 800, crop: "limit" },
+          { quality: "auto:good" },
+          { format: "auto" },
+        ],
+      });
+
+      console.log("✅ Upload successful:", {
+        publicId: result.public_id,
+        url: result.secure_url,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Image uploaded to Cloudinary successfully!",
+        data: {
+          url: result.secure_url,
+          publicId: result.public_id,
+          width: result.width,
+          height: result.height,
+          format: result.format,
+          size: result.bytes,
+        },
+      });
+    } catch (error) {
+      console.error("❌ Cloudinary upload error:", error);
+
+      res.status(500).json({
         success: false,
-        message: "No image file provided. Please select an image.",
+        message: "Failed to upload image to Cloudinary",
+        error: error.message,
+        troubleshooting: [
+          "Check .env file for CLOUDINARY_* variables",
+          "Verify Cloudinary credentials are correct",
+          "Ensure file size is less than 5MB",
+          "Verify file type is JPEG, PNG, WebP, or GIF",
+        ],
       });
     }
-
-    console.log("📁 File details:", {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-    });
-
-    // Upload to Cloudinary
-    const result = await uploadToCloudinary(req.file.buffer, {
-      folder: "shopeasy/products",
-      public_id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      transformation: [
-        { width: 800, height: 800, crop: "limit" },
-        { quality: "auto:good" },
-        { format: "auto" },
-      ],
-    });
-
-    console.log("✅ Upload successful:", {
-      publicId: result.public_id,
-      url: result.secure_url,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Image uploaded to Cloudinary successfully!",
-      data: {
-        url: result.secure_url,
-        publicId: result.public_id,
-        width: result.width,
-        height: result.height,
-        format: result.format,
-        size: result.bytes,
-      },
-    });
-
-  } catch (error) {
-    console.error("❌ Cloudinary upload error:", error);
-    
-    res.status(500).json({
-      success: false,
-      message: "Failed to upload image to Cloudinary",
-      error: error.message,
-      troubleshooting: [
-        "Check .env file for CLOUDINARY_* variables",
-        "Verify Cloudinary credentials are correct",
-        "Ensure file size is less than 5MB",
-        "Verify file type is JPEG, PNG, WebP, or GIF",
-      ],
-    });
   }
-});
+);
 // ================================================================
 
 // Test Route
@@ -262,7 +276,8 @@ app.get("/api/test", (req, res) => {
   res.json({
     message: "API is working!",
     server: "Express.js",
-    database: mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
+    database:
+      mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
     cloudinary: {
       configured: !!process.env.CLOUDINARY_CLOUD_NAME,
       cloudName: process.env.CLOUDINARY_CLOUD_NAME || "Not set",
@@ -308,13 +323,30 @@ app.get("/api/analytics/test", (req, res) => {
   });
 });
 
+// Admin test route
+app.get("/api/admin/test", protect, admin, (req, res) => {
+  res.json({
+    message: "Admin API is working!",
+    user: req.user,
+    endpoints: {
+      dashboard: "GET /api/admin/dashboard",
+      users: "GET /api/admin/users",
+      orders: "GET /api/admin/orders",
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Home Route
 app.get("/", (req, res) => {
   res.json({
     message: "ShopEasy Backend API is running!",
-    version: "3.2.0", // ✅ UPDATED VERSION
-    database: mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
-    cloudinary: process.env.CLOUDINARY_CLOUD_NAME ? "Configured" : "Not Configured",
+    version: "3.3.0", // ✅ UPDATED VERSION
+    database:
+      mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
+    cloudinary: process.env.CLOUDINARY_CLOUD_NAME
+      ? "Configured"
+      : "Not Configured",
     frontend: "http://localhost:5173",
     cors: {
       enabled: true,
@@ -326,6 +358,17 @@ app.get("/", (req, res) => {
         login: "POST /api/auth/login",
         profile: "GET /api/auth/profile (Protected)",
         updateProfile: "PUT /api/auth/profile (Protected)",
+      },
+      users: {
+        getAll: "GET /api/users (Admin)",
+        getUser: "GET /api/users/:id (Admin)",
+        updateUser: "PUT /api/users/:id (Admin)",
+        deleteUser: "DELETE /api/users/:id (Admin)",
+      },
+      admin: {
+        dashboard: "GET /api/admin/dashboard",
+        users: "GET /api/admin/users",
+        orders: "GET /api/admin/orders",
       },
       products: {
         getAll: "GET /api/products",
@@ -356,7 +399,7 @@ app.get("/", (req, res) => {
         inventory: "GET /api/analytics/inventory (Admin)",
         test: "GET /api/analytics/test",
       },
-      cloudinary: { // ✅ NEW SECTION
+      cloudinary: {
         test: "GET /api/cloudinary/test (Admin)",
         upload: "POST /api/cloudinary/upload (Admin)",
       },
@@ -379,10 +422,12 @@ app.get("/health", (req, res) => {
     status: "OK",
     timestamp: new Date().toISOString(),
     database: statusMap[dbStatus] || "Unknown",
-    cloudinary: process.env.CLOUDINARY_CLOUD_NAME ? "Configured" : "Not Configured",
+    cloudinary: process.env.CLOUDINARY_CLOUD_NAME
+      ? "Configured"
+      : "Not Configured",
     uptime: process.uptime(),
     server: "Express.js",
-    version: "3.2.0", // ✅ UPDATED VERSION
+    version: "3.3.0",
     cors: {
       enabled: true,
       allowedOrigins: allowedOrigins,
@@ -392,15 +437,20 @@ app.get("/health", (req, res) => {
     models: ["User", "Product", "Cart", "Order"],
     routes: [
       "/api/auth",
+      "/api/users",
+      "/api/admin",
       "/api/products",
       "/api/cart",
       "/api/orders",
       "/api/analytics",
-      "/api/cloudinary", // ✅ NEW ROUTE
+      "/api/cloudinary",
+      "/api/payment",
     ],
     features: {
+      adminPanel: true,
+      userManagement: true,
       advancedAnalytics: true,
-      cloudinaryUpload: true, // ✅ NEW FEATURE
+      cloudinaryUpload: true,
       realTimeReports: true,
       inventoryTracking: true,
       salesDashboard: true,
@@ -439,11 +489,14 @@ app.use((req, res) => {
       "/health",
       "/api/test",
       "/api/cors-test",
+      "/api/admin/test",
       "/api/analytics/test",
-      "/api/cloudinary/test", // ✅ NEW
+      "/api/cloudinary/test",
       "/api/auth/register",
       "/api/auth/login",
       "/api/auth/profile",
+      "/api/users (Admin)",
+      "/api/admin/dashboard",
       "/api/products",
       "/api/products/featured",
       "/api/cart",
@@ -474,11 +527,18 @@ const startServer = async () => {
        ==============================================
        Port: ${PORT}
        Environment: ${process.env.NODE_ENV || "development"}
-       Database Status: ${mongoose.connection.readyState === 1 ? " Connected " : " Not Connected "}
-       Cloudinary: ${process.env.CLOUDINARY_CLOUD_NAME ? " Configured " : " Not Configured "}
+       Database Status: ${
+         mongoose.connection.readyState === 1
+           ? " Connected "
+           : " Not Connected "
+       }
+       Cloudinary: ${
+         process.env.CLOUDINARY_CLOUD_NAME ? " Configured " : " Not Configured "
+       }
        Frontend URL: http://localhost:5173
        Health Check: http://localhost:${PORT}/health
        CORS Test: http://localhost:${PORT}/api/cors-test
+       Admin Test: http://localhost:${PORT}/api/admin/test (Admin only)
        Analytics Test: http://localhost:${PORT}/api/analytics/test
        Cloudinary Test: http://localhost:${PORT}/api/cloudinary/test
        
@@ -486,6 +546,13 @@ const startServer = async () => {
          • Register: POST http://localhost:${PORT}/api/auth/register
          • Login: POST http://localhost:${PORT}/api/auth/login
          • Profile: GET http://localhost:${PORT}/api/auth/profile
+       
+        User Management (Admin):
+         • All Users: GET http://localhost:${PORT}/api/users
+         • User Details: GET http://localhost:${PORT}/api/users/:id
+       
+        Admin Routes:
+         • Dashboard: GET http://localhost:${PORT}/api/admin/dashboard
        
         Product Routes:
          • All Products: GET http://localhost:${PORT}/api/products
@@ -500,12 +567,13 @@ const startServer = async () => {
         Order Routes:
          • Create Order: POST http://localhost:${PORT}/api/orders
          • My Orders: GET http://localhost:${PORT}/api/orders/myorders
+         • All Orders (Admin): GET http://localhost:${PORT}/api/orders
        
         Analytics Routes:
          • Dashboard: GET http://localhost:${PORT}/api/analytics/dashboard (Admin)
          • Inventory: GET http://localhost:${PORT}/api/analytics/inventory (Admin)
        
-        Cloudinary Routes: - ✅ NEW
+        Cloudinary Routes:
          • Test: GET http://localhost:${PORT}/api/cloudinary/test (Admin)
          • Upload: POST http://localhost:${PORT}/api/cloudinary/upload (Admin)
        

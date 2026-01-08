@@ -1,4 +1,4 @@
-// Backend/routes/admin.js
+// Backend/routes/admin.js - NEW FILE
 import express from 'express';
 import { protect, admin } from '../middleware/auth.js';
 import {

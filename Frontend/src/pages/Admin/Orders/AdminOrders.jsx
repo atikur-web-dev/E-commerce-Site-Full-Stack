@@ -1,4 +1,4 @@
-// Frontend/src/pages/Admin/Orders/AdminOrders.jsx
+// Frontend/src/pages/Admin/Orders/AdminOrders.jsx 
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -14,6 +14,7 @@ const AdminOrders = () => {
   const [dateFilter, setDateFilter] = useState("all");
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [bulkAction, setBulkAction] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (user?.role !== "admin") {
@@ -21,20 +22,91 @@ const AdminOrders = () => {
       return;
     }
     
-    // Fetch orders (for now, using demo data)
-    setTimeout(() => {
-      setOrders(generateDemoOrders());
-      setLoading(false);
-    }, 1000);
+    fetchRealOrders();
   }, [user, navigate]);
 
+  // Fetch real orders from MongoDB
+  const fetchRealOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem("token");
+      console.log("Fetching real orders from API...");
+      
+      const response = await fetch("http://localhost:5000/api/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch orders`);
+      }
+
+      const data = await response.json();
+      console.log("Real orders from MongoDB:", data);
+
+      if (data.success && data.data) {
+        // Transform API data to frontend format
+        const formattedOrders = data.data.map(order => ({
+          _id: order._id,
+          id: order._id,
+          orderId: `ORD-${order._id.toString().slice(-8).toUpperCase()}`,
+          customer: order.user?.name || "Unknown Customer",
+          customerEmail: order.user?.email || "No Email",
+          customerId: order.user?._id,
+          date: order.createdAt,
+          amount: order.totalPrice,
+          status: order.orderStatus?.toLowerCase() || "pending",
+          paymentMethod: order.payment?.method || "cod",
+          items: order.orderItems?.length || 0,
+          address: order.shippingAddress || {
+            street: "Not specified",
+            city: "Not specified",
+            state: "Not specified",
+            country: "Bangladesh",
+            zipCode: "0000",
+            phone: "Not specified"
+          },
+          orderItems: order.orderItems || [],
+          isPaid: order.isPaid,
+          paidAt: order.paidAt,
+          isDelivered: order.isDelivered,
+          deliveredAt: order.deliveredAt,
+          paymentStatus: order.paymentStatus || "pending",
+          orderStatus: order.orderStatus || "pending"
+        }));
+        
+        console.log("Formatted orders:", formattedOrders);
+        setOrders(formattedOrders);
+      } else {
+        setError(data.message || "Failed to fetch orders");
+        // Fallback to demo data
+        setOrders(generateDemoOrders());
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setError(error.message || "Failed to load orders from server");
+      
+      // Fallback to demo data if API fails
+      console.log("Using demo data as fallback");
+      setOrders(generateDemoOrders());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo data generator (fallback)
   const generateDemoOrders = () => {
-    const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
+    const statuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
     const paymentMethods = ["card", "cod", "bkash", "nagad"];
     const customers = ["John Doe", "Jane Smith", "Bob Johnson", "Alice Brown", "Charlie Wilson", "David Lee", "Emma Garcia", "Frank Miller"];
     
     return Array.from({ length: 25 }, (_, i) => ({
-      id: `ORD-${String(i + 1).padStart(4, '0')}`,
+      _id: `demo_${i + 1}`,
+      id: `demo_${i + 1}`,
+      orderId: `ORD-${String(i + 1).padStart(4, '0')}`,
       customer: customers[i % customers.length],
       customerEmail: `${customers[i % customers.length].toLowerCase().replace(' ', '.')}@example.com`,
       date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -43,19 +115,25 @@ const AdminOrders = () => {
       paymentMethod: paymentMethods[i % paymentMethods.length],
       items: Math.floor(Math.random() * 5) + 1,
       address: {
+        street: `${Math.floor(Math.random() * 100)} Street`,
         city: ["Dhaka", "Chittagong", "Rajshahi", "Khulna", "Sylhet"][i % 5],
-        country: "Bangladesh"
+        state: ["Dhaka", "Chittagong", "Rajshahi", "Khulna", "Sylhet"][i % 5],
+        country: "Bangladesh",
+        zipCode: `${Math.floor(Math.random() * 9000) + 1000}`,
+        phone: `01${Math.floor(Math.random() * 90000000) + 10000000}`
       }
     }));
   };
 
+  // Filter orders based on search and filters
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
-    // Date filtering logic
     const orderDate = new Date(order.date);
     const today = new Date();
     const matchesDate = dateFilter === "all" || 
@@ -66,6 +144,7 @@ const AdminOrders = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  // Bulk actions handler
   const handleBulkAction = () => {
     if (!bulkAction || selectedOrders.length === 0) {
       alert("Please select orders and choose an action");
@@ -80,12 +159,16 @@ const AdminOrders = () => {
         alert("Orders deleted successfully!");
       }
     } else {
-      setOrders(orders.map(order => 
-        selectedOrders.includes(order.id) ? { ...order, status: bulkAction } : order
-      ));
-      setSelectedOrders([]);
-      setBulkAction("");
-      alert(`Orders status updated to ${bulkAction}!`);
+      // Update status for selected orders
+      const promises = selectedOrders.map(orderId => 
+        updateOrderStatus(orderId, bulkAction, true)
+      );
+      
+      Promise.all(promises).then(() => {
+        setSelectedOrders([]);
+        setBulkAction("");
+        alert(`Orders status updated to ${bulkAction}!`);
+      });
     }
   };
 
@@ -105,17 +188,91 @@ const AdminOrders = () => {
     );
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-    alert(`Order ${orderId} status updated to ${newStatus}`);
+  // Update order status with real API call
+  const updateOrderStatus = async (orderId, newStatus, silent = false) => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      let endpoint = "";
+      let body = {};
+      
+      // Determine the correct endpoint based on status
+      if (newStatus === "delivered") {
+        endpoint = `deliver`;
+      } else if (newStatus === "paid") {
+        endpoint = `pay`;
+      } else {
+        endpoint = `status`;
+        body = { status: newStatus };
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/${endpoint}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update local state
+        setOrders(orders.map(order => 
+          order._id === orderId ? { 
+            ...order, 
+            status: newStatus,
+            orderStatus: newStatus.charAt(0).toUpperCase() + newStatus.slice(1),
+            isPaid: newStatus === "paid" || newStatus === "delivered" ? true : order.isPaid,
+            isDelivered: newStatus === "delivered" ? true : order.isDelivered,
+            paidAt: newStatus === "paid" ? new Date().toISOString() : order.paidAt,
+            deliveredAt: newStatus === "delivered" ? new Date().toISOString() : order.deliveredAt
+          } : order
+        ));
+        
+        if (!silent) {
+          alert(`Order ${orderId} status updated to ${newStatus}`);
+        }
+        
+        return true;
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update order status");
+      }
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      if (!silent) {
+        alert(`Failed to update order status: ${err.message}`);
+      }
+      return false;
+    }
   };
 
-  const deleteOrder = (orderId) => {
-    if (window.confirm(`Are you sure you want to delete order ${orderId}?`)) {
-      setOrders(orders.filter(order => order.id !== orderId));
-      alert("Order deleted successfully!");
+  // Delete order with real API call
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm(`Are you sure you want to delete this order?`)) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setOrders(orders.filter(order => order._id !== orderId));
+        alert("Order deleted successfully!");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete order");
+      }
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      alert(`Failed to delete order: ${err.message}`);
     }
   };
 
@@ -141,9 +298,10 @@ const AdminOrders = () => {
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return '#f59e0b';
-      case 'processing': return '#3b82f6';
-      case 'shipped': return '#8b5cf6';
-      case 'delivered': return '#10b981';
+      case 'confirmed': return '#3b82f6';
+      case 'processing': return '#8b5cf6';
+      case 'shipped': return '#10b981';
+      case 'delivered': return '#059669';
       case 'cancelled': return '#ef4444';
       default: return '#6b7280';
     }
@@ -163,7 +321,9 @@ const AdminOrders = () => {
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === 'pending').length,
+    confirmed: orders.filter(o => o.status === 'confirmed').length,
     processing: orders.filter(o => o.status === 'processing').length,
+    shipped: orders.filter(o => o.status === 'shipped').length,
     delivered: orders.filter(o => o.status === 'delivered').length,
     revenue: orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + o.amount, 0),
     averageOrder: orders.length > 0 ? orders.reduce((sum, o) => sum + o.amount, 0) / orders.length : 0
@@ -173,7 +333,21 @@ const AdminOrders = () => {
     return (
       <div className="admin-orders-loading">
         <div className="spinner"></div>
-        <p>Loading orders...</p>
+        <p>Loading orders from database...</p>
+      </div>
+    );
+  }
+
+  if (error && orders.length === 0) {
+    return (
+      <div className="admin-orders-error">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Orders</h3>
+        <p>{error}</p>
+        <p className="error-subtext">Showing demo data instead</p>
+        <button onClick={fetchRealOrders} className="retry-btn">
+          Retry Connection
+        </button>
       </div>
     );
   }
@@ -184,8 +358,17 @@ const AdminOrders = () => {
         <div>
           <h1>Order Management</h1>
           <p>Manage and track customer orders</p>
+          {error && orders.length > 0 && (
+            <div className="warning-banner">
+              <span>⚠️</span> Using demo data: {error}
+            </div>
+          )}
         </div>
         <div className="header-actions">
+          <button className="btn btn-secondary" onClick={fetchRealOrders}>
+            <span className="btn-icon">🔄</span>
+            Refresh
+          </button>
           <button className="btn btn-secondary">
             <span className="btn-icon">📥</span>
             Export Orders
@@ -218,9 +401,9 @@ const AdminOrders = () => {
         <div className="stat-card">
           <div className="stat-icon">🚚</div>
           <div className="stat-content">
-            <h3>{stats.processing}</h3>
-            <p>Processing</p>
-            <span className="stat-change">In progress</span>
+            <h3>{stats.processing + stats.shipped}</h3>
+            <p>In Progress</p>
+            <span className="stat-change">Processing</span>
           </div>
         </div>
         <div className="stat-card">
@@ -255,6 +438,7 @@ const AdminOrders = () => {
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
             <option value="processing">Processing</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
@@ -301,6 +485,7 @@ const AdminOrders = () => {
               className="bulk-select"
             >
               <option value="">Bulk Actions</option>
+              <option value="confirmed">Mark as Confirmed</option>
               <option value="processing">Mark as Processing</option>
               <option value="shipped">Mark as Shipped</option>
               <option value="delivered">Mark as Delivered</option>
@@ -358,7 +543,7 @@ const AdminOrders = () => {
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className={`order-row status-${order.status}`}>
+                  <tr key={order._id} className={`order-row status-${order.status}`}>
                     <td>
                       <input
                         type="checkbox"
@@ -368,8 +553,9 @@ const AdminOrders = () => {
                     </td>
                     <td>
                       <div className="order-id-cell">
-                        <strong>{order.id}</strong>
+                        <strong>{order.orderId}</strong>
                         <small>{order.address.city}, {order.address.country}</small>
+                        <small className="db-id">ID: {order._id.substring(0, 8)}...</small>
                       </div>
                     </td>
                     <td>
@@ -380,6 +566,7 @@ const AdminOrders = () => {
                         <div className="customer-details">
                           <strong>{order.customer}</strong>
                           <small>{order.customerEmail}</small>
+                          <small className="customer-id">Customer ID: {order.customerId?.substring(0, 8) || 'N/A'}</small>
                         </div>
                       </div>
                     </td>
@@ -390,6 +577,9 @@ const AdminOrders = () => {
                     </td>
                     <td className="amount-cell">
                       <strong>{formatCurrency(order.amount)}</strong>
+                      <div className="payment-status">
+                        {order.isPaid ? '✅ Paid' : '⏳ Pending'}
+                      </div>
                     </td>
                     <td>
                       <div className="status-cell">
@@ -399,6 +589,7 @@ const AdminOrders = () => {
                         >
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
+                        {order.isDelivered && <div className="delivered-check">✓ Delivered</div>}
                       </div>
                     </td>
                     <td>
@@ -420,7 +611,7 @@ const AdminOrders = () => {
                       <div className="order-actions">
                         <button
                           className="action-btn view-btn"
-                          onClick={() => navigate(`/admin/orders/${order.id}`)}
+                          onClick={() => navigate(`/admin/orders/${order._id}`)}
                           title="View Details"
                         >
                           👁️
@@ -430,15 +621,17 @@ const AdminOrders = () => {
                             🔄
                           </button>
                           <div className="status-menu">
-                            <button onClick={() => updateOrderStatus(order.id, 'processing')}>Processing</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'shipped')}>Shipped</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'delivered')}>Delivered</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'cancelled')}>Cancel</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'confirmed')}>Confirmed</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'processing')}>Processing</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'shipped')}>Shipped</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'delivered')}>Delivered</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'cancelled')}>Cancel</button>
+                            <button onClick={() => updateOrderStatus(order._id, 'paid')}>Mark as Paid</button>
                           </div>
                         </div>
                         <button
                           className="action-btn delete-btn"
-                          onClick={() => deleteOrder(order.id)}
+                          onClick={() => deleteOrder(order._id)}
                           title="Delete Order"
                         >
                           🗑️
@@ -460,6 +653,10 @@ const AdminOrders = () => {
           <div className="legend-item">
             <span className="status-dot pending"></span>
             <span>Pending</span>
+          </div>
+          <div className="legend-item">
+            <span className="status-dot confirmed"></span>
+            <span>Confirmed</span>
           </div>
           <div className="legend-item">
             <span className="status-dot processing"></span>
@@ -484,6 +681,11 @@ const AdminOrders = () => {
       <div className="pagination">
         <div className="pagination-info">
           Showing 1-{Math.min(filteredOrders.length, 10)} of {filteredOrders.length} orders
+          {orders.length > 0 && (
+            <span className="data-source">
+              {error ? ' (Demo Data)' : ' (Live from MongoDB)'}
+            </span>
+          )}
         </div>
         <div className="pagination-controls">
           <button className="pagination-btn" disabled>

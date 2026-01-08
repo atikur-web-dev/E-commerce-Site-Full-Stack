@@ -1,4 +1,4 @@
-// Frontend/src/App.jsx - COMPLETE FIXED VERSION
+// Frontend/src/App.jsx 
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
@@ -28,10 +28,11 @@ import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 import ProductAddEdit from "./pages/Admin/ProductAddEdit/ProductAddEdit";
 import OrderDetails from "./pages/Admin/OrderDetails/OrderDetails";
 
-// Import CSS
-import "./App.css";
+// IMPORT THESE FILES 
+import AdminUsers from "./pages/Admin/Users/AdminUsers";
+import UserDetails from "./pages/Admin/UserDetails/UserDetails";
 
-// Import Components
+import "./App.css";
 import Header from "./components/common/Header/Header";
 import Footer from "./components/common/Footer/Footer";
 
@@ -54,7 +55,7 @@ function App() {
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/cart" element={<Cart />} />
 
-                    {/* ========== PROTECTED ROUTES (Logged in users) ========== */}
+                    {/* ========== PROTECTED ROUTES ========== */}
                     <Route
                       path="/checkout"
                       element={
@@ -89,7 +90,6 @@ function App() {
                     />
 
                     {/* ========== ADMIN ROUTES ========== */}
-                    {/* Admin Dashboard */}
                     <Route
                       path="/admin/dashboard"
                       element={
@@ -99,7 +99,6 @@ function App() {
                       }
                     />
 
-                    {/* Products Management */}
                     <Route
                       path="/admin/products"
                       element={
@@ -125,7 +124,6 @@ function App() {
                       }
                     />
 
-                    {/* Orders Management */}
                     <Route
                       path="/admin/orders"
                       element={
@@ -143,8 +141,7 @@ function App() {
                       }
                     />
 
-                    {/* Users Management - TEMPORARILY COMMENTED (File missing) */}
-                     
+                    {/* ========== USERS MANAGEMENT ROUTES ========== */}
                     <Route
                       path="/admin/users"
                       element={
@@ -161,9 +158,7 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    
 
-                    {/* Analytics */}
                     <Route
                       path="/admin/analytics"
                       element={
@@ -173,7 +168,6 @@ function App() {
                       }
                     />
 
-                    {/* Settings */}
                     <Route
                       path="/admin/settings"
                       element={
@@ -191,7 +185,13 @@ function App() {
                           <h1>404 - Page Not Found</h1>
                           <p>The page you're looking for doesn't exist.</p>
                           <div style={{ marginTop: "20px" }}>
-                            <a href="/" style={{ color: "#3b82f6", textDecoration: "none" }}>
+                            <a
+                              href="/"
+                              style={{
+                                color: "#3b82f6",
+                                textDecoration: "none",
+                              }}
+                            >
                               ← Go back to Home
                             </a>
                           </div>
