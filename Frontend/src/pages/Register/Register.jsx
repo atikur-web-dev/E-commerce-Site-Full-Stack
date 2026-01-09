@@ -1,3 +1,4 @@
+// Frontend/src/pages/Register/Register.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -99,7 +100,7 @@ const Register = () => {
     if (result.success) {
       // ✅ SUCCESS
       setSuccessMessage(
-        "🎉 Registration successful! Please login with your credentials."
+        " Registration successful! Please login with your credentials."
       );
 
       // Clear form

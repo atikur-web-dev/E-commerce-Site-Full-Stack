@@ -1,4 +1,4 @@
-// ./Frontend/src/context/CartContext.jsx - COMPLETE WITH BACKEND
+// ./Frontend/src/context/CartContext.jsx 
 import React, {
   createContext,
   useState,

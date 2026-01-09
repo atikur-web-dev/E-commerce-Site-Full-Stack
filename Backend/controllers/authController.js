@@ -1,3 +1,4 @@
+// Backend/controllers/authController.js 
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import cloudinary from "../config/cloudinary.js";

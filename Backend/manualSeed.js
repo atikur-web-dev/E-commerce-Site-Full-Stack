@@ -1,3 +1,4 @@
+// manualSeed.js
 const mongoose = require('mongoose');
 
 const products = [
@@ -34,15 +35,15 @@ async function insertProducts() {
     
     // Drop collection
     await mongoose.connection.db.collection('products').drop().catch(() => {});
-    console.log('í·‘ï¸ Cleared collection');
+    console.log('ï¿½ï¿½ï¿½ï¸ Cleared collection');
     
     // Insert
     const result = await mongoose.connection.db.collection('products').insertMany(products);
-    console.log(`í³¦ Inserted ${result.insertedCount} products`);
+    console.log(`ï¿½ï¿½ï¿½ Inserted ${result.insertedCount} products`);
     
     // Verify
     const count = await mongoose.connection.db.collection('products').countDocuments();
-    console.log(`í³Š Total products: ${count}`);
+    console.log(`ï¿½ï¿½ï¿½ Total products: ${count}`);
     
     process.exit(0);
   } catch (error) {

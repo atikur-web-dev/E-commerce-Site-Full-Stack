@@ -1,3 +1,4 @@
+// Frontend/src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import API, { authAPI } from "../services/api";
 
@@ -271,7 +272,7 @@ export const AuthProvider = ({ children }) => {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
-          // Note: Don't set Content-Type for FormData, browser sets it automatically with boundary
+          
         },
         body: formData
       });

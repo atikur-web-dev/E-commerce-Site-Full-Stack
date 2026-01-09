@@ -1,17 +1,17 @@
 // Frontend/src/services/api.js
 import axios from "axios";
 
-// Base URL setup - Backend server er address
+// Base URL setup - Backend server address
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // Backend port 5000 e cholbe
+  baseURL: "http://localhost:5000/api", // Backend port 5000
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000, 
 });
 
 // ==================== REQUEST INTERCEPTOR ====================
-// Every request er age token add korbe automatically
+
 API.interceptors.request.use(
   (config) => {
     console.log("Making request to:", config.url);
@@ -31,11 +31,11 @@ API.interceptors.request.use(
 );
 
 // ==================== RESPONSE INTERCEPTOR ====================
-// Every response handle korbe
+
 API.interceptors.response.use(
   (response) => {
     console.log("Response from:", response.config.url, response.status);
-    return response.data; // Direct data return korbe
+    return response.data; 
   },
   (error) => {
     console.error("API Error:", {

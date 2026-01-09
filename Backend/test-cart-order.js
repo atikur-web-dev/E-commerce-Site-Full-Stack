@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+// test-cart-order.js
+//import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Order from './models/Order.js';
 import Cart from './models/Cart.js';
@@ -32,7 +33,7 @@ class CartOrderTester {
   }
 
   async setupTestData() {
-    console.log('🧪 Setting up test data...');
+    console.log(' Setting up test data...');
     
     // Create test user
     this.testUser = new User({
@@ -85,11 +86,11 @@ class CartOrderTester {
     await Product.insertMany(this.testProducts);
     await this.testCart.save();
     
-    console.log('✅ Test data setup complete');
+    console.log(' Test data setup complete');
   }
 
   async testCreateOrder() {
-    console.log('\n🧪 Testing createOrder function...');
+    console.log('\n Testing createOrder function...');
     
     const mockReq = createMockRequest(
       { _id: this.testUser._id },
@@ -118,24 +119,24 @@ class CartOrderTester {
       const response = mockRes.json.mock.calls[0][0];
       
       if (response.success) {
-        console.log('✅ createOrder test PASSED');
+        console.log(' createOrder test PASSED');
         console.log(`   Order ID: ${response.data._id}`);
         console.log(`   Order Status: ${response.data.orderStatus}`);
         console.log(`   Payment Method: ${response.data.payment.method}`);
         return response.data;
       } else {
-        console.log('❌ createOrder test FAILED');
+        console.log(' createOrder test FAILED');
         console.log(`   Error: ${response.message}`);
         return null;
       }
     } catch (error) {
-      console.error('❌ createOrder test ERROR:', error.message);
+      console.error(' createOrder test ERROR:', error.message);
       return null;
     }
   }
 
   async testGetMyOrders() {
-    console.log('\n🧪 Testing getMyOrders function...');
+    console.log('\n Testing getMyOrders function...');
     
     const mockReq = createMockRequest({ _id: this.testUser._id });
     const mockRes = createMockResponse();
@@ -149,29 +150,29 @@ class CartOrderTester {
       const response = mockRes.json.mock.calls[0][0];
       
       if (response.success) {
-        console.log('✅ getMyOrders test PASSED');
+        console.log(' getMyOrders test PASSED');
         console.log(`   Found ${response.count} orders`);
         return response.data;
       } else {
-        console.log('❌ getMyOrders test FAILED');
+        console.log(' getMyOrders test FAILED');
         return null;
       }
     } catch (error) {
-      console.error('❌ getMyOrders test ERROR:', error.message);
+      console.error(' getMyOrders test ERROR:', error.message);
       return null;
     }
   }
 
   async runAllTests() {
-    console.log('🚀 Starting Cart → Order Flow Tests');
+    console.log(' Starting Cart → Order Flow Tests');
     console.log('='.repeat(50));
     
     // Connect to MongoDB
     try {
       await mongoose.connect(process.env.MONGODB_URI);
-      console.log('✅ Connected to MongoDB');
+      console.log(' Connected to MongoDB');
     } catch (error) {
-      console.error('❌ MongoDB connection failed:', error.message);
+      console.error(' MongoDB connection failed:', error.message);
       return;
     }
     
@@ -188,7 +189,7 @@ class CartOrderTester {
     await this.cleanup();
     
     console.log('\n' + '='.repeat(50));
-    console.log('✅ All Cart→Order tests completed');
+    console.log(' All Cart→Order tests completed');
   }
 
   async cleanup() {
@@ -209,9 +210,9 @@ class CartOrderTester {
       // Delete any test orders
       await Order.deleteMany({ user: this.testUser?._id });
       
-      console.log('✅ Cleanup completed');
+      console.log(' Cleanup completed');
     } catch (error) {
-      console.error('❌ Cleanup error:', error.message);
+      console.error(' Cleanup error:', error.message);
     }
     
     await mongoose.disconnect();
@@ -223,7 +224,7 @@ const tester = new CartOrderTester();
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (error) => {
-  console.error('❌ Unhandled Rejection:', error);
+  console.error(' Unhandled Rejection:', error);
   process.exit(1);
 });
 

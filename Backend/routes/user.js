@@ -1,4 +1,4 @@
-// Backend/routes/user.js - COMPLETE FIXED VERSION
+// Backend/routes/user.js
 import express from "express";
 import User from "../models/User.js";
 import Order from "../models/Order.js";

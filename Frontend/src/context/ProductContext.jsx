@@ -1,3 +1,4 @@
+// Frontend/src/context/ProductContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { productAPI } from "../services/api";
 

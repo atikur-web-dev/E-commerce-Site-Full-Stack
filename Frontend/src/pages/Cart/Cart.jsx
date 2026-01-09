@@ -1,3 +1,4 @@
+// Frontend/src/pages/Cart/Cart.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
@@ -242,10 +243,10 @@ const Cart = () => {
             <div className="cart-benefits">
               <h4>🛡️ Shop with Confidence</h4>
               <ul>
-                <li>✅ 30-Day Return Policy</li>
-                <li>✅ Free Shipping over ৳500</li>
-                <li>✅ 24/7 Customer Support</li>
-                <li>✅ Secure Payment</li>
+                <li> 30-Day Return Policy</li>
+                <li> Free Shipping over ৳500</li>
+                <li> 24/7 Customer Support</li>
+                <li> Secure Payment</li>
               </ul>
             </div>
           </div>

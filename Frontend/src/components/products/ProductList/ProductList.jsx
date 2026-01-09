@@ -1,4 +1,4 @@
-// ./Frontend/src/components/products/ProductList/ProductList.jsx
+// Frontend/src/components/products/ProductList/ProductList.jsx
 import React from "react";
 import ProductCard from "../ProductCard/ProductCard";
 import "./ProductList.css";

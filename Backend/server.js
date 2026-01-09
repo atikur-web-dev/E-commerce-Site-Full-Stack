@@ -207,7 +207,7 @@ app.post(
   uploadSingle,
   async (req, res) => {
     try {
-      console.log("📤 Cloudinary direct upload request received");
+      console.log(" Cloudinary direct upload request received");
 
       if (!req.file) {
         return res.status(400).json({
@@ -216,7 +216,7 @@ app.post(
         });
       }
 
-      console.log("📁 File details:", {
+      console.log(" File details:", {
         originalname: req.file.originalname,
         mimetype: req.file.mimetype,
         size: req.file.size,
@@ -235,7 +235,7 @@ app.post(
         ],
       });
 
-      console.log("✅ Upload successful:", {
+      console.log(" Upload successful:", {
         publicId: result.public_id,
         url: result.secure_url,
       });
@@ -253,7 +253,7 @@ app.post(
         },
       });
     } catch (error) {
-      console.error("❌ Cloudinary upload error:", error);
+      console.error(" Cloudinary upload error:", error);
 
       res.status(500).json({
         success: false,
@@ -341,7 +341,7 @@ app.get("/api/admin/test", protect, admin, (req, res) => {
 app.get("/", (req, res) => {
   res.json({
     message: "ShopEasy Backend API is running!",
-    version: "3.3.0", // ✅ UPDATED VERSION
+    version: "3.3.0",
     database:
       mongoose.connection.readyState === 1 ? "Connected" : "Not Connected",
     cloudinary: process.env.CLOUDINARY_CLOUD_NAME

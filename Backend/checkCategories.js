@@ -1,4 +1,3 @@
-// Backend folder-এ একটি test script তৈরি করো
 // checkCategories.js
 import mongoose from "mongoose";
 import Product from "./models/Product.js";

@@ -1,4 +1,4 @@
-// Shop.jsx - সম্পূর্ণ নতুন version (FIXED)
+// Frontend/src/pages/Shop/Shop.jsx
 import React, { useState, useEffect } from "react";
 import { useProducts } from "../../context/ProductContext";
 import ProductCard from "../../components/products/ProductCard/ProductCard";

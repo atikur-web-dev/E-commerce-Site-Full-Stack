@@ -1,3 +1,4 @@
+// Backend/config/stripe-simple.js
 import dotenv from 'dotenv';
 
 dotenv.config();

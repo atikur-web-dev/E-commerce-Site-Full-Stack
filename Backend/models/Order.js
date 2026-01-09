@@ -1,3 +1,4 @@
+// Backend/models/Cart.js
 import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({

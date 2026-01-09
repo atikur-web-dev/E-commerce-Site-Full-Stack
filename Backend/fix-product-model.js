@@ -5,17 +5,17 @@ dotenv.config();
 
 // Connect to MongoDB
 await mongoose.connect(process.env.MONGODB_URI);
-console.log('✅ Connected to MongoDB');
+console.log(' Connected to MongoDB');
 
 // Check Product schema
 const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: { type: String, required: false }, // ✅ Change to not required
+  description: { type: String, required: false }, 
   price: { type: Number, required: true },
   category: { type: String, required: true },
-  brand: { type: String, required: false }, // ✅ Change to not required
-  image: { type: String, required: false }, // ✅ Change to not required
-  images: [{ type: String }], // ✅ Add images array
+  brand: { type: String, required: false }, 
+  image: { type: String, required: false },
+  images: [{ type: String }], 
   stock: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
@@ -32,20 +32,20 @@ const testProduct = new Product({
   name: 'Test Product Fix',
   price: 99.99,
   category: 'electronics',
-  images: ['test.jpg'], // Use images instead of image
+  images: ['test.jpg'], 
   stock: 10
 });
 
 try {
   await testProduct.save();
-  console.log('✅ Test product created successfully');
+  console.log(' Test product created successfully');
   console.log('Product schema is working correctly');
 } catch (error) {
-  console.error('❌ Error creating test product:', error.message);
+  console.error(' Error creating test product:', error.message);
   
   // Check what fields are actually required
   const schemaPaths = Product.schema.paths;
-  console.log('\n📋 Required fields in Product schema:');
+  console.log('\n Required fields in Product schema:');
   for (const [path, schemaType] of Object.entries(schemaPaths)) {
     if (schemaType.isRequired) {
       console.log(`  - ${path}: ${schemaType.instance}`);
@@ -73,10 +73,10 @@ try {
     }
   );
   
-  console.log(`✅ Updated ${result.modifiedCount} products with default values`);
+  console.log(` Updated ${result.modifiedCount} products with default values`);
 } catch (error) {
-  console.error('❌ Error updating products:', error.message);
+  console.error(' Error updating products:', error.message);
 }
 
 await mongoose.disconnect();
-console.log('🔌 MongoDB Disconnected');
+console.log(' MongoDB Disconnected');

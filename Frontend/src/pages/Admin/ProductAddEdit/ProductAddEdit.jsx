@@ -1,4 +1,4 @@
-// Frontend/src/pages/Admin/ProductAddEdit/ProductAddEdit.jsx - COMPLETE FIXED
+// Frontend/src/pages/Admin/ProductAddEdit/ProductAddEdit.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./ProductAddEdit.css";

@@ -1,4 +1,4 @@
-// Backend/seedProducts.js - FIXED PRICES + LOCAL IMAGES
+// Backend/seedProducts.js
 import mongoose from "mongoose";
 import Product from "./models/Product.js";
 import dotenv from "dotenv";
@@ -192,7 +192,7 @@ const products = [
   {
     name: "iPad Pro 12.9-inch M2",
     description: "Professional tablet with Liquid Retina XDR display",
-    price: 169999, // ৳169,999
+    price: 169999,
     category: "Tablets",
     brand: "Apple",
     images: [
@@ -214,7 +214,7 @@ const products = [
   {
     name: "Samsung Galaxy Tab S9 Ultra",
     description: "Android tablet with S Pen, AMOLED display",
-    price: 149999, // ৳149,999
+    price: 149999, 
     category: "Tablets",
     brand: "Samsung",
     images: [
@@ -236,7 +236,7 @@ const products = [
   {
     name: "Microsoft Surface Pro 9",
     description: "2-in-1 laptop tablet with Intel Core i7",
-    price: 179999, // ৳179,999
+    price: 179999, 
     category: "Tablets",
     brand: "Microsoft",
     images: [

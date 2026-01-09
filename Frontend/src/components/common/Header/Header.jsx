@@ -1,3 +1,4 @@
+// Frontend/src/components/common/Header/Header.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";

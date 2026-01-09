@@ -1,3 +1,4 @@
+// test-payment-flow.js
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Order from './models/Order.js';
@@ -74,10 +75,10 @@ class PaymentFlowTester {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
-      console.log('✅ MongoDB Connected');
+      console.log(' MongoDB Connected');
       return true;
     } catch (error) {
-      console.error('❌ MongoDB Connection Error:', error.message);
+      console.error(' MongoDB Connection Error:', error.message);
       return false;
     }
   }
@@ -90,19 +91,19 @@ class PaymentFlowTester {
   }
 
   async testStripeConnection() {
-    console.log('\n💳 Testing Stripe Connection...');
+    console.log('\n Testing Stripe Connection...');
     try {
       const balance = await stripe.balance.retrieve();
-      console.log('✅ Stripe Connection Successful');
-      console.log(`💰 Available Balance: $${(balance.available[0]?.amount / 100).toFixed(2)}`);
-      console.log(`🏦 Currency: ${balance.available[0]?.currency}`);
+      console.log(' Stripe Connection Successful');
+      console.log(` Available Balance: $${(balance.available[0]?.amount / 100).toFixed(2)}`);
+      console.log(` Currency: ${balance.available[0]?.currency}`);
       return true;
     } catch (error) {
-      console.error('❌ Stripe Connection Failed:', error.message);
+      console.error(' Stripe Connection Failed:', error.message);
       
       if (error.type === 'StripeAuthenticationError') {
-        console.log('🔑 Please check your STRIPE_SECRET_KEY in .env file');
-        console.log('💡 Get test keys from: https://dashboard.stripe.com/test/apikeys');
+        console.log(' Please check your STRIPE_SECRET_KEY in .env file');
+        console.log(' Get test keys from: https://dashboard.stripe.com/test/apikeys');
       }
       
       return false;
@@ -110,7 +111,7 @@ class PaymentFlowTester {
   }
 
   async testCODOrderFlow() {
-    console.log('\n📦 Testing COD Order Flow...');
+    console.log('\n Testing COD Order Flow...');
     
     try {
       // 1. Create COD Order
@@ -142,7 +143,7 @@ class PaymentFlowTester {
       this.testOrder = new Order(orderData);
       await this.testOrder.save();
       
-      console.log(`✅ COD Order Created: ${this.testOrder._id}`);
+      console.log(` COD Order Created: ${this.testOrder._id}`);
       console.log(`   Order Status: ${this.testOrder.orderStatus}`);
       console.log(`   Payment Status: ${this.testOrder.paymentStatus}`);
       console.log(`   Total Price: $${this.testOrder.totalPrice.toFixed(2)}`);
@@ -152,19 +153,19 @@ class PaymentFlowTester {
       this.testOrder.orderStatus = 'confirmed';
       await this.testOrder.save();
       
-      console.log(`✅ Order Status Updated to: ${this.testOrder.orderStatus}`);
-      console.log('📝 Note: For COD orders, stock is reduced immediately after order confirmation');
+      console.log(` Order Status Updated to: ${this.testOrder.orderStatus}`);
+      console.log(' Note: For COD orders, stock is reduced immediately after order confirmation');
       
       return this.testOrder;
 
     } catch (error) {
-      console.error('❌ COD Order Flow Error:', error.message);
+      console.error(' COD Order Flow Error:', error.message);
       return null;
     }
   }
 
   async testCardPaymentFlow() {
-    console.log('\n💳 Testing Card Payment Flow...');
+    console.log('\n Testing Card Payment Flow...');
     
     try {
       // 1. Create order for card payment
@@ -198,7 +199,7 @@ class PaymentFlowTester {
       this.testOrder = new Order(orderData);
       await this.testOrder.save();
       
-      console.log(`✅ Order Created: ${this.testOrder._id}`);
+      console.log(` Order Created: ${this.testOrder._id}`);
       console.log(`   Total Price: $${this.testOrder.totalPrice.toFixed(2)}`);
 
       // 2. Create Payment Intent
@@ -235,7 +236,7 @@ class PaymentFlowTester {
       
       await this.testOrder.save();
       
-      console.log(`✅ Payment Intent Created: ${paymentIntent.id}`);
+      console.log(` Payment Intent Created: ${paymentIntent.id}`);
       console.log(`   Amount: $${(paymentIntent.amount / 100).toFixed(2)}`);
       console.log(`   Status: ${paymentIntent.status}`);
       console.log(`   Client Secret: ${paymentIntent.client_secret ? '✓ Present' : '✗ Missing'}`);
@@ -248,7 +249,7 @@ class PaymentFlowTester {
         payment_method: 'pm_card_visa', // Stripe test payment method
       });
       
-      console.log(`✅ Payment Confirmed`);
+      console.log(` Payment Confirmed`);
       console.log(`   New Status: ${confirmedIntent.status}`);
       
       if (confirmedIntent.status === 'succeeded') {
@@ -263,7 +264,7 @@ class PaymentFlowTester {
         
         await this.testOrder.save();
         
-        console.log(`✅ Order Updated to Paid`);
+        console.log(` Order Updated to Paid`);
         console.log(`   Order Status: ${this.testOrder.orderStatus}`);
         console.log(`   Payment Status: ${this.testOrder.paymentStatus}`);
         console.log(`   Is Paid: ${this.testOrder.isPaid}`);
@@ -271,7 +272,7 @@ class PaymentFlowTester {
         // Check stock reduction
         console.log('\n5. Verifying Stock Reduction...');
         // Note: In real scenario, you would fetch product and check stock
-        console.log('📝 Note: Product stock should be reduced by 1');
+        console.log(' Note: Product stock should be reduced by 1');
       }
 
       return {
@@ -280,26 +281,26 @@ class PaymentFlowTester {
       };
 
     } catch (error) {
-      console.error('❌ Card Payment Flow Error:', error.message);
+      console.error(' Card Payment Flow Error:', error.message);
       return null;
     }
   }
 
   async runAllTests() {
-    console.log('🚀 Starting Payment Flow Tests');
+    console.log(' Starting Payment Flow Tests');
     console.log('='.repeat(50));
 
     // Connect to DB
     const dbConnected = await this.connectDB();
     if (!dbConnected) {
-      console.log('❌ Tests cannot proceed without DB connection');
+      console.log(' Tests cannot proceed without DB connection');
       return;
     }
 
     // Test Stripe Connection
     const stripeConnected = await this.testStripeConnection();
     if (!stripeConnected) {
-      console.log('⚠️ Stripe not connected, but will continue with simulated tests');
+      console.log(' Stripe not connected, but will continue with simulated tests');
     }
 
     // Test COD Flow
@@ -309,12 +310,12 @@ class PaymentFlowTester {
     if (stripeConnected) {
       await this.testCardPaymentFlow();
     } else {
-      console.log('\n💳 Skipping Card Payment Test (Stripe not connected)');
+      console.log('\n Skipping Card Payment Test (Stripe not connected)');
     }
 
     console.log('\n' + '='.repeat(50));
-    console.log('✅ All Tests Completed');
-    console.log('\n📋 Test Summary:');
+    console.log(' All Tests Completed');
+    console.log('\n Test Summary:');
     console.log('1. COD Order Flow: ✓ Working');
     console.log('2. Card Payment Flow:', stripeConnected ? '✓ Working' : '✗ Skipped (Stripe not connected)');
     console.log('3. Database Connection: ✓ Working');
@@ -324,15 +325,15 @@ class PaymentFlowTester {
   }
 
   async cleanup() {
-    console.log('\n🧹 Cleaning up test data...');
+    console.log('\n Cleaning up test data...');
     try {
       if (this.testOrder) {
         await Order.deleteOne({ _id: this.testOrder._id });
-        console.log('✅ Test order deleted');
+        console.log(' Test order deleted');
       }
-      console.log('✅ Cleanup completed');
+      console.log(' Cleanup completed');
     } catch (error) {
-      console.error('❌ Cleanup error:', error.message);
+      console.error(' Cleanup error:', error.message);
     }
     
     await this.disconnectDB();
@@ -365,7 +366,7 @@ const testType = args[0] || 'all';
       await tester.runAllTests();
     }
   } catch (error) {
-    console.error('❌ Test Runner Error:', error);
+    console.error(' Test Runner Error:', error);
     process.exit(1);
   }
 })();

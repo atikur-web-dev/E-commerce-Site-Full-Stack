@@ -1,4 +1,4 @@
-// Backend/routes/order.js - COMPLETE FIXED VERSION
+// Backend/routes/order.js 
 import express from 'express';
 import {
   createOrder,
@@ -17,8 +17,6 @@ import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// ========== PUBLIC ROUTES ==========
-// None
 
 // ========== PROTECTED ROUTES ==========
 router.use(protect);

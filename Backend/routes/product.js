@@ -1,4 +1,4 @@
-// Backend/routes/product.js - COMPLETE CORRECT VERSION
+// Backend/routes/product.js 
 import express from "express";
 import {
   getProducts,
@@ -21,7 +21,6 @@ const router = express.Router();
 
 // ====================== SPECIFIC ROUTES FIRST ======================
 
-//  MUST BE FIRST: Test Cloudinary connection
 router.get("/test-upload", protect, admin, testCloudinaryConnection);
 
 //  Image Upload Routes
