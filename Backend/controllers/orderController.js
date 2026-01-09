@@ -1,3 +1,4 @@
+// Backend/controllers/orderController.js - COMPLETE FIXED VERSION
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
@@ -182,10 +183,10 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get order by ID
+// @desc    Get order by ID (for users - checks ownership)
 // @route   GET /api/orders/:id
 // @access  Private
-export const getOrderById = asyncHandler(async (req, res) => {
+export const getOrderByIdUser = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "name email")
@@ -198,11 +199,11 @@ export const getOrderById = asyncHandler(async (req, res) => {
       });
     }
 
-    // Simple authorization for practicum
-    if (order.user._id.toString() !== req.user._id.toString()) {
+    // Check if user is admin OR order belongs to user
+    if (req.user.role !== "admin" && order.user._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message: "Not authorized",
+        message: "Not authorized to view this order",
       });
     }
 
@@ -212,6 +213,43 @@ export const getOrderById = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.error("Get Order Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+// @desc    Get any order by ID (Admin access)
+// @route   GET /api/orders/admin/:id
+// @access  Private/Admin
+export const getOrderByIdAdmin = asyncHandler(async (req, res) => {
+  try {
+    // Admin check
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin access required",
+      });
+    }
+
+    const order = await Order.findById(req.params.id)
+      .populate("user", "name email phone")
+      .populate("orderItems.product", "name images price stock");
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    console.error("Get Order Admin Error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -277,6 +315,37 @@ export const getOrders = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get all orders (Alternative for frontend)
+// @route   GET /api/orders/all
+// @access  Private/Admin
+export const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    // Admin check
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin access required",
+      });
+    }
+
+    const orders = await Order.find({})
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    
+    res.json({
+      success: true,
+      data: orders,
+      count: orders.length
+    });
+  } catch (error) {
+    console.error("Get all orders error:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error" 
+    });
+  }
+});
+
 // @desc    Update order to paid (Simplified for Practicum)
 // @route   PUT /api/orders/:id/pay
 // @access  Private
@@ -292,7 +361,7 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
     }
 
     // For practicum: simple authorization
-    if (order.user.toString() !== req.user._id.toString()) {
+    if (order.user.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Not authorized",
@@ -390,8 +459,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
       });
     }
 
-    // Check authorization
-    if (order.user.toString() !== req.user._id.toString()) {
+    // Check authorization (user or admin)
+    if (order.user.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Not authorized",
@@ -435,6 +504,80 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Update order status (Admin only)
+// @route   PUT /api/orders/:id/status
+// @access  Private/Admin
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Admin check
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin access required",
+      });
+    }
+
+    // Update status
+    order.orderStatus = status;
+    
+    // Automatically mark as delivered if status is delivered
+    if (status === 'delivered') {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+      
+      // For COD orders, mark as paid on delivery
+      if (order.payment.method === "cod" && !order.isPaid) {
+        order.isPaid = true;
+        order.payment.status = "paid";
+        order.paymentStatus = "paid";
+        order.paidAt = Date.now();
+      }
+    }
+    
+    // Automatically mark as cancelled if status is cancelled
+    if (status === 'cancelled') {
+      if (order.isPaid) {
+        order.payment.status = "refunded";
+        order.paymentStatus = "refunded";
+      }
+    }
+
+    const updatedOrder = await order.save();
+
+    res.json({
+      success: true,
+      data: updatedOrder,
+      message: `Order status updated to ${status}`,
+    });
+  } catch (error) {
+    console.error("Update Order Status Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating order status",
+    });
+  }
+});
+
 // @desc    Clear order history
 // @route   DELETE /api/orders/clear-history
 // @access  Private
@@ -455,15 +598,39 @@ export const clearOrderHistory = asyncHandler(async (req, res) => {
     });
   }
 });
-export const getAllOrders = asyncHandler(async (req, res) => {
+// @desc    Get order by ID (alias for getOrderByIdUser - for compatibility)
+// @route   GET /api/orders/:id
+// @access  Private
+export const getOrderById = asyncHandler(async (req, res) => {
   try {
-    const orders = await Order.find({})
+    const order = await Order.findById(req.params.id)
       .populate("user", "name email")
-      .sort({ createdAt: -1 });
-    
-    res.json(orders);
+      .populate("orderItems.product", "name images price");
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Check if user is admin OR order belongs to user
+    if (req.user.role !== "admin" && order.user._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this order",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: order,
+    });
   } catch (error) {
-    console.error("Get all orders error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Get Order Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 });

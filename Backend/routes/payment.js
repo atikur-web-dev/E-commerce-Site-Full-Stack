@@ -2,7 +2,7 @@
 import express from 'express';
 import {
   createOrder,
-  getOrderById,
+  getOrderByIdUser, 
   getMyOrders,
   getOrders,
   updateOrderToPaid,
@@ -23,7 +23,7 @@ router.route('/')
 router.route('/myorders').get(protect, getMyOrders); // Get user's orders
 
 router.route('/:id')
-  .get(protect, getOrderById); // Get order by ID
+  .get(protect, getOrderByIdUser); 
 
 router.route('/:id/pay').put(protect, updateOrderToPaid); // Update order to paid
 

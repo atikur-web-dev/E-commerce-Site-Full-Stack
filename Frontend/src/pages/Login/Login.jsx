@@ -269,18 +269,7 @@ const Login = () => {
           </p>
         </div>
 
-        {userType === "admin" && (
-          <div className="admin-note">
-            <p>
-              💡 <strong>Demo Admin Credentials:</strong>
-            </p>
-            <p>Email: admin@example.com</p>
-            <p>Password: admin123</p>
-            <p className="note-text">
-              This is for demonstration purposes only.
-            </p>
-          </div>
-        )}
+        
       </div>
     </div>
   );

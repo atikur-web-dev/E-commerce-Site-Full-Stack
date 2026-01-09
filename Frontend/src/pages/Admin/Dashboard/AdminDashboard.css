@@ -719,6 +719,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background-color: #0ea5e9;
 }
 
 .status-badge.status-pending {

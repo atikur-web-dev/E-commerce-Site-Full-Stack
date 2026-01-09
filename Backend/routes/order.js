@@ -1,34 +1,62 @@
-// Backend/routes/order.js
+// Backend/routes/order.js - COMPLETE FIXED VERSION
 import express from 'express';
 import {
   createOrder,
-  getOrderById,
+  getOrderByIdUser,
+  getOrderByIdAdmin,
   getMyOrders,
   getOrders,
+  getAllOrders,
   updateOrderToPaid,
   updateOrderToDelivered,
   cancelOrder,
+  updateOrderStatus,
+  clearOrderHistory,
 } from '../controllers/orderController.js';
 import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Public routes - none
-// router.get("/", protect, admin, getAllOrders);
-// Protected routes
-router.route('/')
-  .post(protect, createOrder) // Create new order
-  .get(protect, admin, getOrders); // Get all orders (admin)
+// ========== PUBLIC ROUTES ==========
+// None
 
-router.route('/myorders').get(protect, getMyOrders); // Get user's orders
+// ========== PROTECTED ROUTES ==========
+router.use(protect);
 
-router.route('/:id')
-  .get(protect, getOrderById); // Get order by ID
+// Create new order
+router.post('/', createOrder);
 
-router.route('/:id/pay').put(protect, updateOrderToPaid); // Update order to paid
+// Get user's orders
+router.get('/myorders', getMyOrders);
 
-router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered); // Update order to delivered (admin)
+// Get specific order (user access - checks ownership)
+router.get('/:id', getOrderByIdUser);
 
-router.route('/:id/cancel').put(protect, cancelOrder); // Cancel order
+// Update order to paid
+router.put('/:id/pay', updateOrderToPaid);
+
+// Cancel order
+router.put('/:id/cancel', cancelOrder);
+
+// Clear order history
+router.delete('/clear-history', clearOrderHistory);
+
+// ========== ADMIN ROUTES ==========
+router.use(admin);
+
+// Get all orders (admin view)
+router.get('/', getOrders);
+
+// Alternative get all orders
+router.get('/all', getAllOrders);
+
+// Admin access to any order
+router.get('/admin/:id', getOrderByIdAdmin);
+
+// Update order to delivered
+router.put('/:id/deliver', updateOrderToDelivered);
+
+// Update order status (admin)
+router.put('/:id/status', updateOrderStatus);
 
 export default router;
