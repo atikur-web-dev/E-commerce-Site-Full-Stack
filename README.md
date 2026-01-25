@@ -1,6 +1,6 @@
 # ShopEasy - Full Stack E-commerce Platform
 
-## 🚀 Features
+##  Features
 
 - **User Authentication** (Register/Login with JWT)
 - **Product Catalog** with search & filters
@@ -9,14 +9,14 @@
 - **Admin Panel** for product management
 - **Responsive Design** for all devices
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 **Frontend:** React, Vite, Context API, Axios  
 **Backend:** Node.js, Express.js, MongoDB, Mongoose  
 **Authentication:** JWT, bcryptjs  
 **Deployment:** Ready for Vercel/Heroku
 
-## 📁 Project Structure
+##  Project Structure
 
 E-commerce-site/
 ├── Frontend/ # React frontend

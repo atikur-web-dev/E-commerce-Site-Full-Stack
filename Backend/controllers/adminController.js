@@ -1,4 +1,4 @@
-// Backend/controllers/adminController.js - COMPLETE VERSION
+// Backend/controllers/adminController.js
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
 import Order from '../models/Order.js';
