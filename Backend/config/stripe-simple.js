@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log(' Using SIMPLE payment mode for Practicum project');
+
 
 const SimpleStripe = {
   
