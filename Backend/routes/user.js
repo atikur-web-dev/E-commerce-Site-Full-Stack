@@ -7,9 +7,7 @@ import asyncHandler from "express-async-handler";
 
 const router = express.Router();
 
-// @desc    Get all users (Admin only)
-// @route   GET /api/users
-// @access  Private/Admin
+
 router.get("/", protect, admin, asyncHandler(async (req, res) => {
   try {
     console.log("Fetching all users for admin...");
@@ -72,9 +70,7 @@ router.get("/", protect, admin, asyncHandler(async (req, res) => {
   }
 }));
 
-// @desc    Get user by ID with detailed statistics
-// @route   GET /api/users/:id
-// @access  Private/Admin
+
 router.get("/:id", protect, admin, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
@@ -158,9 +154,7 @@ router.get("/:id", protect, admin, asyncHandler(async (req, res) => {
   }
 }));
 
-// @desc    Update user (role, status, etc.)
-// @route   PUT /api/users/:id
-// @access  Private/Admin
+
 router.put("/:id", protect, admin, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -212,9 +206,7 @@ router.put("/:id", protect, admin, asyncHandler(async (req, res) => {
   }
 }));
 
-// @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
+
 router.delete("/:id", protect, admin, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -260,9 +252,6 @@ router.delete("/:id", protect, admin, asyncHandler(async (req, res) => {
   }
 }));
 
-// @desc    Get user statistics for admin dashboard
-// @route   GET /api/users/stats/summary
-// @access  Private/Admin
 router.get("/stats/summary", protect, admin, asyncHandler(async (req, res) => {
   try {
     // Total users count

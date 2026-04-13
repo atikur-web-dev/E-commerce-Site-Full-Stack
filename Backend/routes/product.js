@@ -19,7 +19,7 @@ import { uploadSingle, uploadMultiple, checkFileUpload } from "../middleware/upl
 
 const router = express.Router();
 
-// ====================== SPECIFIC ROUTES FIRST ======================
+
 
 router.get("/test-upload", protect, admin, testCloudinaryConnection);
 
@@ -50,7 +50,7 @@ router.get("/featured", getFeaturedProducts);
 //  Category products route
 router.get("/category/:category", getProductsByCategory);
 
-// ====================== DYNAMIC ROUTES LAST ======================
+
 
 // Get all products & Create product (DYNAMIC - MUST BE LAST)
 router.route("/")

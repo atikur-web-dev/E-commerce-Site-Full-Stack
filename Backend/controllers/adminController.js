@@ -4,9 +4,7 @@ import User from '../models/User.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 
-// @desc    Get admin dashboard stats
-// @route   GET /api/admin/dashboard-stats
-// @access  Private/Admin
+
 export const getAdminStats = asyncHandler(async (req, res) => {
   try {
     // Get total counts
@@ -155,9 +153,7 @@ export const getAdminStats = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get user statistics
-// @route   GET /api/admin/users
-// @access  Private/Admin
+
 export const getUserStats = asyncHandler(async (req, res) => {
   try {
     const users = await User.find({})
@@ -222,9 +218,7 @@ export const getUserStats = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get sales statistics
-// @route   GET /api/admin/sales-report
-// @access  Private/Admin
+
 export const getSalesStats = asyncHandler(async (req, res) => {
   try {
     // Today's sales
@@ -348,9 +342,7 @@ export const getSalesStats = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get product statistics
-// @route   GET /api/admin/product-stats
-// @access  Private/Admin
+
 export const getProductStats = asyncHandler(async (req, res) => {
   try {
     // Product counts by category
@@ -436,9 +428,7 @@ export const getProductStats = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update user role
-// @route   PUT /api/admin/users/:id/role
-// @access  Private/Admin
+
 export const updateUserRole = asyncHandler(async (req, res) => {
   try {
     const { role } = req.body;
@@ -491,9 +481,7 @@ export const updateUserRole = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update user status
-// @route   PUT /api/admin/users/:id/status
-// @access  Private/Admin
+
 export const updateUserStatus = asyncHandler(async (req, res) => {
   try {
     const { isActive } = req.body;
@@ -546,9 +534,7 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Delete user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/Admin
+
 export const deleteUser = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);

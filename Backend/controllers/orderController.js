@@ -257,9 +257,7 @@ export const getOrderByIdAdmin = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get logged in user orders
-// @route   GET /api/orders/myorders
-// @access  Private
+
 export const getMyOrders = asyncHandler(async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
@@ -283,9 +281,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get all orders (Admin - Simplified for Practicum)
-// @route   GET /api/orders
-// @access  Private/Admin
+
 export const getOrders = asyncHandler(async (req, res) => {
   try {
     // Simple admin check for practicum
@@ -315,9 +311,6 @@ export const getOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get all orders (Alternative for frontend)
-// @route   GET /api/orders/all
-// @access  Private/Admin
 export const getAllOrders = asyncHandler(async (req, res) => {
   try {
     // Admin check
@@ -346,9 +339,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order to paid (Simplified for Practicum)
-// @route   PUT /api/orders/:id/pay
-// @access  Private
 export const updateOrderToPaid = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -395,9 +385,7 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order to delivered (Simplified)
-// @route   PUT /api/orders/:id/deliver
-// @access  Private/Admin
+
 export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -445,9 +433,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Cancel order (Simplified)
-// @route   PUT /api/orders/:id/cancel
-// @access  Private
+
 export const cancelOrder = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -504,9 +490,6 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order status (Admin only)
-// @route   PUT /api/orders/:id/status
-// @access  Private/Admin
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   try {
     const { status } = req.body;
@@ -578,9 +561,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Clear order history
-// @route   DELETE /api/orders/clear-history
-// @access  Private
+
 export const clearOrderHistory = asyncHandler(async (req, res) => {
   try {
     const result = await Order.deleteMany({ user: req.user._id });
@@ -598,9 +579,7 @@ export const clearOrderHistory = asyncHandler(async (req, res) => {
     });
   }
 });
-// @desc    Get order by ID (alias for getOrderByIdUser - for compatibility)
-// @route   GET /api/orders/:id
-// @access  Private
+
 export const getOrderById = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)

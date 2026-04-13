@@ -4,9 +4,6 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import asyncHandler from "express-async-handler";
 
-// @desc    Create new order (without payment)
-// @route   POST /api/orders
-// @access  Private
 export const createOrder = asyncHandler(async (req, res) => {
   try {
     const { shippingAddress, paymentMethod, notes } = req.body;
@@ -126,9 +123,6 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get order by ID
-// @route   GET /api/orders/:id
-// @access  Private
 export const getOrderById = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -167,9 +161,6 @@ export const getOrderById = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get logged in user orders
-// @route   GET /api/orders/myorders
-// @access  Private
 export const getMyOrders = asyncHandler(async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
@@ -191,9 +182,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get all orders (Admin)
-// @route   GET /api/orders
-// @access  Private/Admin
+
 export const getOrders = asyncHandler(async (req, res) => {
   try {
     const orders = await Order.find({})
@@ -216,9 +205,7 @@ export const getOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order to paid (after successful payment)
-// @route   PUT /api/orders/:id/pay
-// @access  Private
+
 export const updateOrderToPaid = asyncHandler(async (req, res) => {
   try {
     const { paymentIntentId, transactionId } = req.body;
@@ -278,9 +265,7 @@ export const updateOrderToPaid = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order to delivered
-// @route   PUT /api/orders/:id/deliver
-// @access  Private/Admin
+
 export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -329,9 +314,7 @@ export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Cancel order
-// @route   PUT /api/orders/:id/cancel
-// @access  Private
+
 export const cancelOrder = asyncHandler(async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate("orderItems.product");

@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ====================== MIDDLEWARE ======================
+
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
@@ -108,7 +108,7 @@ userSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
-// ====================== INSTANCE METHODS ======================
+
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
@@ -136,7 +136,7 @@ userSchema.methods.isAdmin = function () {
   return this.role === "admin";
 };
 
-// ====================== STATIC METHODS ======================
+
 
 userSchema.statics.findByEmail = async function (email) {
   return await this.findOne({ email }).select("+password");
@@ -146,7 +146,7 @@ userSchema.statics.findActiveUsers = async function () {
   return await this.find({ isActive: true });
 };
 
-// ====================== VIRTUALS ======================
+
 
 userSchema.virtual("fullName").get(function () {
   return this.name;
@@ -160,14 +160,14 @@ userSchema.virtual("accountAge").get(function () {
   return diffDays;
 });
 
-// ====================== INDEXES ======================
+
 
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 userSchema.index({ createdAt: -1 });
 
-// ====================== QUERY HELPERS ======================
+
 
 userSchema.query.byRole = function (role) {
   return this.where({ role });

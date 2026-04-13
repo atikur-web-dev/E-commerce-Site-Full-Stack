@@ -3,9 +3,7 @@ import Product from "../models/Product.js";
 import asyncHandler from "express-async-handler";
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Public
+
 export const getProducts = asyncHandler(async (req, res) => {
   try {
     console.log(" Fetching all products...");
@@ -32,9 +30,7 @@ export const getProducts = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get products by category
-// @route   GET /api/products/category/:category
-// @access  Public
+
 export const getProductsByCategory = asyncHandler(async (req, res) => {
   try {
     const category = req.params.category;
@@ -68,9 +64,6 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get product by ID
-// @route   GET /api/products/:id
-// @access  Public
 export const getProductById = asyncHandler(async (req, res) => {
   try {
     console.log(` Fetching product by ID: ${req.params.id}`);
@@ -99,9 +92,6 @@ export const getProductById = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get featured products
-// @route   GET /api/products/featured
-// @access  Public
 export const getFeaturedProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({ isFeatured: true });
@@ -116,9 +106,7 @@ export const getFeaturedProducts = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Create a product
-// @route   POST /api/products
-// @access  Private/Admin
+
 export const createProduct = asyncHandler(async (req, res) => {
   try {
     console.log(" Creating new product...");
@@ -168,9 +156,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update a product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
+
 export const updateProduct = asyncHandler(async (req, res) => {
   try {
     console.log(`✏️ Updating product: ${req.params.id}`);
@@ -218,9 +204,6 @@ export const updateProduct = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Delete a product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 export const deleteProduct = asyncHandler(async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -282,9 +265,6 @@ export const uploadProductImage = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Upload multiple product images
-// @route   POST /api/products/upload-multiple
-// @access  Private/Admin
 export const uploadMultipleImages = asyncHandler(async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -331,9 +311,6 @@ export const uploadMultipleImages = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Delete product image from Cloudinary
-// @route   DELETE /api/products/image/:publicId
-// @access  Private/Admin
 export const deleteProductImage = asyncHandler(async (req, res) => {
   try {
     const { publicId } = req.params;

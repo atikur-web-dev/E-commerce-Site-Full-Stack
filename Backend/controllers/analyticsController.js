@@ -4,9 +4,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 
-// @desc    Get sales analytics dashboard data
-// @route   GET /api/analytics/dashboard
-// @access  Private/Admin
+
 export const getDashboardAnalytics = asyncHandler(async (req, res) => {
   try {
     // 1. Sales Summary
@@ -122,9 +120,7 @@ export const getDashboardAnalytics = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get inventory analytics
-// @route   GET /api/analytics/inventory
-// @access  Private/Admin
+
 export const getInventoryAnalytics = asyncHandler(async (req, res) => {
   try {
     const inventoryStats = await Product.aggregate([

@@ -31,7 +31,7 @@ const upload = multer({
 export const uploadSingle = upload.single('image');
 
 // Multiple files upload
-export const uploadMultiple = upload.array('images', 10); // max 10 files
+export const uploadMultiple = upload.array('images', 10); 
 
 // Middleware to check if file exists
 export const checkFileUpload = (req, res, next) => {

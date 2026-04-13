@@ -78,9 +78,7 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options("*", cors(corsOptions));
-// ================================================================
 
-// ====================== MIDDLEWARE ======================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -97,7 +95,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   next();
 });
-// =======================================================
+
 
 // Database connection function with timeout
 const connectDB = async () => {
@@ -158,12 +156,12 @@ const connectDB = async () => {
   }
 };
 
-// ====================== API ROUTES ======================
+// == API ROUTES ===
 // Authentication Routes
 app.use("/api/auth", authRoutes);
 
 // User Management Routes
-app.use("/api/users", userRoutes); // This should come before admin
+app.use("/api/users", userRoutes); 
 
 // Product Routes
 app.use("/api/products", productRoutes);
@@ -178,11 +176,11 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 // Admin Routes
-app.use("/api/admin", adminRoutes); // ADD THIS LINE FOR ADMIN ROUTES
+app.use("/api/admin", adminRoutes); 
 
 app.use("/api/payment", paymentRoutes);
 
-// ====================== CLOUDINARY UPLOAD ROUTES ======================
+// == CLOUDINARY UPLOAD ROUTES ==
 // Test Cloudinary connection
 app.get("/api/cloudinary/test", protect, admin, (req, res) => {
   res.json({

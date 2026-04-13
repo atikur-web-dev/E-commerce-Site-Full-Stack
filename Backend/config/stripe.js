@@ -12,7 +12,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key', {
   apiVersion: '2023-10-16',
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000, 
 });
 
 console.log('Stripe Key Length:', process.env.STRIPE_SECRET_KEY.length);

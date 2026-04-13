@@ -2,9 +2,7 @@
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 
-// @desc    Get user's cart
-// @route   GET /api/cart
-// @access  Private
+
 export const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id }).populate(
@@ -36,9 +34,6 @@ export const getCart = async (req, res) => {
   }
 };
 
-// @desc    Add item to cart
-// @route   POST /api/cart
-// @access  Private
 export const addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
@@ -103,9 +98,7 @@ export const addToCart = async (req, res) => {
   }
 };
 
-// @desc    Update cart item quantity
-// @route   PUT /api/cart/:itemId
-// @access  Private
+
 export const updateCartItem = async (req, res) => {
   try {
     const { quantity } = req.body;
@@ -164,9 +157,7 @@ export const updateCartItem = async (req, res) => {
   }
 };
 
-// @desc    Remove item from cart
-// @route   DELETE /api/cart/:itemId
-// @access  Private
+
 export const removeFromCart = async (req, res) => {
   try {
     const { itemId } = req.params;
@@ -198,9 +189,7 @@ export const removeFromCart = async (req, res) => {
   }
 };
 
-// @desc    Clear cart
-// @route   DELETE /api/cart
-// @access  Private
+
 export const clearCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id });

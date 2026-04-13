@@ -3,6 +3,23 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { useCart } from "../../../context/CartContext";
+
+// React Icons import
+import {
+  FiHome, // Home icon
+  FiShoppingBag, // Shop/Bag icon
+  FiShoppingCart, // Cart icon
+  FiUser, // User profile icon
+  FiPackage, // Orders icon
+  FiHeart, // Wishlist icon
+  FiLogOut, // Logout icon
+  FiMenu, // Mobile menu icon
+  FiX, // Close icon
+  FiChevronDown, // Dropdown arrow
+  FiGrid, // Dashboard icon (admin)
+  FiSettings, // Settings icon (optional)
+} from "react-icons/fi";
+
 import "./Header.css";
 
 const Header = () => {
@@ -21,6 +38,7 @@ const Header = () => {
     logout();
     navigate("/login");
     setShowDropdown(false);
+    setShowMobileMenu(false);
   };
 
   const toggleDropdown = () => {
@@ -31,13 +49,14 @@ const Header = () => {
     setShowMobileMenu(!showMobileMenu);
   };
 
+  // Nav links with React Icons
   const navLinks = [
-    { path: "/", label: "Home", icon: "🏠" },
-    { path: "/shop", label: "Shop", icon: "🛍️" },
+    { path: "/", label: "Home", icon: FiHome },
+    { path: "/shop", label: "Shop", icon: FiShoppingBag },
     {
       path: "/cart",
       label: "Cart",
-      icon: "🛒",
+      icon: FiShoppingCart,
       badge: cartCount > 0 ? cartCount : null,
     },
   ];
@@ -49,7 +68,9 @@ const Header = () => {
           {/* Logo */}
           <div className="logo">
             <Link to="/" className="logo-link">
-              <div className="logo-icon">T</div>
+              <div className="logo-icon">
+                <FiShoppingBag size={20} strokeWidth={2} />
+              </div>
               <div className="logo-text">
                 <span className="logo-main">TechShop</span>
                 <span className="logo-sub">Premium Electronics</span>
@@ -60,22 +81,25 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="desktop-nav">
             <ul className="nav-list">
-              {navLinks.map((link) => (
-                <li key={link.path} className="nav-item">
-                  <NavLink
-                    to={link.path}
-                    className={({ isActive }) =>
-                      `nav-link ${isActive ? "active" : ""}`
-                    }
-                  >
-                    <span className="nav-icon">{link.icon}</span>
-                    <span className="nav-label">{link.label}</span>
-                    {link.badge && (
-                      <span className="nav-badge">{link.badge}</span>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <li key={link.path} className="nav-item">
+                    <NavLink
+                      to={link.path}
+                      className={({ isActive }) =>
+                        `nav-link ${isActive ? "active" : ""}`
+                      }
+                    >
+                      <Icon size={18} className="nav-icon" strokeWidth={1.5} />
+                      <span className="nav-label">{link.label}</span>
+                      {link.badge && (
+                        <span className="nav-badge">{link.badge}</span>
+                      )}
+                    </NavLink>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
@@ -90,15 +114,15 @@ const Header = () => {
                   onMouseLeave={() => setShowDropdown(false)}
                 >
                   <div className="user-avatar">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <div className="user-info">
                     <span className="user-name">
-                      Hi, {user?.name?.split(" ")[0] || 'User'}
+                      Hi, {user?.name?.split(" ")[0] || "User"}
                     </span>
-                    <span className="user-email">{user?.email || ''}</span>
+                    <span className="user-email">{user?.email || ""}</span>
                   </div>
-                  <span className="dropdown-arrow">▼</span>
+                  <FiChevronDown size={14} className="dropdown-arrow" />
                 </div>
 
                 {showDropdown && (
@@ -109,51 +133,73 @@ const Header = () => {
                   >
                     <div className="dropdown-header">
                       <div className="dropdown-avatar">
-                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
                       <div>
-                        <div className="dropdown-name">{user?.name || 'User'}</div>
-                        <div className="dropdown-email">{user?.email || ''}</div>
+                        <div className="dropdown-name">
+                          {user?.name || "User"}
+                        </div>
+                        <div className="dropdown-email">
+                          {user?.email || ""}
+                        </div>
                       </div>
                     </div>
                     <div className="dropdown-divider"></div>
-                    
+
                     <Link
                       to="/profile"
                       className="dropdown-item"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <span className="item-icon">👤</span>
+                      <FiUser size={16} className="item-icon" />
                       <span>My Profile</span>
                     </Link>
+
                     <Link
                       to="/orders"
                       className="dropdown-item"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <span className="item-icon">📦</span>
+                      <FiPackage size={16} className="item-icon" />
                       <span>My Orders</span>
                     </Link>
-                   
+
                     <Link
                       to="/profile?tab=wishlist"
                       className="dropdown-item"
                       onClick={() => setShowDropdown(false)}
                     >
-                      <span className="item-icon">❤️</span>
+                      <FiHeart size={16} className="item-icon" />
                       <span>Wishlist</span>
                       <span className="dropdown-badge">
                         {JSON.parse(
-                          localStorage.getItem(`wishlist_${user?._id}`)
+                          localStorage.getItem(`wishlist_${user?._id}`),
                         )?.length || 0}
                       </span>
                     </Link>
+
+                    {/* Admin Panel Link */}
+                    {user?.role === "admin" && (
+                      <>
+                        <div className="dropdown-divider"></div>
+                        <Link
+                          to="/admin/dashboard"
+                          className="dropdown-item"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          <FiGrid size={16} className="item-icon" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </>
+                    )}
+
                     <div className="dropdown-divider"></div>
+
                     <button
                       onClick={handleLogout}
                       className="dropdown-item logout"
                     >
-                      <span className="item-icon">🚪</span>
+                      <FiLogOut size={16} className="item-icon" />
                       <span>Logout</span>
                     </button>
                   </div>
@@ -173,8 +219,12 @@ const Header = () => {
 
           {/* Mobile Menu Toggle */}
           <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
-            <span className="menu-icon">☰</span>
-            {cartCount > 0 && (
+            {showMobileMenu ? (
+              <FiX size={22} className="menu-icon" />
+            ) : (
+              <FiMenu size={22} className="menu-icon" />
+            )}
+            {cartCount > 0 && !showMobileMenu && (
               <span className="mobile-cart-badge">{cartCount}</span>
             )}
           </button>
@@ -186,47 +236,75 @@ const Header = () => {
             <div className="mobile-nav-header">
               <h3>Menu</h3>
               <button className="close-menu" onClick={toggleMobileMenu}>
-                ×
+                <FiX size={24} />
               </button>
             </div>
 
             <div className="mobile-nav-links">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `mobile-nav-link ${isActive ? "active" : ""}`
-                  }
-                  onClick={toggleMobileMenu}
-                >
-                  <span className="mobile-nav-icon">{link.icon}</span>
-                  <span>{link.label}</span>
-                  {link.badge && (
-                    <span className="mobile-nav-badge">{link.badge}</span>
-                  )}
-                </NavLink>
-              ))}
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    className={({ isActive }) =>
+                      `mobile-nav-link ${isActive ? "active" : ""}`
+                    }
+                    onClick={toggleMobileMenu}
+                  >
+                    <Icon size={18} className="mobile-nav-icon" />
+                    <span>{link.label}</span>
+                    {link.badge && (
+                      <span className="mobile-nav-badge">{link.badge}</span>
+                    )}
+                  </NavLink>
+                );
+              })}
 
               {user ? (
                 <>
                   <div className="mobile-nav-divider"></div>
+
                   <Link
                     to="/profile"
                     className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
-                    <span className="mobile-nav-icon">👤</span>
+                    <FiUser size={18} className="mobile-nav-icon" />
                     <span>My Profile</span>
                   </Link>
+
                   <Link
                     to="/orders"
                     className="mobile-nav-link"
                     onClick={toggleMobileMenu}
                   >
-                    <span className="mobile-nav-icon">📦</span>
+                    <FiPackage size={18} className="mobile-nav-icon" />
                     <span>My Orders</span>
                   </Link>
+
+                  <Link
+                    to="/profile?tab=wishlist"
+                    className="mobile-nav-link"
+                    onClick={toggleMobileMenu}
+                  >
+                    <FiHeart size={18} className="mobile-nav-icon" />
+                    <span>Wishlist</span>
+                  </Link>
+
+                  {user?.role === "admin" && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="mobile-nav-link"
+                      onClick={toggleMobileMenu}
+                    >
+                      <FiGrid size={18} className="mobile-nav-icon" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+
+                  <div className="mobile-nav-divider"></div>
+
                   <button
                     onClick={() => {
                       handleLogout();
@@ -234,7 +312,7 @@ const Header = () => {
                     }}
                     className="mobile-nav-link logout"
                   >
-                    <span className="mobile-nav-icon">🚪</span>
+                    <FiLogOut size={18} className="mobile-nav-icon" />
                     <span>Logout</span>
                   </button>
                 </>
