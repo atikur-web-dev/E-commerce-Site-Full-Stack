@@ -1,3 +1,4 @@
+// Frontend/src/utils/testAuth.js
 import { authAPI } from "../services/api";
 
 export const testAuthAPI = async () => {
