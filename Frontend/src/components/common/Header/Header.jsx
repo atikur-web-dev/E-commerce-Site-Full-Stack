@@ -1,23 +1,23 @@
 // Frontend/src/components/common/Header/Header.jsx
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, NavLink } from "react-router-dom";
+import { Link, useNavigate, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { useCart } from "../../../context/CartContext";
 
 // React Icons import
 import {
-  FiHome, // Home icon
-  FiShoppingBag, // Shop/Bag icon
-  FiShoppingCart, // Cart icon
-  FiUser, // User profile icon
-  FiPackage, // Orders icon
-  FiHeart, // Wishlist icon
-  FiLogOut, // Logout icon
-  FiMenu, // Mobile menu icon
-  FiX, // Close icon
-  FiChevronDown, // Dropdown arrow
-  FiGrid, // Dashboard icon (admin)
-  FiSettings, // Settings icon (optional)
+  FiHome,
+  FiShoppingBag,
+  FiShoppingCart,
+  FiUser,
+  FiPackage,
+  FiHeart,
+  FiLogOut,
+  FiMenu,
+  FiX,
+  FiChevronDown,
+  FiGrid,
+  FiSettings,
 } from "react-icons/fi";
 
 import "./Header.css";
@@ -26,6 +26,7 @@ const Header = () => {
   const { user, logout } = useAuth();
   const { cartItems, getTotalItems } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -207,10 +208,16 @@ const Header = () => {
               </div>
             ) : (
               <div className="auth-buttons">
-                <Link to="/login" className="btn btn-outline btn-sm">
+                <Link 
+                  to="/login" 
+                  className={`btn btn-outline btn-sm ${location.pathname === '/login' ? 'active-auth-btn' : ''}`}
+                >
                   Login
                 </Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
+                <Link 
+                  to="/register" 
+                  className={`btn btn-primary btn-sm ${location.pathname === '/register' ? 'active-auth-btn' : ''}`}
+                >
                   Sign Up
                 </Link>
               </div>
@@ -319,22 +326,26 @@ const Header = () => {
               ) : (
                 <>
                   <div className="mobile-nav-divider"></div>
-                  <Link
+                  <NavLink
                     to="/login"
-                    className="mobile-nav-link"
+                    className={({ isActive }) =>
+                      `mobile-nav-link ${isActive ? "active" : ""}`
+                    }
                     onClick={toggleMobileMenu}
                   >
-                    <span className="mobile-nav-icon">🔑</span>
+                    <FiUser size={18} className="mobile-nav-icon" />
                     <span>Login</span>
-                  </Link>
-                  <Link
+                  </NavLink>
+                  <NavLink
                     to="/register"
-                    className="mobile-nav-link"
+                    className={({ isActive }) =>
+                      `mobile-nav-link ${isActive ? "active" : ""}`
+                    }
                     onClick={toggleMobileMenu}
                   >
-                    <span className="mobile-nav-icon">📝</span>
+                    <FiUser size={18} className="mobile-nav-icon" />
                     <span>Sign Up</span>
-                  </Link>
+                  </NavLink>
                 </>
               )}
             </div>

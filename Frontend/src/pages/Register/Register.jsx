@@ -2,6 +2,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaSpinner,
+  FaUserPlus,
+  FaShieldAlt,
+  FaEye,
+  FaEyeSlash,
+  FaCheck,
+} from "react-icons/fa";
 import "./Register.css";
 
 const Register = () => {
@@ -15,6 +28,8 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register, error: apiError } = useAuth();
   const navigate = useNavigate();
@@ -26,12 +41,10 @@ const Register = () => {
       [name]: value,
     }));
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
-    // Clear success message when user starts typing again
     if (successMessage) {
       setSuccessMessage("");
     }
@@ -40,28 +53,24 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Name validation
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     } else if (formData.name.length < 2) {
       newErrors.name = "Name must be at least 2 characters";
     }
 
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email address";
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
@@ -82,7 +91,6 @@ const Register = () => {
 
     setIsSubmitting(true);
     setSuccessMessage("");
-    // Clear previous errors
     setErrors({});
 
     const userData = {
@@ -91,19 +99,13 @@ const Register = () => {
       password: formData.password,
     };
 
-    console.log("Registering user:", userData);
-
     const result = await register(userData);
-
     setIsSubmitting(false);
 
     if (result.success) {
-      // ✅ SUCCESS
       setSuccessMessage(
-        " Registration successful! Please login with your credentials."
+        "Registration successful! Please login with your credentials.",
       );
-
-      // Clear form
       setFormData({
         name: "",
         email: "",
@@ -111,7 +113,6 @@ const Register = () => {
         confirmPassword: "",
       });
 
-      // Auto-redirect to login after 3 seconds
       setTimeout(() => {
         navigate("/login", {
           state: {
@@ -121,7 +122,6 @@ const Register = () => {
         });
       }, 3000);
     } else {
-      // ✅ ERROR: Show specific error message
       if (result.error.includes("already exists")) {
         setErrors({
           email:
@@ -139,19 +139,38 @@ const Register = () => {
 
   return (
     <div className="register-container">
+      {/* Professional Background Image with Overlay */}
+      <div className="register-background">
+        <div className="background-overlay"></div>
+        <div className="background-pattern"></div>
+      </div>
+
+      {/* Animated Gradient Orbs */}
+      <div className="gradient-orb orb-1"></div>
+      <div className="gradient-orb orb-2"></div>
+      <div className="gradient-orb orb-3"></div>
+
       <div className="register-card">
         <div className="register-header">
+          <div className="header-icon-wrapper">
+            <div className="header-icon">
+              <FaUserPlus className="icon-pulse" />
+            </div>
+          </div>
           <h1 className="register-title">Create Account</h1>
-          <p className="register-subtitle">Join ShopEasy today</p>
+          <p className="register-subtitle">
+            Join us and start your journey today
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="register-form" noValidate>
-          {/* Success Message */}
           {successMessage && (
             <div className="success-message">
-              <div className="success-icon">✓</div>
+              <div className="success-icon-wrapper">
+                <FaCheckCircle className="success-icon" />
+              </div>
               <div className="success-text">
-                <p>{successMessage}</p>
+                <p className="success-title">{successMessage}</p>
                 <p className="redirect-text">
                   Redirecting to login page in 3 seconds...
                 </p>
@@ -162,22 +181,29 @@ const Register = () => {
           {/* Name Field */}
           <div className="form-group">
             <label htmlFor="name" className="form-label">
-              Full Name
+              <FaUser className="label-icon" />
+              <span> Full Name</span>
             </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`form-input ${errors.name ? "error" : ""}`}
-              placeholder="Enter your full name"
-              disabled={isSubmitting || successMessage}
-              autoComplete="name"
-            />
+            <div className="input-wrapper">
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`form-input ${errors.name ? "error" : ""}`}
+                placeholder="Your Name"
+                disabled={isSubmitting || successMessage}
+                autoComplete="name"
+              />
+              {formData.name && !errors.name && (
+                <FaCheckCircle className="input-success-icon" />
+              )}
+            </div>
             {errors.name && (
               <span className="error-message">
-                <span className="error-icon">⚠</span> {errors.name}
+                <FaExclamationCircle className="error-icon" />
+                <span>{errors.name}</span>
               </span>
             )}
           </div>
@@ -185,22 +211,29 @@ const Register = () => {
           {/* Email Field */}
           <div className="form-group">
             <label htmlFor="email" className="form-label">
-              Email Address
+              <FaEnvelope className="label-icon" />
+              <span> Email Address</span>
             </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`form-input ${errors.email ? "error" : ""}`}
-              placeholder="Enter your email"
-              disabled={isSubmitting || successMessage}
-              autoComplete="email"
-            />
+            <div className="input-wrapper">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`form-input ${errors.email ? "error" : ""}`}
+                placeholder="you@example.com"
+                disabled={isSubmitting || successMessage}
+                autoComplete="email"
+              />
+              {formData.email && !errors.email && (
+                <FaCheckCircle className="input-success-icon" />
+              )}
+            </div>
             {errors.email && (
               <span className="error-message">
-                <span className="error-icon">⚠</span> {errors.email}
+                <FaExclamationCircle className="error-icon" />
+                <span>{errors.email}</span>
               </span>
             )}
           </div>
@@ -208,22 +241,34 @@ const Register = () => {
           {/* Password Field */}
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              Password
+              <FaLock className="label-icon" />
+              <span> Password</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`form-input ${errors.password ? "error" : ""}`}
-              placeholder="At least 6 characters"
-              disabled={isSubmitting || successMessage}
-              autoComplete="new-password"
-            />
+            <div className="input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`form-input ${errors.password ? "error" : ""}`}
+                placeholder=""
+                disabled={isSubmitting || successMessage}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isSubmitting || successMessage}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
             {errors.password && (
               <span className="error-message">
-                <span className="error-icon">⚠</span> {errors.password}
+                <FaExclamationCircle className="error-icon" />
+                <span>{errors.password}</span>
               </span>
             )}
           </div>
@@ -231,30 +276,41 @@ const Register = () => {
           {/* Confirm Password Field */}
           <div className="form-group">
             <label htmlFor="confirmPassword" className="form-label">
-              Confirm Password
+              <FaCheck className="label-icon" />
+              <span> Confirm Password</span>
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={`form-input ${errors.confirmPassword ? "error" : ""}`}
-              placeholder="Confirm your password"
-              disabled={isSubmitting || successMessage}
-              autoComplete="new-password"
-            />
+            <div className="input-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`form-input ${errors.confirmPassword ? "error" : ""}`}
+                placeholder=""
+                disabled={isSubmitting || successMessage}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={isSubmitting || successMessage}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <span className="error-message">
-                <span className="error-icon">⚠</span> {errors.confirmPassword}
+                <FaExclamationCircle className="error-icon" />
+                <span>{errors.confirmPassword}</span>
               </span>
             )}
           </div>
 
-          {/* ✅ API Error Display */}
           {errors.api && (
             <div className="api-error-message">
-              <span className="error-icon">❌</span>
+              <FaExclamationCircle className="api-error-icon" />
               <span className="error-text">{errors.api}</span>
             </div>
           )}
@@ -268,6 +324,7 @@ const Register = () => {
                 className="checkbox-input"
                 disabled={isSubmitting || successMessage}
               />
+              <span className="checkbox-custom"></span>
               <span className="checkbox-text">
                 I agree to the{" "}
                 <a href="/terms" className="terms-link">
@@ -289,18 +346,23 @@ const Register = () => {
           >
             {isSubmitting ? (
               <>
-                <span className="spinner"></span>
-                Creating Account...
+                <FaSpinner className="spinner-icon" />
+                <span>Creating Account...</span>
               </>
             ) : successMessage ? (
-              "✓ Registration Successful!"
+              <>
+                <FaCheckCircle />
+                <span>Registration Successful!</span>
+              </>
             ) : (
-              "Create Account"
+              <>
+                <FaUserPlus />
+                <span>Create Account</span>
+              </>
             )}
           </button>
         </form>
 
-        {/* Already have account */}
         <div className="login-redirect">
           <p className="redirect-text">
             Already have an account?{" "}
@@ -311,15 +373,13 @@ const Register = () => {
         </div>
 
         <div className="register-footer">
+          <div className="security-badge">
+            <FaShieldAlt className="shield-icon" />
+            <span>Your data is protected with enterprise-grade security</span>
+          </div>
           <p className="terms-text">
-            By creating an account, you agree to our{" "}
-            <a href="/terms" className="terms-link">
-              Terms
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="terms-link">
-              Privacy Policy
-            </a>
+            By creating an account, you agree to our Terms of Service and
+            Privacy Policy
           </p>
         </div>
       </div>

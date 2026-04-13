@@ -58,7 +58,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2024 ShopEasy. All rights reserved.</p>
+          <p>© 2026 ShopEasy. All rights reserved.</p>
         </div>
       </div>
     </footer>
